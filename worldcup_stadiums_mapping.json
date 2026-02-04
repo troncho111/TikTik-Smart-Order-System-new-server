@@ -1,0 +1,100 @@
+{
+  "stadiums": {
+    "MetLife Stadium": {
+      "city": "East Rutherford",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/MetLife_Stadium.png",
+      "capacity": 78576
+    },
+    "SoFi Stadium": {
+      "city": "Los Angeles",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Los_Angeles_SoFi.png",
+      "capacity": 69650
+    },
+    "AT&T Stadium": {
+      "city": "Arlington",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Dallas_ATT.png",
+      "capacity": 70122
+    },
+    "Hard Rock Stadium": {
+      "city": "Miami",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Miami_Hard_Rock.png",
+      "capacity": 64091
+    },
+    "Estadio Azteca": {
+      "city": "Mexico City",
+      "country": "Mexico",
+      "map_file": "attached_assets/worldcup_stadium_maps/Mexico_City_Azteca.png",
+      "capacity": 72766
+    },
+    "Estadio Guadalajara": {
+      "city": "Guadalajara",
+      "country": "Mexico",
+      "map_file": "attached_assets/worldcup_stadium_maps/Guadalajara_Stadium.png",
+      "capacity": 44330
+    },
+    "Estadio Monterrey": {
+      "city": "Monterrey",
+      "country": "Mexico",
+      "map_file": "attached_assets/worldcup_stadium_maps/Monterrey_Stadium.png",
+      "capacity": 50113
+    },
+    "BC Place": {
+      "city": "Vancouver",
+      "country": "Canada",
+      "map_file": "attached_assets/worldcup_stadium_maps/Vancouver_BC_Place.png",
+      "capacity": 48821
+    },
+    "BMO Field": {
+      "city": "Toronto",
+      "country": "Canada",
+      "map_file": "attached_assets/worldcup_stadium_maps/Toronto_BMO_Field.png",
+      "capacity": 44315
+    },
+    "Mercedes-Benz Stadium": {
+      "city": "Atlanta",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Atlanta_Mercedes_Benz.png",
+      "capacity": 67382
+    },
+    "Gillette Stadium": {
+      "city": "Foxborough",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Boston_Gillette.png",
+      "capacity": 63815
+    },
+    "NRG Stadium": {
+      "city": "Houston",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Houston_NRG.png",
+      "capacity": 68311
+    },
+    "Arrowhead Stadium": {
+      "city": "Kansas City",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Kansas_City_Arrowhead.png",
+      "capacity": 67513
+    },
+    "Lincoln Financial Field": {
+      "city": "Philadelphia",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Philadelphia_Lincoln.png",
+      "capacity": 65827
+    },
+    "Levi's Stadium": {
+      "city": "San Francisco",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/San_Francisco_Levis.png",
+      "capacity": 69391
+    },
+    "Lumen Field": {
+      "city": "Seattle",
+      "country": "USA",
+      "map_file": "attached_assets/worldcup_stadium_maps/Seattle_Lumen.png",
+      "capacity": 65123
+    }
+  }
+}

@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Banner 1400x200</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&family=Rubik:wght@700;900&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/js/all.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: transparent;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Heebo', sans-serif;
+        }
+
+        .banner-container {
+            width: 1400px;
+            height: 200px;
+            position: relative;
+            background: linear-gradient(105deg, #ffffff 25%, #f0f8ff 40%, #e0f2fe 100%);
+            border-radius: 12px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid #ddd;
+        }
+
+        .bg-graphics {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.15;
+            background-image: radial-gradient(#3b82f6 1px, transparent 1px);
+            background-size: 20px 20px;
+        }
+        
+        .mood-gradient {
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 60%;
+            height: 100%;
+            background: linear-gradient(to left, rgba(37, 99, 235, 0.1), transparent);
+            z-index: 1;
+        }
+
+        .logo-area {
+            position: relative;
+            z-index: 10;
+            width: 35%;
+            padding-right: 40px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .visual-area {
+            position: relative;
+            z-index: 5;
+            width: 30%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .cta-area {
+            position: relative;
+            z-index: 10;
+            width: 35%;
+            padding-left: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+        }
+
+        .logo-text {
+            font-family: 'Rubik', sans-serif;
+            font-weight: 900;
+            font-size: 85px;
+            line-height: 1;
+            color: #b91c1c;
+            letter-spacing: -2px;
+            position: relative;
+            text-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+        }
+        
+        .logo-subtext {
+            background-color: #333;
+            color: white;
+            padding: 4px 12px;
+            font-size: 18px;
+            font-weight: 700;
+            border-radius: 4px;
+            transform: skewX(-10deg);
+            display: inline-block;
+            margin-top: -5px;
+            margin-right: 5px;
+            box-shadow: 3px 3px 0px rgba(0,0,0,0.2);
+            width: fit-content;
+        }
+        
+        .logo-subtext span {
+            display: block;
+            transform: skewX(10deg);
+        }
+
+        .domain-suffix {
+            font-size: 30px;
+            color: #666;
+            font-weight: 700;
+        }
+
+        .mic-icon {
+            color: #333;
+            font-size: 0.6em;
+            position: absolute;
+            left: 142px;
+            top: 15px;
+        }
+
+        .cta-text {
+            font-family: 'Rubik', sans-serif;
+            font-weight: 900;
+            font-size: 42px;
+            color: #000;
+            line-height: 1.1;
+            text-transform: uppercase;
+        }
+
+        .trophy-icon {
+            font-size: 140px;
+            background: linear-gradient(to bottom, #fcd34d, #d97706);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 10px 10px rgba(217, 119, 6, 0.4));
+            transform: rotate(-10deg);
+            z-index: 2;
+        }
+
+        .soccer-player {
+            position: absolute;
+            right: -20px;
+            top: 20px;
+            font-size: 100px;
+            color: #1e3a8a;
+            opacity: 0.8;
+            transform: scaleX(-1) rotate(10deg);
+            z-index: 1;
+        }
+    </style>
+</head>
+<body>
+    <div class="banner-container">
+        <div class="bg-graphics"></div>
+        <div class="mood-gradient"></div>
+
+        <div class="logo-area">
+            <div class="logo-text">
+                tiktik<span class="domain-suffix">.co.il</span>
+                <i class="fa-solid fa-microphone-lines mic-icon" style="left: 165px; top: 18px; font-size: 40px; color: #333;"></i>
+            </div>
+            <div class="logo-subtext">
+                <span>אירועי ספורט והופעות בחו"ל</span>
+            </div>
+        </div>
+
+        <div class="visual-area">
+            <i class="fa-solid fa-trophy trophy-icon"></i>
+            <i class="fa-solid fa-person-running soccer-player"></i>
+        </div>
+
+        <div class="cta-area">
+            <div class="cta-text">
+                בואו נצא<br>
+                למסע בלתי נשכח!
+            </div>
+        </div>
+    </div>
+</body>
+</html>
