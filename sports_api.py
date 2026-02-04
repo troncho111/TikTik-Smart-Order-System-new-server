@@ -75,42 +75,28 @@ CHAMPIONS_LEAGUE_TEAMS = [
 ]
 
 OPENFOOTBALL_URLS = {
-    "Spanish La Liga": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/es.1.json",
-    "English Premier League": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/en.1.json",
-    "Italian Serie A": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/it.1.json",
-    "German Bundesliga": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/de.1.json",
-    "French Ligue 1": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/fr.1.json"
+    "Spanish La Liga": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/es.1.json",
+    "English Premier League": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/en.1.json",
+    "Italian Serie A": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/it.1.json",
+    "German Bundesliga": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/de.1.json",
+    "French Ligue 1": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/fr.1.json"
 }
 
+# Champions League 2026 fixtures
 CHAMPIONS_LEAGUE_FIXTURES = [
-    {"date": "2026-01-20", "time": "18:45", "home_team": "Bodo/Glimt", "away_team": "Manchester City", "round": "Champions League", "venue": "Aspmyra Stadion", "city": "Bodo", "country": "Norway"},
-    {"date": "2026-01-20", "time": "20:00", "home_team": "Tottenham Hotspur", "away_team": "Borussia Dortmund", "round": "Champions League", "venue": "Tottenham Hotspur Stadium", "city": "London", "country": "United Kingdom"},
-    {"date": "2026-01-20", "time": "20:00", "home_team": "Sporting Portugal", "away_team": "Paris Saint-Germain", "round": "Champions League", "venue": "Jose Alvalade", "city": "Lisbon", "country": "Portugal"},
-    {"date": "2026-01-20", "time": "21:00", "home_team": "Villarreal", "away_team": "Ajax", "round": "Champions League", "venue": "Estadio de la Ceramica", "city": "Villarreal", "country": "Spain"},
-    {"date": "2026-01-20", "time": "21:00", "home_team": "FC Copenhagen", "away_team": "Napoli", "round": "Champions League", "venue": "Parken Stadium", "city": "Copenhagen", "country": "Denmark"},
-    {"date": "2026-01-20", "time": "21:00", "home_team": "Real Madrid", "away_team": "AS Monaco", "round": "Champions League", "venue": "Santiago Bernabeu", "city": "Madrid", "country": "Spain"},
-    {"date": "2026-01-20", "time": "21:00", "home_team": "Inter Milan", "away_team": "Arsenal", "round": "Champions League", "venue": "San Siro", "city": "Milan", "country": "Italy"},
-    {"date": "2026-01-21", "time": "18:45", "home_team": "Galatasaray", "away_team": "Atletico Madrid", "round": "Champions League", "venue": "Rams Park", "city": "Istanbul", "country": "Turkey"},
-    {"date": "2026-01-21", "time": "20:00", "home_team": "Chelsea", "away_team": "Pafos", "round": "Champions League", "venue": "Stamford Bridge", "city": "London", "country": "United Kingdom"},
-    {"date": "2026-01-21", "time": "20:00", "home_team": "Newcastle United", "away_team": "PSV", "round": "Champions League", "venue": "St James Park", "city": "Newcastle", "country": "United Kingdom"},
-    {"date": "2026-01-21", "time": "21:00", "home_team": "Atalanta", "away_team": "Athletic Bilbao", "round": "Champions League", "venue": "Atleti Azzurri d Italia", "city": "Bergamo", "country": "Italy"},
-    {"date": "2026-01-21", "time": "21:00", "home_team": "Juventus", "away_team": "Benfica", "round": "Champions League", "venue": "Juventus Arena", "city": "Torino", "country": "Italy"},
-    {"date": "2026-01-21", "time": "21:00", "home_team": "Bayern Munich", "away_team": "Union Saint-Gilloise", "round": "Champions League", "venue": "Allianz Arena", "city": "Munich", "country": "Germany"},
-    {"date": "2026-01-28", "time": "20:00", "home_team": "Benfica", "away_team": "Real Madrid", "round": "Champions League", "venue": "Estadio da Luz", "city": "Lisbon", "country": "Portugal"},
-    {"date": "2026-01-28", "time": "20:00", "home_team": "Manchester City", "away_team": "Galatasaray", "round": "Champions League", "venue": "Etihad Stadium", "city": "Manchester", "country": "United Kingdom"},
-    {"date": "2026-01-28", "time": "20:00", "home_team": "Arsenal", "away_team": "Kairat Almaty", "round": "Champions League", "venue": "Emirates Stadium", "city": "London", "country": "United Kingdom"},
-    {"date": "2026-01-28", "time": "20:00", "home_team": "Liverpool", "away_team": "Qarabag FK", "round": "Champions League", "venue": "Anfield Road", "city": "Liverpool", "country": "United Kingdom"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Bayer Leverkusen", "away_team": "Villarreal", "round": "Champions League", "venue": "BayArena", "city": "Leverkusen", "country": "Germany"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Eintracht Frankfurt", "away_team": "Tottenham Hotspur", "round": "Champions League", "venue": "Waldstadion", "city": "Frankfurt", "country": "Germany"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "AS Monaco", "away_team": "Juventus", "round": "Champions League", "venue": "Louis II Stadium", "city": "Monaco", "country": "Monaco"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Ajax", "away_team": "Olympiacos", "round": "Champions League", "venue": "Johan Cruyff Arena", "city": "Amsterdam", "country": "Netherlands"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "PSV", "away_team": "Bayern Munich", "round": "Champions League", "venue": "Philips Stadion", "city": "Eindhoven", "country": "Netherlands"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Borussia Dortmund", "away_team": "Inter Milan", "round": "Champions League", "venue": "Signal Iduna Park", "city": "Dortmund", "country": "Germany"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "FC Barcelona", "away_team": "FC Copenhagen", "round": "Champions League", "venue": "Camp Nou", "city": "Barcelona", "country": "Spain"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Athletic Bilbao", "away_team": "Sporting Portugal", "round": "Champions League", "venue": "Estadio San Mames", "city": "Bilbao", "country": "Spain"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Paris Saint-Germain", "away_team": "Newcastle United", "round": "Champions League", "venue": "Parc des Princes", "city": "Paris", "country": "France"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Atletico Madrid", "away_team": "Bodo/Glimt", "round": "Champions League", "venue": "Estadio Metropolitano", "city": "Madrid", "country": "Spain"},
-    {"date": "2026-01-28", "time": "21:00", "home_team": "Napoli", "away_team": "Chelsea", "round": "Champions League", "venue": "Stadio Diego Armando Maradona", "city": "Napoli", "country": "Italy"},
+    {"date": "2026-02-17", "time": "20:45", "home_team": "Galatasaray", "away_team": "Juventus", "round": "Champions League", "venue": "Rams Park", "city": "Istanbul", "country": "Turkey"},
+    {"date": "2026-02-17", "time": "21:00", "home_team": "Benfica", "away_team": "Real Madrid", "round": "Champions League", "venue": "Estadio da Luz", "city": "Lisbon", "country": "Portugal"},
+    {"date": "2026-02-17", "time": "21:00", "home_team": "AS Monaco", "away_team": "Paris Saint-Germain", "round": "Champions League", "venue": "Louis II Stadium", "city": "Fontvieille", "country": "Monaco"},
+    {"date": "2026-02-17", "time": "21:00", "home_team": "Borussia Dortmund", "away_team": "Atalanta", "round": "Champions League", "venue": "Signal Iduna Park", "city": "Dortmund", "country": "Germany"},
+    {"date": "2026-02-18", "time": "22:00", "home_team": "Olympiacos", "away_team": "Bayer Leverkusen", "round": "Champions League", "venue": "Georgios Karaiskakis", "city": "Piraeus", "country": "Greece"},
+    {"date": "2026-02-24", "time": "18:45", "home_team": "Atletico Madrid", "away_team": "Club Brugge", "round": "Champions League", "venue": "Estadio Metropolitano", "city": "Madrid", "country": "Spain"},
+    {"date": "2026-02-24", "time": "20:00", "home_team": "Newcastle United", "away_team": "Qarabag FK", "round": "Champions League", "venue": "St James Park", "city": "Newcastle Upon Tyne", "country": "United Kingdom"},
+    {"date": "2026-02-24", "time": "21:00", "home_team": "Inter Milan", "away_team": "Bodo/Glimt", "round": "Champions League", "venue": "San Siro", "city": "Milan", "country": "Italy"},
+    {"date": "2026-02-24", "time": "21:00", "home_team": "Bayer Leverkusen", "away_team": "Olympiacos", "round": "Champions League", "venue": "BayArena", "city": "Leverkusen", "country": "Germany"},
+    {"date": "2026-02-25", "time": "18:45", "home_team": "Atalanta", "away_team": "Borussia Dortmund", "round": "Champions League", "venue": "Atleti Azzurri d Italia", "city": "Bergamo", "country": "Italy"},
+    {"date": "2026-02-25", "time": "21:00", "home_team": "Real Madrid", "away_team": "Benfica", "round": "Champions League", "venue": "Santiago Bernabeu", "city": "Madrid", "country": "Spain"},
+    {"date": "2026-02-25", "time": "21:00", "home_team": "Juventus", "away_team": "Galatasaray", "round": "Champions League", "venue": "Juventus Arena", "city": "Torino", "country": "Italy"},
+    {"date": "2026-02-25", "time": "21:00", "home_team": "Paris Saint-Germain", "away_team": "AS Monaco", "round": "Champions League", "venue": "Parc des Princes", "city": "Paris", "country": "France"},
 ]
 
 TEAM_HEBREW_NAMES = {
@@ -270,104 +256,10 @@ TEAM_HEBREW_NAMES = {
     "קוראסאו": "Curacao",
 }
 
-API_NAME_MAPPINGS = {
-    "club atlético de madrid": "אתלטיקו מדריד",
-    "real madrid cf": "ריאל מדריד",
-    "fc barcelona": "ברצלונה",
-    "sevilla fc": "סביליה",
-    "valencia cf": "ולנסיה",
-    "real betis balompié": "ריאל בטיס",
-    "real sociedad de fútbol": "ריאל סוסיאדד",
-    "athletic club": "אתלטיק בילבאו",
-    "villarreal cf": "ויאריאל",
-    "ca osasuna": "אוסאסונה",
-    "deportivo alavés": "אלאבס",
-    "getafe cf": "חטאפה",
-    "girona fc": "ג'ירונה",
-    "rc celta de vigo": "סלטה ויגו",
-    "rcd espanyol de barcelona": "אספניול",
-    "rcd mallorca": "מיורקה",
-    "rayo vallecano de madrid": "ראיו ואייקאנו",
-    "real valladolid cf": "ויאדוליד",
-    "ud las palmas": "לאס פלמאס",
-    "cd leganés": "לגאנס",
-    "elche cf": "אלצ'ה",
-    "levante ud": "לבנטה",
-    "real oviedo": "אוביידו",
-    "manchester united fc": "מנצ'סטר יונייטד",
-    "manchester city fc": "מנצ'סטר סיטי",
-    "liverpool fc": "ליברפול",
-    "chelsea fc": "צ'לסי",
-    "arsenal fc": "ארסנל",
-    "tottenham hotspur fc": "טוטנהאם",
-    "newcastle united fc": "ניוקאסל",
-    "juventus fc": "יובנטוס",
-    "ac milan": "מילאן",
-    "fc internazionale milano": "אינטר מילאן",
-    "ssc napoli": "נאפולי",
-    "as roma": "רומא",
-    "ss lazio": "לאציו",
-    "atalanta bc": "אטאלנטה",
-    "acf fiorentina": "פיורנטינה",
-    "fc bayern münchen": "באיירן מינכן",
-    "borussia dortmund": "דורטמונד",
-    "rb leipzig": "לייפציג",
-    "bayer 04 leverkusen": "לברקוזן",
-    "paris saint-germain fc": "פריז סן ז'רמן",
-    "olympique de marseille": "מרסיי",
-    "olympique lyonnais": "ליון",
-    "as monaco fc": "מונקו",
-    # Champions League teams
-    "bodo/glimt": "בודו/גלימט",
-    "manchester city": "מנצ'סטר סיטי",
-    "tottenham hotspur": "טוטנהאם",
-    "sporting portugal": "ספורטינג ליסבון",
-    "paris saint-germain": "פריז סן ז'רמן",
-    "villarreal": "ויאריאל",
-    "ajax": "אייאקס",
-    "fc copenhagen": "קופנהגן",
-    "napoli": "נאפולי",
-    "real madrid": "ריאל מדריד",
-    "as monaco": "מונקו",
-    "inter milan": "אינטר מילאן",
-    "arsenal": "ארסנל",
-    "galatasaray": "גלטסאראי",
-    "atletico madrid": "אתלטיקו מדריד",
-    "chelsea": "צ'לסי",
-    "pafos": "פאפוס",
-    "newcastle united": "ניוקאסל",
-    "psv": "פ.ס.וו",
-    "atalanta": "אטאלנטה",
-    "athletic bilbao": "אתלטיק בילבאו",
-    "juventus": "יובנטוס",
-    "benfica": "בנפיקה",
-    "bayern munich": "באיירן מינכן",
-    "union saint-gilloise": "יוניון סנט ז'ילואז",
-    "liverpool": "ליברפול",
-    "qarabag fk": "קראבאג",
-    "kairat almaty": "קאיראט אלמטי",
-    "bayer leverkusen": "לברקוזן",
-    "eintracht frankfurt": "פרנקפורט",
-    "olympiacos": "אולימפיאקוס",
-    "fc barcelona": "ברצלונה",
-}
-
 def get_hebrew_name(english_name: str) -> str:
-    """Get Hebrew name for a team - with partial matching for different name formats"""
-    name_lower = english_name.lower().strip()
-    
-    if name_lower in API_NAME_MAPPINGS:
-        return API_NAME_MAPPINGS[name_lower]
-    
+    """Get Hebrew name for a team"""
     for heb, eng in TEAM_HEBREW_NAMES.items():
-        eng_lower = eng.lower()
-        if eng_lower == name_lower:
-            return heb
-        if eng_lower in name_lower or name_lower in eng_lower:
-            return heb
-        name_clean = name_lower.replace(' fc', '').replace('fc ', '').replace(' cf', '').replace('cf ', '')
-        name_clean = name_clean.replace(' sc', '').replace('sc ', '').replace(' afc', '').replace('afc ', '')
-        if eng_lower == name_clean or name_clean == eng_lower:
+        if eng.lower() == english_name.lower():
             return heb
     return english_name
 
@@ -440,19 +332,6 @@ def get_all_popular_teams() -> list:
 def get_season_fixtures(league_name: str, season: str = "2024-2025") -> list:
     """Get all fixtures for a league season from openfootball GitHub or local file"""
     try:
-        if league_name == "UEFA Champions League":
-            return [{
-                'id': str(i),
-                'home_team': m.get('home_team', ''),
-                'away_team': m.get('away_team', ''),
-                'date': m.get('date', ''),
-                'time': m.get('time', ''),
-                'round': m.get('round', ''),
-                'venue': m.get('venue', ''),
-                'city': m.get('city', ''),
-                'country': m.get('country', '')
-            } for i, m in enumerate(CHAMPIONS_LEAGUE_FIXTURES)]
-        
         if league_name == "FIFA World Cup 2026":
             local_file = os.path.join(os.path.dirname(__file__), "worldcup2026.json")
             if os.path.exists(local_file):
@@ -469,6 +348,10 @@ def get_season_fixtures(league_name: str, season: str = "2024-2025") -> list:
                     'venue': m.get('venue', '')
                 } for i, m in enumerate(matches) if m.get('team1')]
             return []
+        
+        # Champions League has hardcoded fixtures
+        if league_name == "UEFA Champions League":
+            return CHAMPIONS_LEAGUE_FIXTURES
         
         url = OPENFOOTBALL_URLS.get(league_name)
         if not url:

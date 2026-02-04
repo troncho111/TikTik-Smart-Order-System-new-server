@@ -1,131 +1,116 @@
 """
-Passport OCR using Gemini AI
+Passport OCR using Google Gemini REST API
 Extracts passenger details from passport images
 """
 
 import os
 import json
-import time
-from google import genai
-from google.genai import types
+import base64
+import requests
 
-AI_INTEGRATIONS_GEMINI_API_KEY = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY")
-AI_INTEGRATIONS_GEMINI_BASE_URL = os.environ.get("AI_INTEGRATIONS_GEMINI_BASE_URL")
 
-def get_client():
-    """Create a new client instance to avoid stale connections"""
-    return genai.Client(
-        api_key=AI_INTEGRATIONS_GEMINI_API_KEY,
-        http_options={
-            'api_version': '',
-            'base_url': AI_INTEGRATIONS_GEMINI_BASE_URL   
+def is_gemini_key_configured() -> bool:
+    """Check if Gemini API key is configured"""
+    key1 = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY", "").strip()
+    key2 = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY_2", "").strip()
+    return bool(key1 or key2)
+
+
+def extract_passport_data(image_bytes: bytes, max_retries: int = 2) -> dict:
+    """
+    Extract passport data from image using Gemini REST API
+    Returns: dict with first_name, last_name, passport_number, birth_date, passport_expiry, success, error
+    """
+    if not is_gemini_key_configured():
+        return {
+            "first_name": "",
+            "last_name": "",
+            "passport_number": "",
+            "birth_date": "",
+            "passport_expiry": "",
+            "success": False,
+            "error": "נדרש מפתח API של Gemini"
         }
-    )
-
-def extract_passport_data(image_bytes: bytes, max_retries: int = 3) -> dict:
-    """
-    Extract passport information from an image using Gemini Vision.
     
-    Args:
-        image_bytes: The passport image as bytes
-        max_retries: Number of retry attempts for network errors
-        
-    Returns:
-        Dictionary with extracted fields:
-        - first_name: First/given name
-        - last_name: Surname/family name
-        - passport_number: Passport number
-        - birth_date: Date of birth (DD/MM/YYYY)
-        - passport_expiry: Passport expiry date (DD/MM/YYYY)
-    """
-    prompt = """Analyze this passport image carefully and extract ALL the following information.
-
-IMPORTANT: Look for these fields on the passport:
-- SURNAME / FAMILY NAME (שם משפחה) - usually at the top
-- GIVEN NAMES / FIRST NAME (שם פרטי) - usually below surname
-- PASSPORT NUMBER - the document number
-- DATE OF BIRTH - birth date
-- DATE OF EXPIRY - expiry date
-
-Also check the MRZ (Machine Readable Zone) at the bottom - the two lines of text with << symbols.
-The MRZ format is: SURNAME<<FIRSTNAME<<
-
-Return ONLY a valid JSON object with these exact keys (no markdown, no explanation):
+    # Get API keys
+    api_keys = [
+        os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY"),
+        os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY_2")
+    ]
+    api_keys = [k.strip() for k in api_keys if k and k.strip()]
+    
+    prompt = """Extract passport information from this image and return ONLY a JSON object (no markdown, no explanation):
 {
-    "first_name": "the given/first name EXACTLY as written on the passport",
-    "last_name": "the surname/family name EXACTLY as written on the passport", 
-    "passport_number": "the passport/document number",
-    "birth_date": "date of birth in DD/MM/YYYY format",
-    "passport_expiry": "passport expiry date in DD/MM/YYYY format"
+    "first_name": "given/first name",
+    "last_name": "surname/family name",
+    "passport_number": "passport number",
+    "birth_date": "DD/MM/YYYY",
+    "passport_expiry": "DD/MM/YYYY"
 }
-
-CRITICAL: You MUST extract the first_name and last_name. These are always on the passport.
-If any field cannot be found, use an empty string for that field.
-Return ONLY the JSON object, nothing else."""
-
+If you cannot find a field, use empty string. Return ONLY the JSON."""
+    
+    # Encode image to base64
+    image_b64 = base64.b64encode(image_bytes).decode('utf-8')
+    
     last_error = None
-    for attempt in range(max_retries):
-        try:
-            client = get_client()
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=[
-                    prompt,
-                    types.Part(
-                        inline_data=types.Blob(
-                            mime_type="image/jpeg",
-                            data=image_bytes
-                        )
-                    )
-                ]
-            )
-            
-            result_text = response.text.strip()
-            print(f"[Passport OCR] Raw AI response: {result_text}")
-            
-            if result_text.startswith("```"):
-                lines = result_text.split('\n')
-                result_text = '\n'.join(lines[1:-1])
-            
-            data = json.loads(result_text)
-            print(f"[Passport OCR] Parsed data: {data}")
-            print(f"[Passport OCR] first_name='{data.get('first_name', '')}', last_name='{data.get('last_name', '')}'")
-            
-            return {
-                "first_name": data.get("first_name", ""),
-                "last_name": data.get("last_name", ""),
-                "passport_number": data.get("passport_number", ""),
-                "birth_date": data.get("birth_date", ""),
-                "passport_expiry": data.get("passport_expiry", ""),
-                "success": True,
-                "error": None
-            }
-            
-        except json.JSONDecodeError as e:
-            return {
-                "first_name": "",
-                "last_name": "",
-                "passport_number": "",
-                "birth_date": "",
-                "passport_expiry": "",
-                "success": False,
-                "error": f"Could not parse response: {str(e)}"
-            }
-        except Exception as e:
-            last_error = str(e)
-            if "Connection refused" in last_error or "111" in last_error:
-                if attempt < max_retries - 1:
-                    time.sleep(2 ** attempt)
+    
+    for api_key in api_keys:
+        for attempt in range(max_retries):
+            try:
+                # Use Gemini REST API directly with v1beta
+                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+                
+                payload = {
+                    "contents": [{
+                        "parts": [
+                            {"text": prompt},
+                            {
+                                "inline_data": {
+                                    "mime_type": "image/jpeg",
+                                    "data": image_b64
+                                }
+                            }
+                        ]
+                    }]
+                }
+                
+                response = requests.post(url, json=payload, timeout=30)
+                
+                if response.status_code == 200:
+                    result = response.json()
+                    text = result.get('candidates', [{}])[0].get('content', {}).get('parts', [{}])[0].get('text', '')
+                    
+                    # Remove markdown if present
+                    text = text.strip()
+                    if text.startswith("```"):
+                        lines = text.split("\n")
+                        text = "\n".join(lines[1:-1])
+                    if text.startswith("json"):
+                        text = text[4:].strip()
+                    
+                    data = json.loads(text)
+                    
+                    return {
+                        "first_name": data.get("first_name", "").strip(),
+                        "last_name": data.get("last_name", "").strip(),
+                        "passport_number": data.get("passport_number", "").strip(),
+                        "birth_date": data.get("birth_date", "").strip(),
+                        "passport_expiry": data.get("passport_expiry", "").strip(),
+                        "success": True,
+                        "error": None
+                    }
+                else:
+                    last_error = f"{response.status_code} {response.text[:200]}"
+                    if response.status_code == 429:  # Rate limit
+                        break  # Try next key
                     continue
-            return {
-                "first_name": "",
-                "last_name": "",
-                "passport_number": "",
-                "birth_date": "",
-                "passport_expiry": "",
-                "success": False,
-                "error": last_error
-            }
+                    
+            except json.JSONDecodeError as e:
+                last_error = f"Could not parse JSON: {str(e)}"
+                continue
+            except Exception as e:
+                last_error = str(e)
+                continue
     
     return {
         "first_name": "",
@@ -134,5 +119,5 @@ Return ONLY the JSON object, nothing else."""
         "birth_date": "",
         "passport_expiry": "",
         "success": False,
-        "error": f"Failed after {max_retries} attempts: {last_error}"
+        "error": last_error or "Unknown error"
     }

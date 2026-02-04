@@ -1,13 +1,13 @@
 """
 Exchange Rate Module
 Fetches current exchange rates from Bank of Israel official API
-EUR, USD, GBP to ILS with 0.07 NIS margin
+EUR, USD, GBP to ILS with 0.05 NIS margin
 """
 
 import requests
 from datetime import datetime, timedelta
 
-RATE_MARGIN = 0.07
+RATE_MARGIN = 0.05
 CACHE_DURATION_HOURS = 1
 
 _rates_cache = {

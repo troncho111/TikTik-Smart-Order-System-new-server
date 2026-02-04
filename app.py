@@ -1645,7 +1645,7 @@ def page_new_order():
                     'random_data', 'passenger_list', 'order_generated', 'pdf_bytes',
                     'current_order_number', 'current_order_id', 'selected_team_data',
                     'away_team_data', 'home_team_hebrew', 'away_team_hebrew',
-                    'football_league', 'hotel_data', 'pasted_passport', 'pasted_flight',
+                    'football_league', 'hotel_data', 'pasted_passports', '_passport_paste_refresh', 'pasted_flight',
                     'worldcup_match', 'worldcup_venue', 'fixture_data', 'worldcup_stadium_map',
                     'pasted_stadium_map', 'saved_stadium_map_path', 'saved_stadium_map_bytes', '_selected_concert',
                     '_from_saved_concert', 'concert_venue_info', 'concert_artist_en',
@@ -3492,24 +3492,38 @@ def page_new_order():
                 help="העלה צילומים ברורים של דרכונים - כל דרכון יוסיף נוסע חדש"
             )
         with col_passport_paste:
-            passport_paste = paste_image_button("📋 הדבק דרכון", key="passport_paste")
+            # Initialize
+            if 'pasted_passports' not in st.session_state:
+                st.session_state['pasted_passports'] = []
+            if '_passport_paste_refresh' not in st.session_state:
+                st.session_state['_passport_paste_refresh'] = 0
+            
+            # Dynamic key with refresh counter
+            paste_key = f"passport_paste_{st.session_state['_passport_paste_refresh']}"
+            passport_paste = paste_image_button("📋 הדבק דרכון", key=paste_key)
+            
             if passport_paste.image_data:
-                st.session_state['pasted_passport'] = passport_paste.image_data
+                # Add to list and force component refresh
+                st.session_state['pasted_passports'].append(passport_paste.image_data)
+                st.session_state['_passport_paste_refresh'] += 1
+                st.success(f"✅ דרכון {len(st.session_state['pasted_passports'])} נוסף!")
+                st.rerun()
         
-        if st.session_state.get('pasted_passport'):
-            col_img, col_del = st.columns([3, 1])
-            with col_img:
-                st.image(st.session_state['pasted_passport'], caption="דרכון שהודבק", width=120)
-            with col_del:
-                if st.button("🗑️ מחק", key="clear_pasted_passport"):
-                    del st.session_state['pasted_passport']
-                    st.rerun()
+        # Display all pasted passports
+        if st.session_state.get('pasted_passports'):
+            st.info(f"📋 {len(st.session_state['pasted_passports'])} דרכונים מהלוח מוכנים לסריקה")
+            cols = st.columns(min(len(st.session_state['pasted_passports']), 5))
+            for i, pasted_img in enumerate(st.session_state['pasted_passports']):
+                with cols[i % 5]:
+                    st.image(pasted_img, caption=f"#{i+1}", width=80)
+            if st.button("🗑️ מחק הכל", key="clear_all_pasted"):
+                st.session_state['pasted_passports'] = []
+                st.session_state['_passport_paste_refresh'] += 1
+                st.rerun()
         
-        has_passport_input = passport_uploads or st.session_state.get('pasted_passport')
+        has_passport_input = passport_uploads or st.session_state.get('pasted_passports')
         if passport_uploads:
             st.info(f"📁 {len(passport_uploads)} דרכונים הועלו")
-        if st.session_state.get('pasted_passport') and not passport_uploads:
-            st.info("📋 דרכון אחד מוכן לסריקה (מהלוח)")
         
         scan_button = st.button("🔍 סרוק דרכונים והוסף נוסעים", type="primary", use_container_width=True)
         
@@ -3522,8 +3536,9 @@ def page_new_order():
             if passport_uploads:
                 for pf in passport_uploads:
                     images_to_scan.append(('file', pf))
-            if st.session_state.get('pasted_passport'):
-                images_to_scan.append(('pasted', st.session_state['pasted_passport']))
+            if st.session_state.get('pasted_passports'):
+                for pasted_img in st.session_state['pasted_passports']:
+                    images_to_scan.append(('pasted', pasted_img))
             
             for idx, (source_type, passport_data) in enumerate(images_to_scan):
                 source_name = f"דרכון מהלוח" if source_type == 'pasted' else passport_data.name

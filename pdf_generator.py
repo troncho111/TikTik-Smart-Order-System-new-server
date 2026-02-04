@@ -143,13 +143,21 @@ def generate_pdf(order_data: dict, stadium_image_path: str = None, hotel_image_p
         passengers = []
     passengers = [p for p in passengers if p]
     
-    # Combine first_name + last_name into 'name' field for template compatibility
+    # Normalize passenger dicts for templates: form uses first_name/last_name, templates use name/full_name
     for p in passengers:
-        if not p.get('name') and not p.get('full_name'):
-            first = p.get('first_name', '')
-            last = p.get('last_name', '')
-            if first or last:
-                p['name'] = f"{first} {last}".strip()
+        if not isinstance(p, dict):
+            continue
+        full_name = (
+            (p.get('first_name') or '').strip() + ' ' + (p.get('last_name') or '').strip()
+        ).strip()
+        if full_name and not p.get('name'):
+            p['name'] = full_name
+            p['full_name'] = full_name
+            p['name_en'] = full_name
+        if p.get('birth_date') and not p.get('dob'):
+            p['dob'] = p.get('birth_date')
+        if p.get('passport') and not p.get('passport_number'):
+            p['passport_number'] = p.get('passport')
     
     total_nis = order_data.get('total_nis', 0)
     if isinstance(total_nis, (int, float)):
@@ -201,7 +209,6 @@ def generate_pdf(order_data: dict, stadium_image_path: str = None, hotel_image_p
         'num_tickets': order_data.get('num_tickets', 0),
         'exchange_rate': order_data.get('exchange_rate', 4.0),
         'total_euro': order_data.get('total_euro', 0),
-        'currency_symbol': order_data.get('currency_symbol', '€'),
         'total_nis': total_nis_formatted,
         'final_price': total_nis_formatted,
         'order_number': order_data.get('order_number', ''),

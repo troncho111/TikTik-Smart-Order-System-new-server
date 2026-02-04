@@ -39,6 +39,12 @@ class EventType(enum.Enum):
     CONCERT = "concert"
     OTHER = "other"
 
+class ProposalStatus(enum.Enum):
+    DRAFT = "draft"
+    SENT = "sent"
+    ACCEPTED = "accepted"
+    REJECTED = "rejected"
+
 class UserSession(Base):
     __tablename__ = "user_sessions"
     
@@ -99,9 +105,9 @@ class Order(Base):
     customer_phone = Column(String(50))
     
     ticket_description = Column(Text)
-    block = Column(String(500))
-    row = Column(String(500))
-    seats = Column(String(500))
+    block = Column(String(50))
+    row = Column(String(50))
+    seats = Column(String(100))
     num_tickets = Column(Integer, default=1)
     price_per_ticket_euro = Column(Float, default=0)
     exchange_rate = Column(Float, default=3.78)
@@ -109,6 +115,7 @@ class Order(Base):
     total_nis = Column(Float, default=0)
     
     passengers = Column(Text)
+    games_data = Column(Text, nullable=True)
     
     status = Column(SQLEnum(OrderStatus), default=OrderStatus.DRAFT)
     sent_at = Column(DateTime, nullable=True)
@@ -273,6 +280,61 @@ class SavedArtist(Base):
             'genre': self.genre,
             'image_url': self.image_url,
             'db_id': self.id
+        }
+
+class ClientProposal(Base):
+    """Client proposals - saved quotes before converting to orders"""
+    __tablename__ = "client_proposals"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    proposal_name = Column(String(255), nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    
+    user_id = Column(Integer, ForeignKey('users.id'), nullable=True)
+    user = relationship("User")
+    
+    customer_name = Column(String(255), nullable=False)
+    customer_email = Column(String(255))
+    customer_phone = Column(String(50))
+    
+    proposal_data = Column(Text, nullable=False)
+    
+    total_price_euro = Column(Float, default=0)
+    total_price_nis = Column(Float, default=0)
+    
+    status = Column(SQLEnum(ProposalStatus), default=ProposalStatus.DRAFT)
+    is_active = Column(Boolean, default=True)
+    
+    pdf_path = Column(String(500))
+    sent_at = Column(DateTime, nullable=True)
+    viewed_at = Column(DateTime, nullable=True)
+    
+    def __repr__(self):
+        return f"<ClientProposal {self.proposal_name}>"
+    
+    def to_dict(self):
+        import json
+        data = {}
+        if self.proposal_data:
+            try:
+                data = json.loads(self.proposal_data)
+            except:
+                pass
+        
+        return {
+            'id': self.id,
+            'name': self.proposal_name,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+            'customer_name': self.customer_name,
+            'customer_email': self.customer_email,
+            'customer_phone': self.customer_phone,
+            'total_price_euro': self.total_price_euro,
+            'total_price_nis': self.total_price_nis,
+            'status': self.status.value if self.status else 'draft',
+            'is_active': self.is_active,
+            'data': data
         }
 
 class PackageTemplate(Base):

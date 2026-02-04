@@ -1,0 +1,26 @@
+version: '3.8'
+
+services:
+  tiktik-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tiktik-smart-order
+    ports:
+      - "5001:5000"
+    restart: unless-stopped
+    env_file:
+      - .env
+    external_links:
+      - tiktik-db:tiktik-db
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+networks:
+  default:
+    name: tiktik-smart-order-system_default
+    external: true
