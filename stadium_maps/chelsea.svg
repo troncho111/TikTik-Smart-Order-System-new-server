@@ -1,0 +1,355 @@
+<svg id="stadium" width="1040" height="960" viewbox="0 0 1040 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g class="extras">
+<g class="extra">
+<path class="extra" d="M751 303H291V593H751V303Z" fill="#999997" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M742 311.169H300V584.831H742V311.169Z" stroke="white" stroke-width="2"/>
+<path class="extra" d="M521 311.986V584.014" stroke="white" stroke-width="1.72727" stroke-linecap="square"/>
+<path class="extra" d="M521 493C545.853 493 566 472.853 566 448C566 423.147 545.853 403 521 403C496.147 403 476 423.147 476 448C476 472.853 496.147 493 521 493Z" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M373.402 369.169H300.055V524.38H373.402V369.169Z" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M330.843 408.38H300.055V485.986H330.843V408.38Z" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M668.654 369.169H742V524.38H668.654V369.169Z" stroke="white" stroke-width="2"/>
+<path class="extra" d="M711.213 408.38H742V485.986H711.213V408.38Z" stroke="white" stroke-width="1.72727"/>
+</g>
+<text class="stand-name" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="445.68" y="850.82">EAST STAND</tspan></text>
+<text class="stand-name" transform="translate(1039 239) rotate(90)" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="43.3594" y="18.8203">MATTHEW HARDING STAND</tspan></text>
+<text class="stand-name" transform="translate(4.00002 599) rotate(-90)" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="93.4609" y="18.8203">SHED END</tspan></text>
+<text class="stand-name" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="441.02" y="56.8203">WEST STAND</tspan></text>
+<path data-id="Union" d="M114.409 225.185L187.322 148.958L215.445 189.58L154.286 253.519L114.409 225.185Z" fill="#999997"/>
+<text transform="translate(135 217.906) rotate(-46.4097)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="0.0424805" y="12.0068">PLAYER’S
+</tspan><tspan x="3.53369" y="27.0068">LOUNGE</tspan></text>
+</g>
+<g data-id="C_42">
+<g data-id="C_42 C_44" class="color-c">
+<g data-id="S_810" class="section">
+<path class="block" d="M205.538 170L187.538 144H857.461L839.461 170H205.538Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="440" y="162.547">MILLENNIUM SUITES</tspan></text>
+</g>
+<g data-id="S_809" class="section">
+<path class="block" d="M820.077 198H736V173H837.385L820.077 198Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="739.35" y="191.007">HOLLINS/UTB</tspan></text>
+</g>
+<g data-id="S_808" class="section">
+<path class="block" d="M646 173V198H733V173H646Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="661.316" y="191.007">BONETTI</tspan></text>
+</g>
+<g data-id="S_807" class="section">
+<path class="block" d="M643 198V173H572V198H643Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="580.264" y="191.007">DRAKES</tspan></text>
+</g>
+<g data-id="S_43" class="section">
+<path class="block" d="M473 173H569V198H473V173Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="483.319" y="191.007">DIRECTORS</tspan></text>
+</g>
+<g data-id="S_806" class="section">
+<path class="block" d="M470 198H404V173H470V198Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="412.428" y="191.007">HARRIS</tspan></text>
+</g>
+<g data-id="S_805" class="section">
+<path class="block" d="M321 173H401V198H321V173Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="335.481" y="191.007">CLARKE</tspan></text>
+</g>
+<g data-id="S_804" class="section">
+<path class="block" d="M318 198V173H207.615L224.923 198H318Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="220.424" y="191.007">UTB/TAMBLING</tspan></text>
+</g>
+</g>
+<g data-id="C_42 C_43" class="color-c">
+<g data-id="S_801" class="section">
+<path class="block" d="M571 706V753H664V706H571Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="596.099" y="735.007">OSSES</tspan></text>
+</g>
+<g data-id="S_800" class="section">
+<path class="block" d="M568 706H475V753H568V706Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="485.139" y="735.007">EXEC CLUB</tspan></text>
+</g>
+<g data-id="S_799" class="section">
+<path class="block" d="M378 706H472V753H378V706Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="382.26" y="735.007">CANALETTOS</tspan></text>
+</g>
+</g>
+</g>
+<g data-id="C_39">
+<g data-id="C_41" class="color-f">
+<g data-id="S_327" class="section">
+<path class="block" d="M215 599.342L156.88 640.638L218.398 702.155L256.582 647L215 599.342Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="200.258" y="652.547">SL1</tspan></text>
+</g>
+<g data-id="S_328" class="section">
+<path class="block" d="M215 550H136V651.794L215 595.662V550Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="161.258" y="592.547">SL2</tspan></text>
+</g>
+<g data-id="S_329" class="section">
+<path class="block" d="M215 547V479H136V547H215Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="161.258" y="518.547">SL3</tspan></text>
+</g>
+</g>
+<g data-id="C_39 C_40" class="color-f">
+<g data-id="S_324" class="section">
+<path class="block" d="M150.798 799.798L60.2769 709.277L154.4 642.4L216.662 704.662L150.798 799.798Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="130.43" y="719.547">SU1</tspan></text>
+</g>
+<g data-id="S_325" class="section">
+<path class="block" d="M60 550V705.794L133 653.925V550H60Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="81.4297" y="592.547">SU2</tspan></text>
+</g>
+<g data-id="S_326" class="section">
+<path class="block" d="M60 479V547H133V479H60Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="81.4297" y="518.547">SU3</tspan></text>
+</g>
+</g>
+</g>
+<g data-id="C_30">
+<g data-id="C_42 C_43 C_36 C_1160" class="color-g">
+<g data-id="S_803 S_5646" class="section">
+<path class="block" d="M858.154 753H763V706H825.615L858.154 753Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="764.29" y="735.007">MANAGERS</tspan></text>
+</g>
+<g data-id="S_802 S_5645" class="section">
+<path class="block" d="M667 753H760V706H667V753Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="674.119" y="735.007">CHAMPIONS</tspan></text>
+</g>
+<g data-id="S_798 S_5644" class="section">
+<path class="block" d="M282 706H375V753H282V706Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="291.495" y="735.007">CANOVILLE</tspan></text>
+</g>
+<g data-id="S_797 S_5643" class="section">
+<path class="block" d="M279 706V753H186.846L219.385 706H279Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="13" letter-spacing="0em"><tspan x="211.463" y="735.007">CAPTAINS</tspan></text>
+</g>
+</g>
+<g data-id="C_36">
+<g data-id="C_32 C_38" class="color-d">
+<g data-id="S_322" class="section">
+<path class="block" d="M554 703V647H784.769L823.538 703H554Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="657.477" y="680.547">ELN6</tspan></text>
+</g>
+<g data-id="S_321" class="section">
+<path class="block" d="M260.231 647L221.462 703H495V647H260.231Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="347.422" y="680.547">ELS4</tspan></text>
+</g>
+</g>
+<g data-id="C_30 C_31 C_36 C_37" class="color-a" data-hover="C_42" data-include="C_42">
+<g data-id="S_317" class="section">
+<path class="block" d="M706 800H890.692L860.231 756H706V800Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="772.43" y="783.547">EU7</tspan></text>
+</g>
+<g data-id="S_316" class="section">
+<path class="block" d="M524 800H703V756H524V800Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="597.43" y="783.547">EU5</tspan></text>
+</g>
+<g data-id="S_315" class="section">
+<path class="block" d="M350 800H521V756H350V800Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="419.43" y="783.547">EU3</tspan></text>
+</g>
+<g data-id="S_314" class="section">
+<path class="block" d="M154.308 800H347V756H184.769L154.308 800Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="246.43" y="781.547">EU1</tspan></text>
+</g>
+</g>
+</g>
+<g data-id="C_33">
+<g data-id="C_32 C_35" class="color-d" data-hover="C46" data-include="C_46">
+<g data-id="S_312" class="section">
+<path class="block" d="M745.954 249L763.443 201H709V249H745.954Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="717.039" y="230.547">WL7</tspan></text>
+</g>
+<g data-id="S_311" class="section">
+<path class="block" d="M706 249V201H638V249H706Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="656.039" y="230.547">WL6</tspan></text>
+</g>
+<g data-id="S_310" class="section">
+<path class="block" d="M635 249V201H562V249H635Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="583.039" y="230.547">WL5</tspan></text>
+</g>
+<g data-id="S_309" class="section">
+<path class="block" d="M559 249V201H484V249H559Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="507.039" y="230.547">WL4</tspan></text>
+</g>
+<g data-id="S_308" class="section">
+<path class="block" d="M481 249V201H410V249H481Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="430.039" y="230.547">WL3</tspan></text>
+</g>
+</g>
+<g data-id="C_32 C_35 C_46" class="color-d">
+<g data-id="S_313 S_796" class="section">
+<path class="block" d="M784.769 249L818 201H766.636L749.147 249H784.769Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="763.039" y="230.547">WL8</tspan></text>
+</g>
+<g data-id="S_307 S_795" class="section">
+<path class="block" d="M407 249V201H326V249H407Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="351.039" y="230.547">WL2</tspan></text>
+</g>
+<g data-id="S_306 S_794" class="section">
+<path class="block" d="M323 249H260.231L227 201H323V249Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="270.039" y="230.547">WL1</tspan></text>
+</g>
+</g>
+<g data-id="C_30 C_31 C_33 C_34" class="color-a" data-hover="C_42" data-include="C_42">
+<g data-id="S_304" class="section">
+<path class="block" d="M775 96H709V141H775V96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="723.211" y="124.547">WU7</tspan></text>
+</g>
+<g data-id="S_303" class="section">
+<path class="block" d="M706 96H638V141H706V96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="653.211" y="124.547">WU6</tspan></text>
+</g>
+<g data-id="S_302" class="section">
+<path class="block" d="M635 96H562V141H635V96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="580.211" y="124.547">WU5</tspan></text>
+</g>
+<g data-id="S_301" class="section">
+<path class="block" d="M559 96H484V141H559V96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="504.211" y="124.547">WU4</tspan></text>
+</g>
+</g>
+<g data-id="C_30 C_31 C_33 C_34 C_42 C_45" class="color-a" data-hover="C_42" data-include="C_42">
+<g data-id="S_300 S_4231" class="section">
+<path class="block" d="M481 96H410V141H481V96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="427.211" y="124.547">WU3</tspan></text>
+</g>
+<g data-id="S_305 S_793" class="section">
+<path class="block" d="M890.692 96H778V141H859.538L890.692 96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="811.211" y="124.547">WU8</tspan></text>
+</g>
+<g data-id="S_299 S_792" class="section">
+<path class="block" d="M407 96H316V141H407V96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="343.211" y="124.547">WU2</tspan></text>
+</g>
+<g data-id="S_298 S_791" class="section">
+<path class="block" d="M313 96H154.308L185.462 141H313V96Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="228.211" y="124.547">WU1</tspan></text>
+</g>
+</g>
+</g>
+</g>
+<g data-id="C_27" data-ticket-colors="C_42: c, C_43: c, C_44: c, C_45: c">
+<g data-id="C_24">
+<g data-id="C_29 C_26" class="color-e">
+<g data-id="S_294" class="section">
+<path class="block" d="M215 476V418H136V476H215Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="161.258" y="452.547">SL4</tspan></text>
+</g>
+<g data-id="S_295" class="section">
+<path class="block" d="M215 415V344H136V415H215Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="161.258" y="385.547">SL5</tspan></text>
+</g>
+<g data-id="S_296" class="section">
+<path class="block" d="M215 341V300.338L136 244.206V341H215Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="161.258" y="318.547">SL6</tspan></text>
+</g>
+<g data-id="S_297" class="section">
+<path class="block" d="M186.07 224.63L156.758 255.275L215 296.658L234.623 274.168L186.07 224.63Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="181.258" y="267.547">SL7</tspan></text>
+</g>
+<g data-id="S_3744" class="section">
+<path class="block" d="M236.601 271.901L256.582 249L217.188 192.098L188.145 222.461L236.601 271.901Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="210.258" y="239.547">SL8</tspan></text>
+</g>
+</g>
+<g data-id="C_27 C_28 C_24 C_25" class="color-b">
+<g data-id="S_290" class="section">
+<path class="block" d="M60 418V476H133V418H60Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="81.4297" y="452.547">SU4</tspan></text>
+</g>
+<g data-id="S_291" class="section">
+<path class="block" d="M60 344V415H133V344H60Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="81.4297" y="388.547">SU5</tspan></text>
+</g>
+<g data-id="S_292" class="section">
+<path class="block" d="M60 190.243V341H133V242.075L60.0211 190.221L60 190.243Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="81.4297" y="318.547">SU6</tspan></text>
+</g>
+<g data-id="S_293" class="section">
+<path class="block" d="M106.648 143.595L62.1726 188.07L111.937 223.429L147.971 185.757L106.648 143.595Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="92.4297" y="190.547">SU7</tspan></text>
+</g>
+<g data-id="S_3743" class="section">
+<path class="block" d="M150.046 183.588L185.579 146.44L152.125 98.1176L108.769 141.473L150.046 183.588Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="133.43" y="149.547">SU8</tspan></text>
+</g>
+</g>
+</g>
+<g data-id="C_21">
+<g data-id="C_29 C_23" class="color-e">
+<g data-id="S_289" class="section">
+<path class="block" d="M828 602.895L788.418 647L839.792 721.208L904.062 656.938L828 602.895Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="830.141" y="664.547">L16</tspan></text>
+</g>
+<g data-id="S_288" class="section">
+<path class="block" d="M905 585H830V600.636L905 653.925V585Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="859.141" y="602.547">L15</tspan></text>
+</g>
+<g data-id="S_287" class="section">
+<path class="block" d="M905 531V582H830V531H905Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="859.141" y="562.547">L14</tspan></text>
+</g>
+<g data-id="S_286" class="section">
+<path class="block" d="M905 528V481H830V528H905Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="859.141" y="510.547">L13</tspan></text>
+</g>
+<g data-id="S_285" class="section">
+<path class="block" d="M905 425V478H830V425H905Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="859.141" y="457.547">L12</tspan></text>
+</g>
+<g data-id="S_284" class="section">
+<path class="block" d="M905 422V371H830V422H905Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="860.234" y="402.547">L11</tspan></text>
+</g>
+<g data-id="S_283" class="section">
+<path class="block" d="M905 316V368H830V316H905Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="859.141" y="347.547">L10</tspan></text>
+</g>
+<g data-id="S_282" class="section">
+<path class="block" d="M905 313V242.075L830 295.364V313H905Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="859.141" y="298.547">L09</tspan></text>
+</g>
+<g data-id="S_281" class="section">
+<path class="block" d="M828 293.105L904.646 238.646L840.202 174.202L788.418 249L828 293.105Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="828.141" y="245.547">L08</tspan></text>
+</g>
+</g>
+<g data-id="C_27 C_28 C_21 C_22 " class="color-b">
+<g data-id="S_279" class="section">
+<path class="block" d="M935.886 758.114L871.992 693.251L841.528 723.715L894.202 799.798L935.886 758.114Z" fill="#52C3FF"/>
+<text transform="translate(885.205 729.698) rotate(49.9403)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.3125" y="14.5469">U17</tspan></text>
+</g>
+<g data-id="S_278" class="section">
+<path class="block" d="M981.815 712.185L906.542 658.701L874.113 691.13L938.008 755.992L981.815 712.185Z" fill="#52C3FF"/>
+<text transform="translate(920.766 689.309) rotate(41.625)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.3125" y="14.5469">U16</tspan></text>
+</g>
+<g data-id="S_277" class="section">
+<path class="block" d="M982 708.636V585H908V656.057L982 708.636Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="928.312" y="602.547">U15</tspan></text>
+</g>
+<g data-id="S_276" class="section">
+<path class="block" d="M982 582V531H908V582H982Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="928.312" y="562.547">U14</tspan></text>
+</g>
+<g data-id="S_275" class="section">
+<path class="block" d="M982 528V481H908V528H982Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="928.312" y="510.547">U13</tspan></text>
+</g>
+<g data-id="S_274" class="section">
+<path class="block" d="M982 478V425H908V478H982Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="927.312" y="457.547">U12</tspan></text>
+</g>
+<g data-id="S_273" class="section">
+<path class="block" d="M982 422V371H908V422H982Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="929.406" y="402.547">U11</tspan></text>
+</g>
+<g data-id="S_272" class="section">
+<path class="block" d="M982 368V316H908V368H982Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="929.312" y="347.547">U10</tspan></text>
+</g>
+<g data-id="S_271" class="section">
+<path class="block" d="M982 313V187.364L908 239.943V313H982Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="930.312" y="298.547">U09</tspan></text>
+</g>
+<g data-id="S_270" class="section">
+<path class="block" d="M892.875 98.1177L841.937 171.695L907.126 236.884L979.92 185.162L892.875 98.1177Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="889.312" y="179.547">U08</tspan></text>
+</g>
+</g>
+</g>
+</g>
+</svg>

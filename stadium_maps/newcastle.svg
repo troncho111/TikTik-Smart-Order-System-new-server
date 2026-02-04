@@ -1,0 +1,727 @@
+<svg id="stadium" width="1040" height="960" viewbox="0 0 1040 960" fill="none" xmlns="http://www.w3.org/2000/svg">
+
+<g data-id="extras">
+<g class="extra">
+<path class="extra" d="M701 410H232V708H701V410Z" fill="#999997" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M691.824 418.394H241.176V699.606H691.824V418.394Z" stroke="white" stroke-width="2"/>
+<path class="extra" d="M466.5 419.234V698.766" stroke="white" stroke-width="1.72727" stroke-linecap="square"/>
+<path class="extra" d="M466 603C490.853 603 511 582.853 511 558C511 533.147 490.853 513 466 513C441.147 513 421 533.147 421 558C421 582.853 441.147 603 466 603Z" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M316.014 477.994H241.232V637.487H316.014V477.994Z" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M272.622 518.287H241.232V598.034H272.622V518.287Z" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M617.042 477.994H691.824V637.487H617.042V477.994Z" stroke="white" stroke-width="2"/>
+<path class="extra" d="M660.434 518.287H691.824V598.034H660.434V518.287Z" stroke="white" stroke-width="1.72727"/>
+</g>
+<rect class="extra" x="480" y="379" width="28" height="13" fill="#999997"/>
+<rect class="extra" x="429" y="379" width="28" height="13" fill="#999997"/>
+<rect class="extra" x="429" y="358" width="79" height="18" fill="#999997"/>
+<text class="stand-name" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="390.68" y="862.82">EAST STAND</tspan></text>
+<text class="stand-name" transform="translate(1031 324) rotate(90)" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="141.84" y="18.8203">LEAZES STAND</tspan></text>
+<text class="stand-name" transform="translate(8 709) rotate(-90)" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="25.8789" y="18.8203">GALLOWGATE STAND</tspan></text>
+<text class="stand-name" fill="black" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="24" font-weight="bold" letter-spacing="0em"><tspan x="367.336" y="123.82">MILBURN STAND</tspan></text>
+</g>
+<g data-id="C_248" class="color-f">
+<g data-id="S_1485" class="section">
+<rect class="block" x="905" y="645" width="15" height="78" fill="#52C3FF"/>
+<text transform="translate(920 663) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.976562" y="12.5469">LL7M</tspan></text>
+</g>
+<g data-id="S_1486" class="section">
+<rect class="block" x="905" y="593" width="15" height="49" fill="#52C3FF"/>
+<text transform="translate(921 600) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.1875" y="14.0469">LL7L</tspan></text>
+</g>
+<g data-id="S_1487" class="section">
+<rect class="block" x="905" y="530" width="15" height="60" fill="#52C3FF"/>
+<text transform="translate(918 539) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.80469" y="11.0469">LL7K</tspan></text>
+</g>
+<g data-id="S_1488" class="section">
+<rect class="block" x="905" y="478" width="15" height="49" fill="#52C3FF"/>
+<text transform="translate(924 485) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.640625" y="16.5469">LL7J</tspan></text>
+</g>
+<g data-id="S_1489" class="section">
+<rect class="block" x="905" y="396" width="15" height="79" fill="#52C3FF"/>
+<text transform="translate(920 416) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.35938" y="12.5469">LL7H</tspan></text>
+</g>
+<g data-id="S_1490" class="section">
+<path class="block" d="M904.499 392.5H918.999L919 392C919 376.603 917.077 361.654 913.459 347.382L899.427 351.051C902.74 364.151 904.5 377.87 904.5 392C904.5 392.167 904.5 392.333 904.499 392.5Z" fill="#52C3FF"/>
+<text transform="translate(921.176 349.67) rotate(83.3293)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="14" letter-spacing="0em"><tspan x="6.3616" y="19.392">LL7F</tspan></text>
+</g>
+<g data-id="S_1444" class="section">
+<rect class="block" x="923" y="658" width="65" height="65" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="939.349" y="696.88">L7M</tspan></text>
+</g>
+<g data-id="S_1443" class="section">
+<rect class="block" x="923" y="593" width="65" height="62" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="941.56" y="630.342">L7L</tspan></text>
+</g>
+<g data-id="S_1442" class="section">
+<rect class="block" x="976" y="530" width="12" height="60" fill="#52C3FF"/>
+<rect class="block" x="923" y="530" width="50" height="60" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="933.311" y="566.316">L7K</tspan></text>
+</g>
+<g data-id="S_1441" class="section">
+<rect class="block" x="923" y="462" width="65" height="65" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="942.013" y="500.88">L7J</tspan></text>
+</g>
+<g data-id="S_1440" class="section">
+<rect class="block" x="923" y="396" width="65" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="940.232" y="433.855">L7H</tspan></text>
+</g>
+<g data-id="S_1439" class="section">
+<path class="block" d="M921.999 392.5L922 392.347C922 392.231 922 392.116 922 392C922 376.34 920.044 361.137 916.362 346.623L980.069 329.964C985.323 350.347 988 371.357 988 392.5H921.999Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="937.533" y="373.085">L7F</tspan></text>
+</g>
+</g>
+<g data-id="C_240">
+<g data-id="C_240 C_244" class="color-g" data-exclude="C_241 C_242 C_243">
+<g data-id="S_1468" class="section">
+<path class="block" d="M701 760C718.121 760 732 746.121 732 729H701V760Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="709.5" y="746.047">J</tspan></text>
+</g>
+<g data-id="S_1467" class="section">
+<path class="block" d="M751.364 751.136L732.385 742.099C734.07 738.067 735 733.642 735 729H756C756 736.875 754.345 744.363 751.364 751.136Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="739.719" y="743.047">H</tspan></text>
+</g>
+<g data-id="S_1466" class="section">
+<path class="block" d="M731.107 744.813C728.077 750.569 723.445 755.351 717.804 758.564L727.289 777.322C737.06 771.995 745.036 763.791 750.08 753.848L731.107 744.813Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="726.273" y="765.047">G</tspan></text>
+</g>
+<g data-id="S_1465" class="section">
+<path class="block" d="M724.616 778.686L715.134 759.932C710.83 761.902 706.043 763 701 763V784C709.453 784 717.461 782.093 724.616 778.686Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="705.609" y="779.047">F</tspan></text>
+</g>
+<g data-id="S_1464" class="section">
+<path class="block" d="M790.739 753.411L757.239 743.241C758.389 738.685 759 733.914 759 729H794C794 737.263 792.899 745.471 790.739 753.411Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="772.164" y="743.047">E</tspan></text>
+</g>
+<g data-id="S_1463" class="section">
+<path class="block" d="M756.429 746.13C754.863 751.201 752.621 755.975 749.808 760.346L778.451 780.482C781.774 775.483 784.613 770.162 786.921 764.59C788.048 761.868 789.044 759.099 789.905 756.293L756.429 746.13Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="763.719" y="766.047">D</tspan></text>
+</g>
+<g data-id="S_1462" class="section">
+<path class="block" d="M737.387 774.169C741.452 770.89 745.066 767.073 748.12 762.827L776.75 782.953C773.761 787.15 770.421 791.1 766.761 794.761C764.091 797.431 761.266 799.931 758.303 802.248L737.387 774.169Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="749.719" y="787.047">C</tspan></text>
+</g>
+<g data-id="S_1461" class="section">
+<path class="block" d="M719.479 783.994C725.086 782.111 730.31 779.394 735.004 775.992L755.911 804.059C749.94 808.427 743.456 812.077 736.59 814.921C734.244 815.893 731.862 816.766 729.453 817.541L719.479 783.994Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="729.164" y="802.047">B</tspan></text>
+</g>
+<g data-id="S_1460" class="section">
+<path class="block" d="M716.611 784.875C711.644 786.26 706.409 787 701 787V822C709.67 822 718.28 820.788 726.582 818.412L716.611 784.875Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="705.164" y="810.047">A</tspan></text>
+</g>
+</g>
+<g data-id="C_240 C_243" class="color-g" data-exclude="C_241 C_242 C_244">
+<g data-id="S_1480" class="section">
+<path class="block" d="M775.542 229.75L778.964 215.655C765.801 212.61 752.089 211 738 211C737.833 211 737.667 211 737.5 211.001V225.501C737.667 225.5 737.833 225.5 738 225.5C750.91 225.5 763.477 226.969 775.542 229.75Z" fill="#52C3FF"/>
+<text transform="translate(734.739 203) rotate(5.40608)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="14" letter-spacing="0em"><tspan x="5.97195" y="19.392">LL7A</tspan></text>
+</g>
+<g data-id="S_1481" class="section">
+<path class="block" d="M818.494 246.215C806.039 239.324 792.607 233.982 778.46 230.45L781.881 216.356C797.346 220.207 812.024 226.047 825.628 233.588L818.494 246.215Z" fill="#52C3FF"/>
+<text transform="translate(786.326 209.488) rotate(21.2021)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="14" letter-spacing="0em"><tspan x="5.97195" y="19.392">LL7B</tspan></text>
+</g>
+<g data-id="S_1482" class="section">
+<path class="block" d="M854.607 273.151L864.86 262.897C853.92 252.146 841.619 242.774 828.24 235.064L821.105 247.691C833.339 254.752 844.591 263.323 854.607 273.151Z" fill="#52C3FF"/>
+<text transform="translate(833.945 229) rotate(38.108)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="14" letter-spacing="0em"><tspan x="5.58231" y="19.392">LL7C</tspan></text>
+</g>
+<g data-id="S_1483" class="section">
+<path class="block" d="M881.627 307.724L894.207 300.508C886.609 287.563 877.448 275.647 866.982 265.018L856.729 275.271C866.292 284.997 874.67 295.893 881.627 307.724Z" fill="#52C3FF"/>
+<text transform="translate(873.756 261.049) rotate(52.288)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="14" letter-spacing="0em"><tspan x="5.58231" y="19.392">LL7D</tspan></text>
+</g>
+<g data-id="S_1484" class="section">
+<path class="block" d="M898.665 348.149L912.698 344.48C908.734 329.873 902.987 315.999 895.704 303.108L883.124 310.324C889.775 322.115 895.03 334.799 898.665 348.149Z" fill="#52C3FF"/>
+<text transform="translate(903.133 301) rotate(68.9291)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="14" letter-spacing="0em"><tspan x="5.97195" y="19.392">LL7E</tspan></text>
+</g>
+<g data-id="S_1445" class="section">
+<path class="block" d="M738 208C752.332 208 766.282 209.639 779.672 212.739L795.208 148.738C776.343 144.272 756.978 142 737.5 142V208.001C737.667 208 737.833 208 738 208Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="746.088" y="183.085">L7A</tspan></text>
+</g>
+<g data-id="S_1446" class="section">
+<path class="block" d="M827.104 230.976C813.262 223.3 798.326 217.357 782.589 213.44L798.123 149.446C810.114 152.437 821.893 156.318 833.362 161.068C842.319 164.778 851.034 168.997 859.468 173.699L827.104 230.976Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="802.088" y="197.085">L7B</tspan></text>
+</g>
+<g data-id="S_1447" class="section">
+<path class="block" d="M866.982 260.776C855.85 249.833 843.332 240.296 829.716 232.452L862.08 175.175C880.799 185.906 898.091 199.032 913.505 214.252L866.982 260.776Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="853.643" y="226.085">L7C</tspan></text>
+</g>
+<g data-id="S_1448" class="section">
+<path class="block" d="M896.81 299.015C889.079 285.84 879.756 273.712 869.104 262.896L915.627 216.373C930.453 231.366 943.295 248.14 953.876 266.279L896.81 299.015Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="895.643" y="267.085">L7D</tspan></text>
+</g>
+<g data-id="S_1449" class="section">
+<path class="block" d="M915.601 343.721C911.569 328.853 905.72 314.734 898.307 301.615L955.372 268.88C960.448 277.826 964.979 287.095 968.932 296.638C973.045 306.568 976.506 316.732 979.302 327.064L915.601 343.721Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="923.088" y="317.085">L7E</tspan></text>
+</g>
+<g data-id="S_1455" class="section">
+<path class="block" d="M882.975 355.353C885.93 367.079 887.5 379.356 887.5 392C887.5 392.167 887.5 392.333 887.499 392.5H834.999C835 392.333 835 392.167 835 392C835 383.946 834.018 376.121 832.168 368.638L882.975 355.353Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="847.396" y="384.739">L4F</tspan></text>
+</g>
+<g data-id="S_1454" class="section">
+<path class="block" d="M868.375 318.785C874.285 329.286 878.963 340.574 882.213 352.451L831.403 365.737C829.346 358.408 826.45 351.431 822.825 344.914L868.375 318.785Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="838.978" y="353.739">L4E</tspan></text>
+</g>
+<g data-id="S_1453" class="section">
+<path class="block" d="M844.708 287.292C853.214 295.96 860.672 305.659 866.878 316.185L821.327 342.315C817.445 335.819 812.825 329.814 807.582 324.418L844.708 287.292Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="824.561" y="321.739">L4D</tspan></text>
+</g>
+<g data-id="S_1452" class="section">
+<path class="block" d="M812.741 262.495C823.632 268.794 833.654 276.428 842.585 285.172L805.459 322.298C799.879 316.897 793.653 312.16 786.908 308.214L812.741 262.495Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="800.561" y="298.739">L4C</tspan></text>
+</g>
+<g data-id="S_1451" class="section">
+<path class="block" d="M810.129 261.019L784.295 306.739C777.352 302.962 769.897 300.007 762.06 298.007L774.448 246.975C787.052 250.132 799.022 254.89 810.129 261.019Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="770.978" y="283.739">L4B</tspan></text>
+</g>
+<g data-id="S_1450" class="section">
+<path class="block" d="M771.531 246.275C760.752 243.805 749.528 242.5 738 242.5C737.833 242.5 737.667 242.5 737.5 242.501V295.001H737.663L737.787 295H738C745.261 295 752.336 295.798 759.142 297.311L771.531 246.275Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="737.978" y="273.739">L4A</tspan></text>
+</g>
+<g data-id="S_1456" class="section">
+<path class="block" d="M769.11 303.27C759.372 299.856 748.903 298 738 298C737.833 298 737.667 298 737.5 298.001V365.005C737.666 365.002 737.833 365 738 365C740.38 365 742.688 365.308 744.886 365.886L769.11 303.27Z" fill="#52C3FF"/>
+<text transform="translate(729 344.563) rotate(-77.2704)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="8.9783" y="19.7387">L2A</tspan></text>
+</g>
+<g data-id="S_1457" class="section">
+<path class="block" d="M755.938 371.82C753.548 369.694 750.779 367.987 747.744 366.812L771.925 304.308C783.736 308.88 794.393 315.77 803.337 324.42L755.938 371.82Z" fill="#52C3FF"/>
+<text transform="translate(749 345.912) rotate(-55.7414)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="8.9783" y="19.7387">L2B</tspan></text>
+</g>
+<g data-id="S_1458" class="section">
+<path class="block" d="M763.072 381.96C761.88 378.987 760.175 376.275 758.066 373.934L805.461 326.539C813.411 334.732 819.883 344.368 824.445 355.016L763.072 381.96Z" fill="#52C3FF"/>
+<text transform="translate(768 354.184) rotate(-28.3152)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="8.56082" y="19.7387">L2C</tspan></text>
+</g>
+<g data-id="S_1459" class="section">
+<path class="block" d="M764.995 392.5C764.998 392.334 765 392.167 765 392C765 389.512 764.663 387.102 764.033 384.815L825.582 357.793C829.726 368.394 832 379.931 832 392L832 392.223C831.999 392.315 831.999 392.408 831.999 392.5H764.995Z" fill="#52C3FF"/>
+<text transform="translate(782 368.24) rotate(-4.16047)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="15" letter-spacing="0em"><tspan x="8.56082" y="19.7387">L2D</tspan></text>
+</g>
+</g>
+<g data-id="C_240 C_242" class="color-g" data-exclude="C_241 C_243 C_244">
+<g data-id="S_1474" class="section">
+<path class="block" d="M212.106 754.137C218.148 759.643 226.182 763 235 763V731.243L212.106 754.137Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="221.164" y="756.047">A</tspan></text>
+</g>
+<g data-id="S_1475" class="section">
+<path class="block" d="M233 729H201C201 737.88 204.404 745.965 209.979 752.021L233 729Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="208.164" y="743.047">B</tspan></text>
+</g>
+<g data-id="S_1476" class="section">
+<path class="block" d="M235 822C222.93 822 210.977 819.651 199.808 815.084L221.643 763.516C225.786 765.12 230.29 766 235 766V822Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="216.719" y="801.047">C</tspan></text>
+</g>
+<g data-id="S_1477" class="section">
+<path class="block" d="M170.37 795.873C178.149 803.391 187.178 809.492 197.05 813.904L218.892 762.319C215.625 760.737 212.627 758.689 209.982 756.26L170.37 795.873Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="193.719" y="789.047">D</tspan></text>
+</g>
+<g data-id="S_1478" class="section">
+<path class="block" d="M149.576 765.767C154.047 776.153 160.374 785.638 168.247 793.753L207.856 754.144C205.19 751.267 202.976 747.966 201.326 744.353L149.576 765.767Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="174.164" y="771.047">E</tspan></text>
+</g>
+<g data-id="S_1479" class="section">
+<path class="block" d="M200.192 741.576L148.435 762.992C144.185 752.169 142 740.639 142 729H198C198 733.415 198.773 737.65 200.192 741.576Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="165.609" y="746.047">F</tspan></text>
+</g>
+</g>
+<g data-id="C_240 C_241" class="color-g" data-exclude="C_242 C_243 C_244">
+<g data-id="S_1469" class="section">
+<path class="block" d="M169.997 364.057C177.482 356.024 188.154 351 200 351V333C182.731 333 167.194 340.419 156.405 352.245L169.997 364.057Z" fill="#52C3FF"/>
+<path class="block" d="M154.439 354.511C146.043 364.704 141 377.763 141 392H159C159 382.281 162.382 373.351 168.033 366.325L154.439 354.511Z" fill="#52C3FF"/>
+<path class="block" d="M162 392C162 371.013 179.013 354 200 354V392H162Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="180.164" y="383.047">A</tspan></text>
+</g>
+<g data-id="S_1470" class="section">
+<path class="block" d="M111.671 357.029L142.124 369.718C139.46 376.633 138 384.146 138 392H105C105 380.023 107.265 368.158 111.671 357.029Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="118.164" y="384.047">B</tspan></text>
+</g>
+<g data-id="S_1471" class="section">
+<path class="block" d="M157.636 346.731C151.584 352.396 146.67 359.261 143.271 366.946L112.819 354.258C117.572 343.278 124.358 333.291 132.825 324.825C133.767 323.883 134.728 322.961 135.707 322.061L157.636 346.731Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="129.719" y="353.047">C</tspan></text>
+</g>
+<g data-id="S_1472" class="section">
+<path class="block" d="M170.799 301.599C168.384 302.379 165.997 303.257 163.645 304.231C154.276 308.112 145.604 313.462 137.948 320.066L159.875 344.734C165.838 339.667 172.772 335.708 180.359 333.175L170.799 301.599Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="155.719" y="330.047">D</tspan></text>
+</g>
+<g data-id="S_1473" class="section">
+<path class="block" d="M183.227 332.296L173.668 300.722C182.211 298.258 191.074 297 200 297V330C194.188 330 188.562 330.8 183.227 332.296Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="184.164" y="319.047">E</tspan></text>
+</g>
+</g>
+</g>
+<g data-id="C_245">
+<g data-id="C_245 C_247" class="color-c">
+<g data-id="S_1575" class="section">
+<rect class="block" x="775" y="533" width="56" height="54" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="782.922" y="566.239">L2SB</tspan></text>
+</g>
+</g>
+<g data-id="C_245 C_246" class="color-c">
+<g data-id="S_1564" class="section">
+<rect class="block" x="681" y="321" width="51" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="687.359" y="344.047">LL2H</tspan></text>
+</g>
+<g data-id="S_1561" class="section">
+<rect class="block" x="629" y="321" width="49" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="633.914" y="344.047">LL2G</tspan></text>
+</g>
+<g data-id="S_1557" class="section">
+<rect class="block" x="585" y="321" width="41" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="587.25" y="344.047">LL2F</tspan></text>
+</g>
+<g data-id="S_1554" class="section">
+<rect class="block" x="540" y="321" width="42" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="542.305" y="344.047">LL2E</tspan></text>
+</g>
+<g data-id="S_1548" class="section">
+<rect class="block" x="355" y="321" width="42" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="357.359" y="344.047">LL2D</tspan></text>
+</g>
+<g data-id="S_1545" class="section">
+<rect class="block" x="311" y="321" width="41" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="312.359" y="344.047">LL2C</tspan></text>
+</g>
+<g data-id="S_1542" class="section">
+<rect class="block" x="260" y="321" width="48" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="264.805" y="344.047">LL2B</tspan></text>
+</g>
+<g data-id="S_1537" class="section">
+<rect class="block" x="205" y="321" width="52" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="216.26" y="343.983">LL2A</tspan></text>
+</g>
+<g data-id="S_1562" class="section">
+<rect class="block" x="681" y="240" width="51" height="18" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="691.357" y="254.778">L4H</tspan></text>
+</g>
+<g data-id="S_1558" class="section">
+<rect class="block" x="629" y="240" width="49" height="18" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="637.93" y="254.778">L4G</tspan></text>
+</g>
+<g data-id="S_1555" class="section">
+<rect class="block" x="585" y="240" width="41" height="13" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="591.337" y="252.214">L4F</tspan></text>
+</g>
+<g data-id="S_1552" class="section">
+<rect class="block" x="540" y="240" width="42" height="13" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="546.383" y="252.214">L4E</tspan></text>
+</g>
+<g data-id="S_1546" class="section">
+<rect class="block" x="355" y="240" width="42" height="13" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="360.938" y="252.214">L4D</tspan></text>
+</g>
+<g data-id="S_1543" class="section">
+<rect class="block" x="311" y="240" width="41" height="13" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="316.446" y="252.214">L4C</tspan></text>
+</g>
+<g data-id="S_1539" class="section">
+<rect class="block" x="260" y="240" width="48" height="21" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="269.329" y="256.316">L4B</tspan></text>
+</g>
+<g data-id="S_1538" class="section">
+<rect class="block" x="205" y="240" width="52" height="21" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="220.713" y="256.316">L4A</tspan></text>
+</g>
+<g data-id="S_1559" class="section">
+<rect class="block" x="629" y="262" width="49" height="20" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="638.82" y="277.803">L3E</tspan></text>
+</g>
+<g data-id="S_1551" class="section">
+<rect class="block" x="493" y="240" width="44" height="115" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="499.92" y="304.521">L3D</tspan></text>
+</g>
+<g data-id="S_1550" class="section">
+<rect class="block" x="447" y="240" width="43" height="115" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="453.429" y="304.521">L3C</tspan></text>
+</g>
+<g data-id="S_1549" class="section">
+<rect class="block" x="400" y="240" width="44" height="115" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="407.365" y="304.521">L3B</tspan></text>
+</g>
+<g data-id="S_1540" class="section">
+<rect class="block" x="260" y="264" width="48" height="18" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="269.329" y="278.778">L3A</tspan></text>
+</g>
+<g data-id="S_1563" class="section">
+<rect class="block" x="681" y="262" width="51" height="55" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="691.357" y="295.752">L2H</tspan></text>
+</g>
+<g data-id="S_1560" class="section">
+<rect class="block" x="629" y="285" width="49" height="32" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="637.93" y="306.957">L2G</tspan></text>
+</g>
+<g data-id="S_1556" class="section">
+<rect class="block" x="585" y="256" width="41" height="61" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="591.337" y="292.829">L2F</tspan></text>
+</g>
+<g data-id="S_1553" class="section">
+<rect class="block" x="540" y="256" width="42" height="61" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="546.383" y="292.829">L2E</tspan></text>
+</g>
+<g data-id="S_1547" class="section">
+<rect class="block" x="355" y="256" width="42" height="61" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="360.938" y="292.829">L2D</tspan></text>
+</g>
+<g data-id="S_1544" class="section">
+<rect class="block" x="311" y="256" width="41" height="61" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="316.446" y="292.829">L2C</tspan></text>
+</g>
+<g data-id="S_1541" class="section">
+<rect class="block" x="260" y="285" width="48" height="32" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="269.329" y="306.957">L2B</tspan></text>
+</g>
+<g data-id="S_1536" class="section">
+<rect class="block" x="205" y="264" width="52" height="53" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="220.713" y="296.726">L2A</tspan></text>
+</g>
+</g>
+</g>
+<g data-id="C_232">
+<g data-id="C_232 C_237" class="color-d" data-exclude="C_233 C_234 C_235 C_236">
+<g data-id="S_1427" class="section">
+<rect class="block" x="625" y="729" width="71" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="654.53" y="751.983">A</tspan></text>
+</g>
+<g data-id="S_1428" class="section">
+<rect class="block" x="548" y="729" width="74" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="579.003" y="751.983">B</tspan></text>
+</g>
+<g data-id="S_1429" class="section">
+<rect class="block" x="471" y="729" width="74" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="501.558" y="751.983">C</tspan></text>
+</g>
+<g data-id="S_1430" class="section">
+<rect class="block" x="393" y="729" width="75" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="424.049" y="751.983">D</tspan></text>
+</g>
+<g data-id="S_1431" class="section">
+<rect class="block" x="315" y="729" width="75" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="346.494" y="751.983">E</tspan></text>
+</g>
+<g data-id="S_1432" class="section">
+<rect class="block" x="240" y="729" width="72" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="270.467" y="751.983">F</tspan></text>
+</g>
+<g data-id="S_1433" class="section">
+<rect class="block" x="625" y="766" width="71" height="56" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="654.085" y="800.265">H</tspan></text>
+</g>
+<g data-id="S_1434" class="section">
+<rect class="block" x="548" y="766" width="74" height="56" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="582.113" y="800.265">I</tspan></text>
+</g>
+<g data-id="S_1435" class="section">
+<rect class="block" x="471" y="766" width="74" height="56" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="503.339" y="800.265">J</tspan></text>
+</g>
+<g data-id="S_1436" class="section">
+<rect class="block" x="393" y="766" width="75" height="56" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="424.494" y="800.265">K</tspan></text>
+</g>
+<g data-id="S_1437" class="section">
+<rect class="block" x="315" y="766" width="75" height="56" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="347.377" y="800.265">L</tspan></text>
+</g>
+<g data-id="S_1438" class="section">
+<rect class="block" x="240" y="766" width="72" height="56" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="268.693" y="800.265">M</tspan></text>
+</g>
+</g>
+<g data-id="C_234">
+<g data-id="C_236" class="color-d" data-exclude="C_237">
+<g data-id="S_1514" class="section">
+<path class="block" d="M681 358H732V374L716.5 392H681V358Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="694.912" y="380.983">L1I</tspan></text>
+</g>
+<g data-id="S_1513" class="section">
+<rect class="block" x="624" y="358" width="54" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="635.83" y="380.983">L1H</tspan></text>
+</g>
+<g data-id="S_1512" class="section">
+<rect class="block" x="567" y="358" width="54" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="578.385" y="380.983">L1G</tspan></text>
+</g>
+<g data-id="S_1511" class="section">
+<rect class="block" x="511" y="358" width="53" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="523.23" y="380.983">L1F</tspan></text>
+</g>
+<g data-id="S_1510" class="section">
+<rect class="block" x="374" y="358" width="52" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="384.848" y="380.983">L1D</tspan></text>
+</g>
+<g data-id="S_1509" class="section">
+<rect class="block" x="316" y="358" width="55" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="328.321" y="380.983">L1C</tspan></text>
+</g>
+<g data-id="S_1508" class="section">
+<rect class="block" x="260" y="358" width="53" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="271.785" y="380.983">L1B</tspan></text>
+</g>
+<g data-id="S_1507" class="section">
+<rect class="block" x="205" y="358" width="52" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="220.713" y="380.983">L1A</tspan></text>
+</g>
+</g>
+<g data-id="C_232 C_233 C_234 C_235" class="color-a" data-hover="C_246" data-include="C_246" data-exclude="C_237">
+<g data-id="S_1506" class="section">
+<rect class="block" x="669" y="208" width="63" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="680.797" y="221.239">LL7H</tspan></text>
+</g>
+<g data-id="S_1504" class="section">
+<rect class="block" x="602" y="208" width="64" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="613.843" y="221.239">LL7G</tspan></text>
+</g>
+<g data-id="S_1502" class="section">
+<rect class="block" x="535" y="208" width="64" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="548.179" y="221.239">LL7F</tspan></text>
+</g>
+<g data-id="S_1500" class="section">
+<rect class="block" x="470" y="208" width="62" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="481.751" y="221.239">LL7E</tspan></text>
+</g>
+<g data-id="S_1498" class="section">
+<rect class="block" x="402" y="208" width="65" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="414.779" y="221.239">LL7D</tspan></text>
+</g>
+<g data-id="S_1496" class="section">
+<rect class="block" x="336" y="208" width="63" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="347.797" y="221.239">LL7C</tspan></text>
+</g>
+<g data-id="S_1494" class="section">
+<rect class="block" x="269" y="208" width="64" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="281.733" y="221.239">LL7B</tspan></text>
+</g>
+<g data-id="S_1492" class="section">
+<rect class="block" x="205" y="208" width="61" height="15" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="216.26" y="221.239">LL7A</tspan></text>
+</g>
+<g data-id="S_1505" class="section">
+<rect class="block" x="669" y="142" width="63" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="685.25" y="179.855">L7H</tspan></text>
+</g>
+<g data-id="S_1503" class="section">
+<rect class="block" x="602" y="142" width="64" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="618.296" y="179.855">L7G</tspan></text>
+</g>
+<g data-id="S_1501" class="section">
+<rect class="block" x="535" y="142" width="64" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="552.632" y="179.855">L7F</tspan></text>
+</g>
+<g data-id="S_1499" class="section">
+<rect class="block" x="470" y="142" width="62" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="486.204" y="179.855">L7E</tspan></text>
+</g>
+<g data-id="S_1497" class="section">
+<rect class="block" x="402" y="142" width="65" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="419.232" y="179.855">L7D</tspan></text>
+</g>
+<g data-id="S_1495" class="section">
+<rect class="block" x="336" y="142" width="63" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="352.25" y="179.855">L7C</tspan></text>
+</g>
+<g data-id="S_1493" class="section">
+<rect class="block" x="269" y="142" width="64" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="286.186" y="179.855">L7B</tspan></text>
+</g>
+<g data-id="S_1491" class="section">
+<rect class="block" x="205" y="142" width="61" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="220.713" y="179.854">L7A</tspan></text>
+</g>
+</g>
+</g>
+</g>
+<g data-id="C_231">
+<g data-id="C_231 C_239" class="color-e" data-exclude="C_238">
+<g data-id="S_1515" class="section">
+<rect class="block" x="184" y="662" width="15" height="61" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="186.03" y="698.829">A</tspan></text>
+</g>
+<g data-id="S_1516" class="section">
+<rect class="block" x="184" y="595" width="15" height="64" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="186.03" y="633.367">B</tspan></text>
+</g>
+<g data-id="S_1517" class="section">
+<rect class="block" x="184" y="528" width="15" height="64" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="185.585" y="566.367">C</tspan></text>
+</g>
+<g data-id="S_1518" class="section">
+<rect class="block" x="184" y="461" width="15" height="64" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="185.585" y="499.367">D</tspan></text>
+</g>
+<g data-id="S_1519" class="section">
+<rect class="block" x="184" y="396" width="15" height="62" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="186.03" y="433.342">E</tspan></text>
+</g>
+<g data-id="S_1520" class="section">
+<rect class="block" x="162" y="662" width="19" height="61" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="166.44" y="698.829">F</tspan></text>
+</g>
+<g data-id="S_1521" class="section">
+<rect class="block" x="162" y="595" width="19" height="64" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="165.104" y="633.367">G</tspan></text>
+</g>
+<g data-id="S_1522" class="section">
+<rect class="block" x="162" y="528" width="19" height="64" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="165.549" y="566.367">H</tspan></text>
+</g>
+<g data-id="S_1523" class="section">
+<rect class="block" x="162" y="461" width="19" height="64" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="169.104" y="499.367">I</tspan></text>
+</g>
+<g data-id="S_1524" class="section">
+<rect class="block" x="162" y="396" width="19" height="62" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="167.33" y="433.342">J</tspan></text>
+</g>
+<g data-id="S_1525" class="section">
+<rect class="block" x="103" y="687" width="56" height="36" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="125.164" y="711.008">K</tspan></text>
+</g>
+<g data-id="S_1526" class="section">
+<rect class="block" x="103" y="624" width="56" height="60" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="126.047" y="660.316">L</tspan></text>
+</g>
+<g data-id="S_1527" class="section">
+<rect class="block" x="103" y="563" width="56" height="58" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="123.836" y="598.29">M</tspan></text>
+</g>
+<g data-id="S_1528" class="section">
+<rect class="block" x="103" y="500" width="56" height="60" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="124.719" y="536.316">N</tspan></text>
+</g>
+<g data-id="S_1529" class="section">
+<rect class="block" x="103" y="434" width="56" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="125.164" y="471.855">P</tspan></text>
+</g>
+<g data-id="S_1530" class="section">
+<rect class="block" x="103" y="396" width="56" height="35" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="124.273" y="419.496">Q</tspan></text>
+</g>
+<g data-id="S_1531" class="section">
+<rect class="block" x="52" y="660" width="49" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="70.2812" y="697.855">R</tspan></text>
+</g>
+<g data-id="S_1532" class="section">
+<rect class="block" x="52" y="594" width="49" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="70.7266" y="631.855">S</tspan></text>
+</g>
+<g data-id="S_1533" class="section">
+<rect class="block" x="52" y="528" width="49" height="63" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="71.1719" y="565.855">T</tspan></text>
+</g>
+<g data-id="S_1534" class="section">
+<rect class="block" x="52" y="461" width="49" height="64" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="70.2812" y="499.367">U</tspan></text>
+</g>
+<g data-id="S_1535" class="section">
+<rect class="block" x="52" y="396" width="49" height="62" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="70.7266" y="433.342">V</tspan></text>
+</g>
+</g>
+<g data-id="C_231 C_238" class="color-e" data-hover="C_247" data-include="C_247" data-exclude="C_239">
+<g data-id="S_1569" class="section">
+<rect class="block" x="871" y="658" width="15" height="65" fill="#52C3FF"/>
+<text transform="translate(885 676) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.757812" y="11.5469">L6E</tspan></text>
+</g>
+<g data-id="S_1568" class="section">
+<rect class="block" x="871" y="601" width="15" height="54" fill="#52C3FF"/>
+<text transform="translate(891 611) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="2.3125" y="18.0469">L6D</tspan></text>
+</g>
+<g data-id="S_1567" class="section">
+<rect class="block" x="871" y="523" width="15" height="75" fill="#52C3FF"/>
+<text transform="translate(886 544) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.3125" y="13.0469">L6C</tspan></text>
+</g>
+<g data-id="S_1566" class="section">
+<rect class="block" x="871" y="464" width="15" height="56" fill="#52C3FF"/>
+<text transform="translate(887 476) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.75781" y="14.0469">L6B</tspan></text>
+</g>
+<g data-id="S_1565" class="section">
+<rect class="block" x="871" y="396" width="15" height="65" fill="#52C3FF"/>
+<text transform="translate(889 410) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="3.75781" y="15.5469">L6A</tspan></text>
+</g>
+<g data-id="S_1574" class="section">
+<rect class="block" x="834" y="659" width="34" height="65" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="835.758" y="697.547">L4X</tspan></text>
+</g>
+<g data-id="S_1573" class="section">
+<rect class="block" x="834" y="602" width="34" height="54" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="834.039" y="635.047">L4W</tspan></text>
+</g>
+<g data-id="S_1572" class="section">
+<rect class="block" x="834" y="524" width="34" height="75" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="836.758" y="567.047">L4V</tspan></text>
+</g>
+<g data-id="S_1571" class="section">
+<rect class="block" x="834" y="465" width="34" height="56" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="836.312" y="499.547">L4U</tspan></text>
+</g>
+<g data-id="S_1570" class="section">
+<rect class="block" x="834" y="397" width="34" height="65" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="837.203" y="436.547">L4T</tspan></text>
+</g>
+<g data-id="S_1581" class="section">
+<rect class="block" x="775" y="684" width="56" height="39" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="788.258" y="708.547">L2S</tspan></text>
+</g>
+<g data-id="S_1580" class="section">
+<rect class="block" x="775" y="627" width="56" height="54" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="787.812" y="659.547">L2R</tspan></text>
+</g>
+<g data-id="S_1579" class="section">
+<rect class="block" x="775" y="590" width="56" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="787.367" y="611.547">L2Q</tspan></text>
+</g>
+<g data-id="S_1578" class="section">
+<rect class="block" x="775" y="496" width="56" height="34" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="788.258" y="518.983">L2P</tspan></text>
+</g>
+<g data-id="S_1577" class="section">
+<rect class="block" x="775" y="439" width="56" height="54" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="787.812" y="472.239">L2N</tspan></text>
+</g>
+<g data-id="S_1576" class="section">
+<rect class="block" x="775" y="396" width="56" height="40" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="786.93" y="422.06">L2M</tspan></text>
+</g>
+<g data-id="S_1593" class="section">
+<rect class="block" x="755" y="396" width="17" height="51" fill="#52C3FF"/>
+<text transform="translate(776 412) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.367188" y="17.5469">L1O</tspan></text>
+</g>
+<g data-id="S_1588" class="section">
+<rect class="block" x="755" y="674" width="17" height="49" fill="#52C3FF"/>
+<text transform="translate(774 684) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.64062" y="16.5469">L1L</tspan></text>
+</g>
+<g data-id="S_1589" class="section">
+<rect class="block" x="755" y="619" width="17" height="52" fill="#52C3FF"/>
+<text transform="translate(775 631) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.757812" y="17.5469">L1K</tspan></text>
+</g>
+<g data-id="S_1590" class="section">
+<rect class="block" x="755" y="560" width="17" height="56" fill="#52C3FF"/>
+<text transform="translate(777 575) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.09375" y="18.5469">L1J</tspan></text>
+</g>
+<g data-id="S_1591" class="section">
+<rect class="block" x="755" y="502" width="17" height="55" fill="#52C3FF"/>
+<text transform="translate(776 517) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.36719" y="18.0469">L1I</tspan></text>
+</g>
+<g data-id="S_1592" class="section">
+<rect class="block" x="755" y="450" width="17" height="49" fill="#52C3FF"/>
+<text transform="translate(775 460) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.3125" y="16.5469">L1H</tspan></text>
+</g>
+<g data-id="S_1587" class="section">
+<rect class="block" x="736" y="674" width="16" height="49" fill="#52C3FF"/>
+<text transform="translate(755 683) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="2.20312" y="16.5469">L1F</tspan></text>
+</g>
+<g data-id="S_1586" class="section">
+<rect class="block" x="736" y="619" width="16" height="52" fill="#52C3FF"/>
+<text transform="translate(756 629) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.75781" y="17.5469">L1E</tspan></text>
+</g>
+<g data-id="S_1585" class="section">
+<rect class="block" x="736" y="560" width="16" height="56" fill="#52C3FF"/>
+<text transform="translate(757 572) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.8125" y="18.5469">L1D</tspan></text>
+</g>
+<g data-id="S_1584" class="section">
+<rect class="block" x="736" y="502" width="16" height="55" fill="#52C3FF"/>
+<text transform="translate(756 514) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.8125" y="18.0469">L1C</tspan></text>
+</g>
+<g data-id="S_1583" class="section">
+<rect class="block" x="736" y="450" width="16" height="49" fill="#52C3FF"/>
+<text transform="translate(755 459) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="1.25781" y="16.5469">L1B</tspan></text>
+</g>
+<g data-id="S_1582" class="section">
+<path class="block" d="M736 412L752 396V447H736V412Z" fill="#52C3FF"/>
+<text transform="translate(756 411) rotate(90)" fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="0.757812" y="17.5469">L1A</tspan></text>
+</g>
+</g>
+</g>
+</svg>

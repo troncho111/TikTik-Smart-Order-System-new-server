@@ -1,0 +1,378 @@
+<svg id="stadium" width="1040" height="804" viewbox="0 0 1040 804" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g class="extra">
+<path class="extra" d="M753 262H286V541H753V262Z" fill="#999997" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M744 270H295V533H744V270Z" fill="#999997" stroke="white" stroke-width="2"/>
+<path class="extra" d="M520 271V532" stroke="white" stroke-width="1.72727" stroke-linecap="square"/>
+<path class="extra" d="M519.5 447C544.077 447 564 427.077 564 402.5C564 377.923 544.077 358 519.5 358C494.923 358 475 377.923 475 402.5C475 427.077 494.923 447 519.5 447Z" fill="#999997" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M370 326H295V475H370V326Z" fill="#999997" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M327 363H295V438H327V363Z" fill="#999997" stroke="white" stroke-width="1.72727"/>
+<path class="extra" d="M669 326H744V475H669V326Z" fill="#999997" stroke="white" stroke-width="2"/>
+<path class="extra" d="M712 363H744V438H712V363Z" fill="#999997" stroke="white" stroke-width="1.72727"/>
+</g>
+<g data-id="C_1217" class="color-c">
+<g data-id="S_01" class="section">
+<path class="block" d="M668 158V113H360V158H668Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="505.094" y="141.547">27</tspan></text>
+</g>
+</g>
+<g data-id="C_1216" class="color-f">
+<g data-id="S_7045" class="section">
+<path class="block" d="M887 746H807V680H810C830.957 680 850.508 673.975 867.013 663.562L918.054 741.379C908.233 744.383 897.805 746 887 746Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="841.094" y="716.547">57</tspan></text>
+</g>
+<g data-id="S_7046" class="section">
+<path class="block" d="M871.178 660.796L922.961 739.744C957.422 727.318 983.592 697.541 990.929 660.957L903.078 625.816C895.171 639.719 884.24 651.678 871.178 660.796Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="919.094" y="682.547">58</tspan></text>
+</g>
+<g data-id="S_7047" class="section">
+<path class="block" d="M991.812 655.925C992.594 650.73 993 645.413 993 640V570H917V573C917 590.413 912.841 606.854 905.461 621.385L991.812 655.925Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="945.094" y="609.547">59</tspan></text>
+</g>
+<g data-id="S_7214" class="section">
+<path class="block" d="M881 565H837V522H881V565Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="850.094" y="549.547">60</tspan></text>
+</g>
+<g data-id="S_7042" class="section">
+<path class="block" d="M832 565H807V416H832V565Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="816.047" y="496.547">8</tspan></text>
+</g>
+<g data-id="S_7044" class="section">
+<path class="block" d="M912 573V570H872.459C869.525 585.027 862.535 598.604 852.676 609.544L886.388 640.595C902.325 622.598 912 598.929 912 573Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="877.094" y="604.547">56</tspan></text>
+</g>
+<g data-id="S_7043" class="section">
+<path class="block" d="M849.219 613.157C837.853 624.344 823.277 632.28 807 635.459V675H810C838.606 675 864.461 663.224 882.983 644.256L849.219 613.157Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="832.094" y="653.547">55</tspan></text>
+</g>
+<g data-id="S_7215" class="section">
+<path class="block" d="M837 517H881V428H837V517Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="850.094" y="478.547">61</tspan></text>
+</g>
+</g>
+<g data-id="C_1211" class="color-g">
+<g data-id="S_6997" class="section">
+<path class="block" d="M49.1883 655.925C48.4057 650.73 48 645.413 48 640V570H124V573C124 590.413 128.159 606.854 135.539 621.385L49.1883 655.925Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="79.0938" y="609.547">87</tspan></text>
+</g>
+<g data-id="S_6995" class="section">
+<path class="block" d="M154.612 640.595C138.675 622.598 129 598.929 129 573V570H168.541C171.475 585.027 178.465 598.604 188.324 609.544L154.612 640.595Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="146.094" y="605.547">85</tspan></text>
+</g>
+<g data-id="S_6996" class="section">
+<path class="block" d="M234 635.459V675H231C202.394 675 176.539 663.224 158.017 644.256L191.781 613.157C203.147 624.344 217.723 632.28 234 635.459Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="191.094" y="652.547">86</tspan></text>
+</g>
+<g data-id="S_6992" class="section">
+<path class="block" d="M173.987 136.438C190.492 126.025 210.043 120 231 120H234V54H154C143.195 54 132.767 55.6167 122.946 58.6213L173.987 136.438Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="180.094" y="94.5469">37</tspan></text>
+</g>
+<g data-id="S_6993" class="section">
+<path class="block" d="M50.0713 139.043C57.4078 102.459 83.5781 72.6821 118.039 60.2558L169.822 139.204C156.76 148.322 145.829 160.281 137.923 174.184L50.0713 139.043Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="101.094" y="128.547">38</tspan></text>
+</g>
+<g data-id="S_6994" class="section">
+<path class="block" d="M48 160C48 154.587 48.4057 149.27 49.1883 144.075L135.539 178.615C128.159 193.146 124 209.587 124 227V230H48V160Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="77.0938" y="201.547">39</tspan></text>
+</g>
+<g data-id="S_6991" class="section">
+<path class="block" d="M154.612 159.405C138.675 177.402 129 201.071 129 227V230H168.541C171.475 214.973 178.465 201.396 188.324 190.456L154.612 159.405Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="146.094" y="207.547">36</tspan></text>
+</g>
+<g data-id="S_6990" class="section">
+<path class="block" d="M234 164.541V125H231C202.394 125 176.539 136.776 158.017 155.744L191.781 186.843C203.147 175.656 217.723 167.72 234 164.541Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="192.094" y="159.547">35</tspan></text>
+</g>
+<g data-id="S_6998" class="section">
+<path class="block" d="M118.039 739.744C83.5782 727.318 57.4079 697.541 50.0713 660.957L137.923 625.816C145.829 639.719 156.76 651.678 169.822 660.796L118.039 739.744Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="101.094" y="682.547">88</tspan></text>
+</g>
+<g data-id="S_6999" class="section">
+<path class="block" d="M234 680V746H154C143.195 746 132.767 744.383 122.946 741.379L173.987 663.562C190.492 673.975 210.043 680 231 680H234Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="182.094" y="719.547">89</tspan></text>
+</g>
+</g>
+<g data-id="C_1229" class="color-k">
+<g data-id="S_7222" class="section">
+<path class="block" d="M48 235H136V277H48V235Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="82.0938" y="261.547">80</tspan></text>
+</g>
+<g data-id="S_7223" class="section">
+<path class="block" d="M136 342V282H48V342H136Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="83.0938" y="317.547">81</tspan></text>
+</g>
+<g data-id="S_7224" class="section">
+<path class="block" d="M136 454V347H48V454H136Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="83.0938" y="406.547">82</tspan></text>
+</g>
+<g data-id="S_7225" class="section">
+<path class="block" d="M136 520H48V459H136V520Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="83.0938" y="495.547">83</tspan></text>
+</g>
+<g data-id="S_7216" class="section">
+<path class="block" d="M141 277V235H234V277H141Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="179.094" y="261.547">10</tspan></text>
+</g>
+<g data-id="S_7217" class="section">
+<path class="block" d="M234 342H141V282H234V342Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="180.188" y="317.547">11</tspan></text>
+</g>
+<g data-id="S_7218" class="section">
+<path class="block" d="M234 347V397H141V347H234Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="178.094" y="377.547">12</tspan></text>
+</g>
+<g data-id="S_7219" class="section">
+<path class="block" d="M141 402V454H234V402H141Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="178.094" y="433.547">13</tspan></text>
+</g>
+<g data-id="S_7220" class="section">
+<path class="block" d="M234 520H141V459H234V520Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="178.094" y="495.547">14</tspan></text>
+</g>
+<g data-id="S_7221" class="section">
+<path class="block" d="M234 565V525H141V565H234Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="178.094" y="550.547">15</tspan></text>
+</g>
+<g data-id="S_7226" class="section">
+<path class="block" d="M136 525V565H48V525H136Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="83.0938" y="550.547">84</tspan></text>
+</g>
+</g>
+<g data-id="C_1210" class="color-e">
+<g data-id="S_6981" class="section">
+<path class="block" d="M942 497V565H993V497H942Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="959.094" y="536.547">75</tspan></text>
+</g>
+<g data-id="S_6982" class="section">
+<path class="block" d="M942 492H993V398H942V492Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="959.094" y="450.547">76</tspan></text>
+</g>
+<g data-id="S_6983" class="section">
+<path class="block" d="M942 393V307H993V393H942Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="959.094" y="355.547">77</tspan></text>
+</g>
+<g data-id="S_6984" class="section">
+<path class="block" d="M993 302V235H942V302H993Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="959.094" y="274.547">78</tspan></text>
+</g>
+<g data-id="S_6973" class="section">
+<path class="block" d="M905.461 178.615C912.841 193.146 917 209.587 917 227V230H993V160C993 154.587 992.594 149.27 991.812 144.075L905.461 178.615Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="945.094" y="200.547">66</tspan></text>
+</g>
+<g data-id="S_6971" class="section">
+<path class="block" d="M872.459 230H912V227C912 201.071 902.325 177.402 886.388 159.405L852.676 190.456C862.535 201.396 869.525 214.973 872.459 230Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="877.094" y="205.547">64</tspan></text>
+</g>
+<g data-id="S_6972" class="section">
+<path class="block" d="M882.983 155.744C864.461 136.776 838.606 125 810 125H807V164.541C823.277 167.72 837.853 175.656 849.219 186.843L882.983 155.744Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="830.094" y="158.547">65</tspan></text>
+</g>
+<g data-id="S_6974" class="section">
+<path class="block" d="M903.078 174.184C895.171 160.281 884.24 148.322 871.178 139.204L922.961 60.2558C957.422 72.6821 983.592 102.459 990.929 139.043L903.078 174.184Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="921.094" y="127.547">67</tspan></text>
+</g>
+<g data-id="S_6975" class="section">
+<path class="block" d="M918.054 58.6213L867.013 136.438C850.508 126.025 830.957 120 810 120H807V54H887C897.805 54 908.233 55.6167 918.054 58.6213Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="841.094" y="94.5469">68</tspan></text>
+</g>
+<g data-id="S_6976" class="section">
+<path class="block" d="M886 565H937V497H886V565Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="903.094" y="536.547">70</tspan></text>
+</g>
+<g data-id="S_6962" class="section">
+<path class="block" d="M807 235V411H832V235H807Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="815.047" y="328.547">9</tspan></text>
+</g>
+<g data-id="S_6969" class="section">
+<path class="block" d="M837 279H881V423H837V279Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="850.094" y="356.547">62</tspan></text>
+</g>
+<g data-id="S_6970" class="section">
+<path class="block" d="M837 235V274H881V235H837Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="850.094" y="260.547">63</tspan></text>
+</g>
+<g data-id="S_6977" class="section">
+<path class="block" d="M886 431V492H937V431H886Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="903.094" y="467.547">71</tspan></text>
+</g>
+<g data-id="S_6978" class="section">
+<path class="block" d="M886 426H937V370H886V426Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="903.094" y="403.547">72</tspan></text>
+</g>
+<g data-id="S_6979" class="section">
+<path class="block" d="M886 307H937V365H886V307Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="903.094" y="341.547">73</tspan></text>
+</g>
+<g data-id="S_6980" class="section">
+<path class="block" d="M886 235V302H937V235H886Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="903.094" y="274.547">74</tspan></text>
+</g>
+</g>
+<g data-id="C_1215" class="color-d">
+<g data-id="S_7029" class="section">
+<path class="block" d="M604 182H673V209H604V182Z" fill="#52C3FF"/>
+</g>
+<g data-id="S_7030" class="section">
+<path class="block" d="M604 163H673V177H604V163Z" fill="#52C3FF"/>
+</g>
+<g data-id="S_7036" class="section">
+<path class="block" d="M342 625H431V654H342V625Z" fill="#52C3FF"/>
+</g>
+<g data-id="S_7038" class="section">
+<path class="block" d="M604 625H693V654H604V625Z" fill="#52C3FF"/>
+</g>
+<g data-id="S_7041" class="section">
+<path class="block" d="M604 688V659H693V688H604Z" fill="#52C3FF"/>
+</g>
+<g data-id="S_7039" class="section">
+<path class="block" d="M431 659H342V688H431V659Z" fill="#52C3FF"/>
+</g>
+<g data-id="S_7031" class="section">
+<path class="block" d="M355 183H433V209H355V183Z" fill="#52C3FF"/>
+</g>
+<g data-id="S_7032" class="section">
+<rect class="block" x="355" y="163" width="78" height="15" fill="#52C3FF"/>
+</g>
+<g data-id="S_7034" class="section">
+<path class="block" d="M345 593V620H515V593H345Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="421.094" y="612.547">41</tspan></text>
+</g>
+<g data-id="S_7035" class="section">
+<path class="block" d="M520 620V593H690V620H520Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="596.094" y="612.547">42</tspan></text>
+</g>
+<g data-id="S_7033" class="section">
+<path class="block" d="M438 163V209H599V163H438Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="510.094" y="191.547">26</tspan></text>
+</g>
+<g data-id="S_7040" class="section">
+<path class="block" d="M436 659H599V688H436V659Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="509.094" y="679.547">48</tspan></text>
+</g>
+<g data-id="S_7037" class="section">
+<path class="block" d="M436 625H599V654H436V625Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="509.094" y="645.547">45</tspan></text>
+</g>
+</g>
+<g data-id="C_1214" class="color-i">
+<g data-id="S_7014" class="section">
+<path class="block" d="M239 588H270V570H239V588Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="250.047" y="584.547">5</tspan></text>
+</g>
+<g data-id="S_7023" class="section">
+<path class="block" d="M239 593H340V620H239V593Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="280.094" y="612.547">40</tspan></text>
+</g>
+<g data-id="S_7025" class="section">
+<path class="block" d="M239 625H342V654H239V625Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="280.094" y="645.547">44</tspan></text>
+</g>
+<g data-id="S_7027" class="section">
+<path class="block" d="M342 659H239V688H342V659Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="280.094" y="679.547">47</tspan></text>
+</g>
+<g data-id="S_7010" class="section">
+<path class="block" d="M802 214V230H604V214H802Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="699.047" y="227.547">1</tspan></text>
+</g>
+<g data-id="S_7011" class="section">
+<path class="block" d="M599 214H468V230H599V214Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="529.047" y="227.547">2</tspan></text>
+</g>
+<g data-id="S_7012" class="section">
+<path class="block" d="M463 214H281V230H463V214Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="367.047" y="227.547">3</tspan></text>
+</g>
+<g data-id="S_7013" class="section">
+<path class="block" d="M276 214H239V230H276V214Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="253.047" y="227.547">4</tspan></text>
+</g>
+<g data-id="S_7020" class="section">
+<path class="block" d="M239 183H355V209H239V183Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="287.094" y="201.547">23</tspan></text>
+</g>
+<g data-id="S_7021" class="section">
+<path class="block" d="M355 149H239V178H355V149Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="288.094" y="168.547">24</tspan></text>
+</g>
+<g data-id="S_7022" class="section">
+<path class="block" d="M239 113H355V144H239V113Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="288.094" y="134.547">25</tspan></text>
+</g>
+<g data-id="S_7019" class="section">
+<path class="block" d="M673 113H802V144H673V113Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="729.094" y="134.547">22</tspan></text>
+</g>
+<g data-id="S_7018" class="section">
+<path class="block" d="M802 149H673V177H802V149Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="729.094" y="168.547">21</tspan></text>
+</g>
+<g data-id="S_7017" class="section">
+<path class="block" d="M673 182H802V209H673V182Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="729.094" y="201.547">20</tspan></text>
+</g>
+<g data-id="S_7028" class="section">
+<path class="block" d="M693 688V659H802V688H693Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="739.094" y="679.547">49</tspan></text>
+</g>
+<g data-id="S_7026" class="section">
+<path class="block" d="M693 625H802V654H693V625Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="739.094" y="645.547">46</tspan></text>
+</g>
+<g data-id="S_7024" class="section">
+<path class="block" d="M802 620H695V593H802V620Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="740.094" y="612.547">43</tspan></text>
+</g>
+<g data-id="S_7016" class="section">
+<path class="block" d="M802 588V570H566V588H802Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="680.047" y="584.547">7</tspan></text>
+</g>
+<g data-id="S_7015" class="section">
+<path class="block" d="M459 588H275V570H459V588Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="362.047" y="584.547">6</tspan></text>
+</g>
+</g>
+<g data-id="C_1213" class="color-b">
+<g data-id="S_7009" class="section">
+<path class="block" d="M588 693V746H441V693H588Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="506.094" y="725.547">52</tspan></text>
+</g>
+<g data-id="S_7008" class="section">
+<path class="block" d="M588 108H443V54H588V108Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="507.094" y="86.5469">32</tspan></text>
+</g>
+</g>
+<g data-id="C_1212" class="color-a">
+<g data-id="S_7004" class="section">
+<path class="block" d="M239 746H306V693H239V746Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="264.094" y="725.547">50</tspan></text>
+</g>
+<g data-id="S_7005" class="section">
+<path class="block" d="M436 746V693H311V746H436Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="365.094" y="725.547">51</tspan></text>
+</g>
+<g data-id="S_7006" class="section">
+<path class="block" d="M593 693H722V746H593V693Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="649.094" y="725.547">53</tspan></text>
+</g>
+<g data-id="S_7007" class="section">
+<path class="block" d="M727 693H802V746H727V693Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="756.094" y="725.547">54</tspan></text>
+</g>
+<g data-id="S_7003" class="section">
+<path class="block" d="M239 54H306V108H239V54Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="264.094" y="86.5469">34</tspan></text>
+</g>
+<g data-id="S_7002" class="section">
+<path class="block" d="M311 108H438V54H311V108Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="366.094" y="86.5469">33</tspan></text>
+</g>
+<g data-id="S_7001" class="section">
+<path class="block" d="M719 108H593V54H719V108Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="647.094" y="86.5469">31</tspan></text>
+</g>
+<g data-id="S_7000" class="section">
+<path class="block" d="M802 54H724V108H802V54Z" fill="#52C3FF"/>
+<text fill="white" xml:space="preserve" style="white-space: pre" font-family="Arial" font-size="16" letter-spacing="0em"><tspan x="754.094" y="86.5469">30</tspan></text>
+</g>
+</g>
+</svg>
