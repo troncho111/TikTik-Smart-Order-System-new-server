@@ -75,11 +75,11 @@ CHAMPIONS_LEAGUE_TEAMS = [
 ]
 
 OPENFOOTBALL_URLS = {
-    "Spanish La Liga": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/es.1.json",
-    "English Premier League": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/en.1.json",
-    "Italian Serie A": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/it.1.json",
-    "German Bundesliga": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/de.1.json",
-    "French Ligue 1": "https://raw.githubusercontent.com/openfootball/football.json/master/2024-25/fr.1.json"
+    "Spanish La Liga": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/es.1.json",
+    "English Premier League": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/en.1.json",
+    "Italian Serie A": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/it.1.json",
+    "German Bundesliga": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/de.1.json",
+    "French Ligue 1": "https://raw.githubusercontent.com/openfootball/football.json/master/2025-26/fr.1.json"
 }
 
 # Champions League 2026 fixtures
@@ -97,6 +97,39 @@ CHAMPIONS_LEAGUE_FIXTURES = [
     {"date": "2026-02-25", "time": "21:00", "home_team": "Real Madrid", "away_team": "Benfica", "round": "Champions League", "venue": "Santiago Bernabeu", "city": "Madrid", "country": "Spain"},
     {"date": "2026-02-25", "time": "21:00", "home_team": "Juventus", "away_team": "Galatasaray", "round": "Champions League", "venue": "Juventus Arena", "city": "Torino", "country": "Italy"},
     {"date": "2026-02-25", "time": "21:00", "home_team": "Paris Saint-Germain", "away_team": "AS Monaco", "round": "Champions League", "venue": "Parc des Princes", "city": "Paris", "country": "France"},
+]
+
+# La Liga sample fixtures for 2026
+LA_LIGA_FIXTURES = [
+    {"date": "2026-02-08", "time": "16:15", "home_team": "FC Barcelona", "away_team": "Real Madrid", "round": "La Liga"},
+    {"date": "2026-02-08", "time": "18:30", "home_team": "Atletico Madrid", "away_team": "Sevilla", "round": "La Liga"},
+    {"date": "2026-02-08", "time": "21:00", "home_team": "Real Madrid", "away_team": "FC Barcelona", "round": "La Liga"},
+    {"date": "2026-02-15", "time": "16:15", "home_team": "Valencia", "away_team": "Atletico Madrid", "round": "La Liga"},
+    {"date": "2026-02-15", "time": "18:30", "home_team": "Sevilla", "away_team": "Real Betis", "round": "La Liga"},
+]
+
+# Premier League sample fixtures for 2026  
+PREMIER_LEAGUE_FIXTURES = [
+    {"date": "2026-02-08", "time": "13:30", "home_team": "Manchester United", "away_team": "Liverpool", "round": "Premier League"},
+    {"date": "2026-02-08", "time": "16:00", "home_team": "Arsenal", "away_team": "Chelsea", "round": "Premier League"},
+    {"date": "2026-02-08", "time": "18:30", "home_team": "Manchester City", "away_team": "Tottenham Hotspur", "round": "Premier League"},
+    {"date": "2026-02-15", "time": "13:30", "home_team": "Liverpool", "away_team": "Manchester City", "round": "Premier League"},
+    {"date": "2026-02-15", "time": "16:00", "home_team": "Chelsea", "away_team": "Arsenal", "round": "Premier League"},
+]
+
+# Serie A sample fixtures for 2026
+SERIE_A_FIXTURES = [
+    {"date": "2026-02-08", "time": "18:00", "home_team": "AC Milan", "away_team": "Inter Milan", "round": "Serie A"},
+    {"date": "2026-02-08", "time": "20:45", "home_team": "Juventus", "away_team": "Napoli", "round": "Serie A"},
+    {"date": "2026-02-15", "time": "18:00", "home_team": "Inter Milan", "away_team": "AC Milan", "round": "Serie A"},
+    {"date": "2026-02-15", "time": "20:45", "home_team": "Napoli", "away_team": "AS Roma", "round": "Serie A"},
+]
+
+# Bundesliga sample fixtures for 2026
+BUNDESLIGA_FIXTURES = [
+    {"date": "2026-02-08", "time": "15:30", "home_team": "Bayern Munich", "away_team": "Borussia Dortmund", "round": "Bundesliga"},
+    {"date": "2026-02-08", "time": "18:30", "home_team": "RB Leipzig", "away_team": "Bayer Leverkusen", "round": "Bundesliga"},
+    {"date": "2026-02-15", "time": "15:30", "home_team": "Borussia Dortmund", "away_team": "Bayern Munich", "round": "Bundesliga"},
 ]
 
 TEAM_HEBREW_NAMES = {
@@ -349,10 +382,19 @@ def get_season_fixtures(league_name: str, season: str = "2024-2025") -> list:
                 } for i, m in enumerate(matches) if m.get('team1')]
             return []
         
-        # Champions League has hardcoded fixtures
+        # Use hardcoded fixtures for leagues (2026 season)
         if league_name == "UEFA Champions League":
             return CHAMPIONS_LEAGUE_FIXTURES
+        elif league_name == "Spanish La Liga":
+            return LA_LIGA_FIXTURES
+        elif league_name == "English Premier League":
+            return PREMIER_LEAGUE_FIXTURES
+        elif league_name == "Italian Serie A":
+            return SERIE_A_FIXTURES
+        elif league_name == "German Bundesliga":
+            return BUNDESLIGA_FIXTURES
         
+        # Fallback to online data
         url = OPENFOOTBALL_URLS.get(league_name)
         if not url:
             return []

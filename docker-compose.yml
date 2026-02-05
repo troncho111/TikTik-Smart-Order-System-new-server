@@ -13,6 +13,12 @@ services:
       - .env
     external_links:
       - tiktik-db:tiktik-db
+    volumes:
+      # Mount code for live editing (development mode)
+      - ./:/app:delegated
+      # Exclude these from mount (use container versions)
+      - /app/venv
+      - /app/__pycache__
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5000')"]
       interval: 30s

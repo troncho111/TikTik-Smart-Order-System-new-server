@@ -9,7 +9,7 @@ from PIL import Image
 import tempfile
 import uuid
 import hashlib
-from models import Order, OrderStatus, EventType, AtmosphereImage, User, UserSession, PackageTemplate, get_db, generate_order_number, init_db
+from models import Order, OrderStatus, EventType, AtmosphereImage, User, UserSession, PackageTemplate, get_db, generate_order_number, init_db, HotelCache
 
 def generate_session_token():
     """Generate a random session token"""
@@ -1523,11 +1523,14 @@ def page_new_order():
                 [
                     {"first_name": "Israel", "last_name": "Israeli", "passport": "12345678", "birth_date": "15/03/1985", "passport_expiry": "20/05/2030", "ticket_type": "כרטיס רגיל"},
                     {"first_name": "Sarah", "last_name": "Israeli", "passport": "87654321", "birth_date": "22/07/1988", "passport_expiry": "18/09/2029", "ticket_type": "כרטיס רגיל"},
+                    {"first_name": "Noam", "last_name": "Israeli", "passport": "11998877", "birth_date": "12/09/2010", "passport_expiry": "12/09/2030", "ticket_type": "כרטיס ילד"},
+                    {"first_name": "Tamar", "last_name": "Israeli", "passport": "22334455", "birth_date": "20/11/2015", "passport_expiry": "20/11/2035", "ticket_type": "כרטיס ילד"},
                 ],
                 [
                     {"first_name": "David", "last_name": "Cohen", "passport": "11223344", "birth_date": "01/01/1990", "passport_expiry": "01/01/2031", "ticket_type": "כרטיס VIP"},
                     {"first_name": "Rachel", "last_name": "Cohen", "passport": "44332211", "birth_date": "15/06/1992", "passport_expiry": "15/06/2032", "ticket_type": "כרטיס VIP"},
                     {"first_name": "Yosef", "last_name": "Cohen", "passport": "55667788", "birth_date": "10/10/2010", "passport_expiry": "10/10/2028", "ticket_type": "כרטיס ילד"},
+                    {"first_name": "Maya", "last_name": "Cohen", "passport": "99887766", "birth_date": "25/12/2013", "passport_expiry": "25/12/2033", "ticket_type": "כרטיס ילד"},
                 ],
             ]
             
@@ -1569,17 +1572,69 @@ def page_new_order():
             league_eng = LEAGUES.get(match['league'], "")
             teams = get_teams_by_league(league_eng)
             
-            home_team = next((t for t in teams if t['name'] == match['home']), None)
-            away_team = next((t for t in teams if t['name'] == match['away']), None)
+            # Match team by name (handle both 'name' and 'name_en')
+            home_team = None
+            away_team = None
+            for t in teams:
+                team_name = t.get('name_en') or t.get('name', '')
+                if team_name == match['home']:
+                    home_team = t
+                    # Ensure 'name' field exists for stadium map loading
+                    if 'name' not in home_team and 'name_en' in home_team:
+                        home_team = dict(home_team)  # Make a copy
+                        home_team['name'] = home_team['name_en']
+                if team_name == match['away']:
+                    away_team = t
+                    if 'name' not in away_team and 'name_en' in away_team:
+                        away_team = dict(away_team)
+                        away_team['name'] = away_team['name_en']
             
-            if home_team:
-                st.session_state['selected_team_data'] = home_team
-                st.session_state['home_team_hebrew'] = home_heb
-            if away_team:
-                st.session_state['away_team_data'] = away_team
-                st.session_state['away_team_hebrew'] = away_heb
+            # If not found in teams list, create minimal team data
+            if not home_team:
+                home_team = {'name': match['home'], 'stadium': match['stadium']}
+            if not away_team:
+                away_team = {'name': match['away']}
+            
+            st.session_state['selected_team_data'] = home_team
+            st.session_state['home_team_hebrew'] = home_heb
+            st.session_state['away_team_data'] = away_team
+            st.session_state['away_team_hebrew'] = away_heb
             
             flights = sample_structured_flights.get(match['city'], sample_structured_flights['Madrid'])
+            
+            # Populate hotel data for package
+            if product_type == "package":
+                # Try to get hotel from cache first
+                hotel_from_cache = None
+                try:
+                    db = get_db()  # Already imported at top
+                    if db:
+                        # Search for hotel in cache by city
+                        cached = db.query(HotelCache).filter(
+                            HotelCache.search_query.ilike(f'%{match["city"].lower()}%')
+                        ).first()
+                        if cached:
+                            hotel_from_cache = cached.to_dict()
+                        db.close()
+                except Exception:
+                    pass
+                
+                if hotel_from_cache:
+                    # Use real hotel data from cache
+                    st.session_state['hotel_data'] = hotel_from_cache
+                else:
+                    # Use sample data
+                    st.session_state['hotel_data'] = {
+                        'name': hotel,
+                        'check_in': flights['outbound']['date'],
+                        'check_out': flights['return']['date'],
+                        'address': f"{match['city']}, City Center",
+                        'website': f"http://www.{hotel.lower().replace(' ', '').replace('-', '')}.com",
+                        'rating': random.choice([4.3, 4.5, 4.7, 4.8]),
+                        'stars': "5 כוכבים",
+                        'nights': 3,
+                        'meals': "ארוחת בוקר"
+                    }
             
             st.session_state.random_data = {
                 'product_type': product_type,
