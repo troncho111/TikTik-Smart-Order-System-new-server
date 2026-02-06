@@ -95,70 +95,86 @@ body {
 
 .cover-page {
   position: relative;
-  height: 297mm;                  /* 👈 גובה A4 מדויק */
-  width: 210mm;                   /* 👈 רוחב A4 מדויק */
-  display: table;
-  table-layout: fixed;
+  height: 100vh;
+  min-height: 1000px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 100px 80px 60px 80px;  /* תיקון: padding מכל צד */
+  background-size: cover;
+  background-position: center;
   page-break-after: always;
   background: var(--white);
-  border-bottom: 4px solid var(--brand-blue);
-}
-
-.cover-content {
-  display: table-cell;
-  vertical-align: middle;
-  text-align: center;
-  padding: 80px;
+  border-bottom: 3px solid var(--brand-blue);
+  box-sizing: border-box;
 }
 
 .cover-header {
-  font-size: 16px;
-  color: #999;
-  font-weight: 400;
-  letter-spacing: 3px;
-  text-transform: uppercase;
-  margin-bottom: 60px;
-}
-
-.cover-customer {
-  font-size: 42px;
-  font-weight: 900;
-  color: #1a1a1a;
-  margin: 0 0 40px 0;
-  line-height: 1.4;
-}
-
-.cover-package {
-  font-size: 24px;
-  font-weight: 600;
-  color: #2c3e50;
-  margin: 0 0 30px 0;
-  line-height: 1.5;
-}
-
-.cover-details {
   font-size: 18px;
+  text-align: center;
+  margin-bottom: 40px;
   color: #666;
-  margin: 0 0 80px 0;
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.cover-customer,
+.cover-line1 {
+  font-size: 42px;              /* תיקון: הקטנתי */
+  font-weight: 700;
+  text-align: center;
+  margin: 20px 0;
+  color: #1a1a1a;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  line-height: 1.4;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.cover-package,
+.cover-line2 {
+  font-size: 26px;              /* תיקון: הקטנתי */
+  text-align: center;
+  margin: 20px 0;
+  color: #2c3e50;
+  font-weight: 500;
+  line-height: 1.5;
+  max-width: 100%;
+  word-wrap: break-word;
+}
+
+.cover-details,
+.cover-line3 {
+  font-size: 18px;              /* תיקון: הקטנתי */
+  text-align: center;
+  color: #555;
+  margin: 20px 0 60px;
   line-height: 1.6;
+  max-width: 100%;
+  word-wrap: break-word;
 }
 
 .cover-footer {
   position: absolute;
-  bottom: 60px;
-  left: 0;
-  right: 0;
+  bottom: 60px;                 /* 👈 מרחק מתחתית העמוד */
+  width: 100%;
   text-align: center;
 }
 
 .cover-footer p {
   font-size: 14px;
   color: #999;
-  margin: 0 0 20px 0;
-.cover-footer img {
-  height: 50px;
-  width: auto;
-}===================================================================
+  margin: 0;
+}
+
+.cover-footer img { 
+  height: 56px;                 /* 👈 גובה הלוגו */
+  width: auto; 
+}
+
+/* ====================================================================
    2️⃣ באנר עליון (BANNER)
    ==================================================================== 
    
