@@ -46,6 +46,8 @@ st.markdown("""
         box-shadow: 0 4px 15px rgba(0,0,0,0.1);
         transition: all 0.3s;
         height: 100%;
+        direction: rtl;
+        text-align: right;
     }
     
     .feature-card:hover {
@@ -56,6 +58,7 @@ st.markdown("""
     .feature-icon {
         font-size: 48px;
         margin-bottom: 15px;
+        text-align: center;
     }
     
     .feature-title {
@@ -63,12 +66,16 @@ st.markdown("""
         font-weight: 700;
         margin-bottom: 10px;
         color: #2c3e50;
+        text-align: right;
+        direction: rtl;
     }
     
     .feature-description {
         font-size: 16px;
         color: #7f8c8d;
         line-height: 1.6;
+        text-align: right;
+        direction: rtl;
     }
 </style>
 """, unsafe_allow_html=True)
