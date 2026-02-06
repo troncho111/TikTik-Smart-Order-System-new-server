@@ -11,6 +11,7 @@ WORLDCUP_STADIUMS_JSON_PATH = os.path.join(_APP_DIR, "worldcup_stadiums_mapping.
 import base64
 import secrets
 from datetime import datetime, timedelta
+from services_refactored.pdf_service import generate_pdf as generate_pdf_new
 from PIL import Image
 import tempfile
 import uuid
@@ -1077,33 +1078,12 @@ def generate_pdf(order_data, stadium_image=None, hotel_image=None, hotel_image_2
     
     json_file = None
     try:
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8') as jf:
-            json.dump(pdf_data, jf, ensure_ascii=False)
-            json_file = jf.name
-
-        pdf_generator_path = os.path.join(_APP_DIR, 'pdf_generator.py')
-        result = subprocess.run(
-            [sys.executable, pdf_generator_path, json_file],
-            capture_output=True,
-            text=True,
-            timeout=60,
-            cwd=_APP_DIR
-        )
-
-        if result.returncode != 0:
-            err_msg = result.stderr or result.stdout or "Unknown error"
-            raise Exception(f"PDF generation failed: {err_msg}")
-
-        raw_stdout = result.stdout.strip()
-        if not raw_stdout:
-            raise Exception("PDF generator returned empty output")
-        try:
-            pdf_bytes = base64.b64decode(raw_stdout)
-        except Exception as e:
-            raise Exception(f"Invalid PDF output (decode error): {e}")
-        if not pdf_bytes.startswith(b'%PDF-'):
-            raise Exception("PDF generator did not produce a valid PDF file")
-        return pdf_bytes
+        # Use the new professional PDF generator
+        pdf_path = generate_pdf_new(pdf_data)
+        if pdf_path and os.path.exists(pdf_path):
+            with open(pdf_path, "rb") as f:
+                return f.read()
+        raise Exception("Failed to generate PDF with the new engine")
         
     finally:
         if json_file and os.path.exists(json_file):
@@ -1653,6 +1633,27 @@ def page_new_order():
     # Initialize UI step
     if 'ui_step' not in st.session_state:
         st.session_state['ui_step'] = 1
+
+    # Wizard Progress Bar
+    current_step = st.session_state.get('ui_step', 1)
+    steps = ["סוג מוצר", "סוג אירוע", "פרטי הזמנה", "סיכום"]
+    
+    cols = st.columns(len(steps))
+    for i, step_name in enumerate(steps):
+        step_num = i + 1
+        with cols[i]:
+            is_active = current_step == step_num
+            is_completed = current_step > step_num
+            
+            color = "#667eea" if is_active else ("#38ef7d" if is_completed else "#a0a0a0")
+            icon = "✅" if is_completed else (f"{step_num}")
+            
+            st.markdown(f"""
+                <div style="text-align: center; border-bottom: 3px solid {color}; padding-bottom: 5px;">
+                    <span style="color: {color}; font-weight: bold;">{icon}. {step_name}</span>
+                </div>
+            """, unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Initialize other session state
     if 'passengers' not in st.session_state:
@@ -4773,31 +4774,14 @@ def page_new_order():
                                 db.close()
             
             if generate_pdf_btn:
-                order_number = generate_order_number()
-                order_data['order_number'] = order_number
-                pdf_bytes = None
-                with st.spinner("יוצר PDF..."):
-                    try:
-                        pdf_bytes = generate_pdf(order_data, stadium_img, hotel_img, hotel_img_2, stadium_photo_img, template_version)
-                        st.session_state.pdf_bytes = pdf_bytes
-                        st.session_state.order_generated = True
-                        st.session_state.current_order_number = order_number
-                        st.success("✅ ה-PDF נוצר בהצלחה!")
-                        st.info(f"📋 מספר הזמנה: {order_number}")
-                    except Exception as e:
-                        st.error(f"❌ יצירת PDF נכשלה: {str(e)}")
-                        st.code(str(e), language="text")
-                        import traceback
-                        with st.expander("פרטי השגיאה"):
-                            st.code(traceback.format_exc())
-
-                if pdf_bytes:
-                    try:
-                        saved_order = save_order_to_db(order_data, pdf_bytes)
-                        if saved_order:
-                            st.session_state.current_order_id = saved_order.id
-                    except Exception as e:
-                        st.warning("⚠️ ההזמנה לא נשמרה במסד הנתונים, אך ה-PDF זמין להורדה.")
+                st.session_state['ui_step'] = 4
+                st.session_state['final_order_data'] = order_data
+                st.session_state['final_stadium_img'] = stadium_img
+                st.session_state['final_hotel_img'] = hotel_img
+                st.session_state['final_hotel_img_2'] = hotel_img_2
+                st.session_state['final_stadium_photo_img'] = stadium_photo_img
+                st.session_state['final_template_version'] = template_version
+                st.rerun()
             
             if st.session_state.get('order_generated') and st.session_state.get('pdf_bytes'):
                 filename = f"הזמנה_{customer_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
@@ -6871,8 +6855,102 @@ def main():
         page_order_history()
     elif page == "📊 ייצוא דוחות":
         page_export()
+    elif page == "🆕 הזמנה חדשה":
+        if st.session_state.get('ui_step') == 4:
+            page_order_summary()
+        else:
+            page_new_order()
     else:
         page_new_order()
+
+def page_order_summary():
+    """Step 4: Order Summary and PDF Generation"""
+    render_header()
+    
+    # Wizard Progress Bar
+    steps = ["סוג מוצר", "סוג אירוע", "פרטי הזמנה", "סיכום"]
+    cols = st.columns(len(steps))
+    for i, step_name in enumerate(steps):
+        step_num = i + 1
+        with cols[i]:
+            color = "#38ef7d" if step_num < 4 else "#667eea"
+            icon = "✅" if step_num < 4 else "4"
+            st.markdown(f"""
+                <div style="text-align: center; border-bottom: 3px solid {color}; padding-bottom: 5px;">
+                    <span style="color: {color}; font-weight: bold;">{icon}. {step_name}</span>
+                </div>
+            """, unsafe_allow_html=True)
+    st.markdown("<br>", unsafe_allow_html=True)
+
+    order_data = st.session_state.get('final_order_data')
+    if not order_data:
+        st.error("שגיאה: נתוני ההזמנה לא נמצאו")
+        if st.button("חזור להתחלה"):
+            st.session_state['ui_step'] = 1
+            st.rerun()
+        return
+
+    st.markdown('<div class="form-section">', unsafe_allow_html=True)
+    st.markdown(f"### 📋 סיכום הזמנה: {order_data.get('event_name')}")
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.write(f"**👤 לקוח:** {order_data.get('customer_name')}")
+        st.write(f"**📅 תאריך:** {order_data.get('event_date')}")
+        st.write(f"**📍 מיקום:** {order_data.get('venue')}")
+    with col2:
+        st.write(f"**🎫 כרטיסים:** {order_data.get('num_tickets')}")
+        st.write(f"**💰 סה\"כ:** {order_data.get('total_euro')}€ ({order_data.get('total_nis'):,} ₪)")
+
+    st.markdown("---")
+    
+    if not st.session_state.get('order_generated'):
+        if st.button("🚀 אשר וצור PDF סופי", type="primary", use_container_width=True):
+            order_number = generate_order_number()
+            order_data['order_number'] = order_number
+            with st.spinner("מפיק PDF מקצועי..."):
+                try:
+                    pdf_bytes = generate_pdf(
+                        order_data, 
+                        st.session_state.get('final_stadium_img'),
+                        st.session_state.get('final_hotel_img'),
+                        st.session_state.get('final_hotel_img_2'),
+                        st.session_state.get('final_stadium_photo_img'),
+                        st.session_state.get('final_template_version')
+                    )
+                    st.session_state.pdf_bytes = pdf_bytes
+                    st.session_state.order_generated = True
+                    st.session_state.current_order_number = order_number
+                    
+                    # Save to DB
+                    save_order_to_db(order_data, pdf_bytes)
+                    st.success("✅ ה-PDF נוצר וההזמנה נשמרה!")
+                    st.rerun()
+                except Exception as e:
+                    st.error(f"❌ שגיאה ביצירת PDF: {str(e)}")
+    else:
+        st.success(f"✅ הזמנה {st.session_state.current_order_number} מוכנה!")
+        filename = f"הזמנה_{order_data.get('customer_name', 'TikTik').replace(' ', '_')}.pdf"
+        st.download_button(
+            label="📥 הורד טופס הזמנה (PDF)",
+            data=st.session_state.pdf_bytes,
+            file_name=filename,
+            mime="application/pdf",
+            use_container_width=True
+        )
+        
+        if st.button("➕ צור הזמנה חדשה", use_container_width=True):
+            st.session_state['ui_step'] = 1
+            st.session_state.order_generated = False
+            st.session_state.pdf_bytes = None
+            st.rerun()
+
+    if not st.session_state.get('order_generated'):
+        if st.button("🔙 חזור לעריכה", use_container_width=True):
+            st.session_state['ui_step'] = 3
+            st.rerun()
+    
+    st.markdown('</div>', unsafe_allow_html=True)
 
 if __name__ == "__main__":
     main()
