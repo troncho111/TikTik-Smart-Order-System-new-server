@@ -12,10 +12,15 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils_refactored import init_session_state, get_session_value, set_session_value
 from services_refactored import save_order_to_db, generate_pdf
+from services_refactored.api_service import (
+    get_football_leagues, get_teams_for_league, get_team_details, 
+    get_stadium_map, search_concert_artists, get_concert_events, get_worldcup_matches
+)
 from passport_ocr import extract_passport_data
 from hotel_resolver import resolve_hotel_safe
 from flight_ocr import extract_flight_data
 from streamlit_paste_button import paste_image_button
+from sports_api import get_hebrew_name, TEAM_HEBREW_NAMES
 
 # הגדרת עמוד
 st.set_page_config(
@@ -135,12 +140,62 @@ elif current_step == 2:
     order_data = get_session_value('order_data', {})
     with st.container():
         st.markdown("<div class='form-section'><h3>שלב 2: פרטי האירוע</h3>", unsafe_allow_html=True)
+        
+        event_type = st.selectbox("סוג אירוע", ["כדורגל", "הופעה", "אחר"], index=0 if order_data.get('event_type') == 'כדורגל' else 1 if order_data.get('event_type') == 'הופעה' else 2)
+        order_data['event_type'] = event_type
+        
+        if event_type == "כדורגל":
+            leagues = get_football_leagues()
+            selected_league = st.selectbox("בחר ליגה", leagues, key="wizard_league")
+            
+            if selected_league != "-- בחר ליגה --":
+                teams = get_teams_for_league(selected_league)
+                team_names = [t['name'] for t in teams]
+                team_heb_names = [f"{get_hebrew_name(t['name'])} ({t['name']})" for t in teams]
+                
+                col_t1, col_t2 = st.columns(2)
+                with col_t1:
+                    home_team_idx = st.selectbox("קבוצה מארחת", range(len(team_heb_names)), format_func=lambda i: team_heb_names[i])
+                    home_team = teams[home_team_idx]
+                with col_t2:
+                    away_team_idx = st.selectbox("קבוצה אורחת", range(len(team_heb_names)), format_func=lambda i: team_heb_names[i])
+                    away_team = teams[away_team_idx]
+                
+                order_data['event_name'] = f"{get_hebrew_name(home_team['name'])} נגד {get_hebrew_name(away_team['name'])}"
+                order_data['event_location'] = f"{home_team.get('stadium', '')}, {home_team.get('stadium_location', '')}"
+                
+                # הצגת מפת אצטדיון
+                map_path = get_stadium_map(home_team['name'])
+                if map_path and os.path.exists(map_path):
+                    st.image(map_path, caption=f"מפת אצטדיון: {home_team.get('stadium')}")
+                    order_data['stadium_map'] = map_path
+
+        elif event_type == "הופעה":
+            artist_query = st.text_input("חפש אמן (באנגלית)", placeholder="לדוגמה: Coldplay")
+            if artist_query:
+                artists_res = search_concert_artists(artist_query)
+                if artists_res.get('artists'):
+                    artist_options = [a['name'] for a in artists_res['artists']]
+                    selected_artist_name = st.selectbox("בחר אמן מהתוצאות", artist_options)
+                    selected_artist = next(a for a in artists_res['artists'] if a['name'] == selected_artist_name)
+                    
+                    events_res = get_concert_events(selected_artist['name'], selected_artist['id'])
+                    if events_res.get('concerts'):
+                        event_options = [f"{c['date']} - {c['venue']}, {c['city']}" for c in events_res['concerts']]
+                        selected_event_idx = st.selectbox("בחר הופעה", range(len(event_options)), format_func=lambda i: event_options[i])
+                        selected_event = events_res['concerts'][selected_event_idx]
+                        
+                        order_data['event_name'] = f"הופעה של {selected_artist['name']}"
+                        order_data['event_location'] = f"{selected_event['venue']}, {selected_event['city']}"
+                        order_data['event_date'] = selected_event['date']
+
+        st.markdown("---")
         col1, col2 = st.columns(2)
         with col1:
-            event_name = st.text_input("שם האירוע", value=order_data.get('event_name', ''))
+            event_name = st.text_input("שם האירוע (עריכה ידנית)", value=order_data.get('event_name', ''))
             event_date = st.date_input("תאריך האירוע")
         with col2:
-            event_location = st.text_input("מקום האירוע", value=order_data.get('event_location', ''))
+            event_location = st.text_input("מקום האירוע (עריכה ידנית)", value=order_data.get('event_location', ''))
             num_tickets = st.number_input("מספר כרטיסים", min_value=1, value=order_data.get('num_tickets', 1))
             
         if order_data.get('package_type') == 'חבילה מלאה':
