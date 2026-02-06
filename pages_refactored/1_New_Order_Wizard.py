@@ -1,5 +1,5 @@
 """
-ממשק אשף להזמנה חדשה - 4 שלבים
+ממשק אשף להזמנה חדשה - עיצוב מודרני ו-RTL מלא
 """
 import streamlit as st
 import sys
@@ -19,141 +19,65 @@ st.set_page_config(
     initial_sidebar_state="expanded"
 )
 
-# CSS מותאם אישית
+# CSS מקצועי ל-RTL ועיצוב מודרני
 st.markdown("""
 <style>
-    /* כיוון עברית */
-    .main {
-        direction: rtl;
-        text-align: right;
+    /* הכרחת RTL על כל האפליקציה */
+    @import url('https://fonts.googleapis.com/css2?family=Assistant:wght@300;400;600;700&display=swap');
+    
+    html, body, [data-testid="stAppViewContainer"], .main {
+        direction: rtl !important;
+        text-align: right !important;
+        font-family: 'Assistant', sans-serif !important;
     }
     
-    /* פס התקדמות */
-    .progress-bar {
-        display: flex;
-        justify-content: space-between;
-        margin: 30px 0;
-        padding: 0 20px;
-        direction: rtl;
-        flex-direction: row-reverse;
+    /* תיקון תפריט צד */
+    [data-testid="stSidebar"] {
+        direction: rtl !important;
     }
     
-    .progress-step {
-        flex: 1;
-        text-align: center;
-        position: relative;
+    /* עיצוב פס התקדמות מודרני */
+    .st-emotion-cache-1kyx7g3 {
+        flex-direction: row-reverse !important;
     }
     
-    .progress-step-number {
-        width: 50px;
-        height: 50px;
-        border-radius: 50%;
-        background: #e0e0e0;
-        color: #666;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 20px;
-        font-weight: bold;
-        margin-bottom: 10px;
-        transition: all 0.3s;
+    .wizard-container {
+        background-color: #f8f9fa;
+        padding: 2rem;
+        border-radius: 15px;
+        border: 1px solid #e9ecef;
+        margin-bottom: 2rem;
     }
     
-    .progress-step.active .progress-step-number {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
-        transform: scale(1.1);
+    .step-header {
+        color: #1e3a8a;
+        margin-bottom: 1.5rem;
+        border-bottom: 2px solid #e0e7ff;
+        padding-bottom: 0.5rem;
     }
     
-    .progress-step.completed .progress-step-number {
-        background: #27ae60;
-        color: white;
-    }
-    
-    .progress-step-title {
-        font-size: 14px;
-        color: #666;
-        font-weight: 500;
-        direction: rtl;
-        text-align: center;
-    }
-    
-    .progress-step.active .progress-step-title {
-        color: #667eea;
-        font-weight: 700;
-    }
-    
-    /* כרטיסים */
-    .option-card {
-        background: white;
-        border: 2px solid #e0e0e0;
-        border-radius: 16px;
-        padding: 30px;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.3s;
-        height: 100%;
-    }
-    
-    .option-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
-        border-color: #667eea;
-    }
-    
-    .option-card.selected {
-        border-color: #667eea;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-    }
-    
-    .option-icon {
-        font-size: 60px;
-        margin-bottom: 15px;
-    }
-    
-    .option-title {
-        font-size: 24px;
-        font-weight: 700;
-        margin-bottom: 10px;
-        color: #2c3e50;
-    }
-    
-    .option-description {
-        font-size: 14px;
-        color: #7f8c8d;
-    }
-    
-    /* כפתורים */
+    /* עיצוב כפתורים */
     .stButton > button {
-        border-radius: 12px;
-        padding: 12px 30px;
-        font-weight: 600;
-        font-size: 16px;
-        transition: all 0.3s;
-        direction: rtl;
+        width: 100%;
+        border-radius: 8px !important;
+        height: 3em !important;
+        font-weight: 600 !important;
     }
     
-    /* שדות קלט */
-    .stTextInput > div > div > input,
-    .stSelectbox > div > div > select,
-    .stTextArea > div > div > textarea,
-    .stNumberInput > div > div > input,
-    .stDateInput > div > div > input {
-        direction: rtl;
-        text-align: right;
+    /* תיקון שדות קלט ל-RTL */
+    input, select, textarea {
+        direction: rtl !important;
+        text-align: right !important;
     }
     
-    /* תוויות */
+    div[data-baseweb="select"] {
+        direction: rtl !important;
+    }
+    
     label {
-        direction: rtl;
-        text-align: right;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        font-weight: 600 !important;
+        color: #374151 !important;
+        margin-bottom: 0.5rem !important;
     }
 </style>
 """, unsafe_allow_html=True)
@@ -162,201 +86,144 @@ st.markdown("""
 init_session_state('wizard_step', 1)
 init_session_state('order_data', {})
 
-# פונקציה להצגת פס התקדמות
+# פונקציה להצגת פס התקדמות נקי
 def show_progress_bar(current_step):
-    steps = [
-        {"num": 1, "title": "סוג מוצר"},
-        {"num": 2, "title": "פרטי אירוע"},
-        {"num": 3, "title": "לקוח ונוסעים"},
-        {"num": 4, "title": "סיכום"}
-    ]
+    steps = ["סוג מוצר", "פרטי אירוע", "לקוח ונוסעים", "סיכום"]
+    progress = (current_step - 1) / (len(steps) - 1)
+    st.progress(progress)
     
-    # יצירת עמודות לפס התקדמות
-    cols = st.columns(4)
-    
-    for idx, step in enumerate(steps):
-        with cols[3-idx]:  # הפוך את הסדר ל-RTL
-            status = ""
-            if step["num"] < current_step:
-                status = "completed"
-                icon = "✅"
-                color = "#27ae60"
-            elif step["num"] == current_step:
-                status = "active"
-                icon = "🔵"
-                color = "#667eea"
-            else:
-                icon = "⚪"
-                color = "#e0e0e0"
-            
-            st.markdown(f"""
-            <div style="text-align: center; padding: 10px;">
-                <div style="font-size: 40px; margin-bottom: 5px;">{icon}</div>
-                <div style="font-size: 18px; font-weight: bold; color: {color}; margin-bottom: 5px;">{step["num"]}</div>
-                <div style="font-size: 14px; color: #666; direction: rtl;">{step["title"]}</div>
-            </div>
-            """, unsafe_allow_html=True)
+    cols = st.columns(len(steps))
+    for i, step in enumerate(steps):
+        with cols[len(steps)-1-i]: # RTL order
+            color = "#1e3a8a" if i+1 == current_step else "#9ca3af"
+            weight = "bold" if i+1 == current_step else "normal"
+            st.markdown(f"<p style='text-align: center; color: {color}; font-weight: {weight};'>{step}</p>", unsafe_allow_html=True)
 
-# כותרת
-st.markdown("""
-<div style="text-align: center; padding: 20px 0;">
-    <h1 style="color: #2c3e50; margin-bottom: 10px;">📝 הזמנה חדשה</h1>
-    <p style="color: #7f8c8d; font-size: 18px;">מערכת הזמנה חכמה לכרטיסים וחבילות מקצועיות</p>
-</div>
-""", unsafe_allow_html=True)
-
-# הצגת פס התקדמות
+# כותרת ראשית
+st.markdown("<h1 style='text-align: center; color: #1e3a8a;'>📝 יצירת הזמנה חדשה</h1>", unsafe_allow_html=True)
 current_step = get_session_value('wizard_step', 1)
 show_progress_bar(current_step)
-
 st.markdown("---")
 
-# שלב 1: בחירת סוג מוצר ואירוע
+# שלב 1: בחירת סוג מוצר
 if current_step == 1:
-    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 1 - בחר סוג מוצר ואירוע</h3>', unsafe_allow_html=True)
+    st.markdown("<h3 class='step-header'>שלב 1: בחירת סוג חבילה</h3>", unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
-    
     with col1:
-        if st.button("✈️ חבילה מלאה", key="package_full", use_container_width=True):
-            order_data = get_session_value('order_data', {})
-            order_data['package_type'] = 'חבילה מלאה'
-            set_session_value('order_data', order_data)
-    
+        if st.button("✈️ חבילה מלאה (טיסה + מלון + כרטיס)", use_container_width=True):
+            set_session_value('order_data', {'package_type': 'חבילה מלאה'})
+            set_session_value('wizard_step', 2)
+            st.rerun()
     with col2:
-        if st.button("🎫 כרטיסים בלבד", key="package_tickets", use_container_width=True):
-            order_data = get_session_value('order_data', {})
-            order_data['package_type'] = 'כרטיסים בלבד'
-            set_session_value('order_data', order_data)
-    
-    st.markdown("<br>", unsafe_allow_html=True)
-    
-    # בחירת סוג אירוע
-    if get_session_value('order_data', {}).get('package_type'):
-        st.markdown('<h4 style="direction: rtl; text-align: right;">בחר סוג אירוע:</h4>', unsafe_allow_html=True)
-        
-        col1, col2, col3 = st.columns(3)
-        
-        with col1:
-            if st.button("⚽ כדורגל", key="event_football", use_container_width=True):
-                order_data = get_session_value('order_data', {})
-                order_data['event_type'] = 'כדורגל'
-                set_session_value('order_data', order_data)
-                set_session_value('wizard_step', 2)
-                st.rerun()
-        
-        with col2:
-            if st.button("🎤 הופעה", key="event_concert", use_container_width=True):
-                order_data = get_session_value('order_data', {})
-                order_data['event_type'] = 'הופעה'
-                set_session_value('order_data', order_data)
-                set_session_value('wizard_step', 2)
-                st.rerun()
-        
-        with col3:
-            if st.button("🎪 אחר", key="event_other", use_container_width=True):
-                order_data = get_session_value('order_data', {})
-                order_data['event_type'] = 'אחר'
-                set_session_value('order_data', order_data)
-                set_session_value('wizard_step', 2)
-                st.rerun()
+        if st.button("🎫 כרטיסים בלבד", use_container_width=True):
+            set_session_value('order_data', {'package_type': 'כרטיסים בלבד'})
+            set_session_value('wizard_step', 2)
+            st.rerun()
 
 # שלב 2: פרטי אירוע
 elif current_step == 2:
-    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 2 - פרטי האירוע</h3>', unsafe_allow_html=True)
-    
+    st.markdown("<h3 class='step-header'>שלב 2: פרטי האירוע</h3>", unsafe_allow_html=True)
     order_data = get_session_value('order_data', {})
     
-    st.text_input("שם האירוע", key="event_name", value=order_data.get('event_name', ''))
-    st.text_input("מקום האירוע", key="event_location", value=order_data.get('event_location', ''))
-    st.date_input("תאריך האירוע", key="event_date")
-    st.number_input("מספר כרטיסים", min_value=1, value=order_data.get('num_tickets', 1), key="num_tickets")
-    
+    with st.container():
+        col1, col2 = st.columns(2)
+        with col1:
+            event_name = st.text_input("שם האירוע", value=order_data.get('event_name', ''))
+            event_date = st.date_input("תאריך האירוע")
+        with col2:
+            event_location = st.text_input("מקום האירוע (עיר/אצטדיון)", value=order_data.get('event_location', ''))
+            num_tickets = st.number_input("מספר כרטיסים", min_value=1, value=order_data.get('num_tickets', 1))
+            
     if order_data.get('package_type') == 'חבילה מלאה':
-        st.markdown('<h4 style="direction: rtl; text-align: right;">פרטי מלון</h4>', unsafe_allow_html=True)
-        st.text_input("שם המלון", key="hotel_name", value=order_data.get('hotel_name', ''))
-        st.number_input("מספר לילות", min_value=1, value=order_data.get('hotel_nights', 1), key="hotel_nights")
-    
-    col1, col2 = st.columns([1, 1])
-    with col1:
-        if st.button("⬅️ חזור", use_container_width=True):
+        st.markdown("#### פרטי מלון")
+        col1, col2 = st.columns(2)
+        with col1:
+            hotel_name = st.text_input("שם המלון", value=order_data.get('hotel_name', ''))
+        with col2:
+            hotel_nights = st.number_input("מספר לילות", min_value=1, value=order_data.get('hotel_nights', 1))
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("⬅️ חזור"):
             set_session_value('wizard_step', 1)
             st.rerun()
-    with col2:
-        if st.button("המשך ➡️", use_container_width=True, type="primary"):
-            # שמירת נתונים
-            order_data['event_name'] = st.session_state.event_name
-            order_data['event_location'] = st.session_state.event_location
-            order_data['event_date'] = st.session_state.event_date
-            order_data['num_tickets'] = st.session_state.num_tickets
+    with c2:
+        if st.button("המשך לפרטי לקוח ➡️", type="primary"):
+            order_data.update({
+                'event_name': event_name,
+                'event_location': event_location,
+                'event_date': str(event_date),
+                'num_tickets': num_tickets
+            })
             if order_data.get('package_type') == 'חבילה מלאה':
-                order_data['hotel_name'] = st.session_state.hotel_name
-                order_data['hotel_nights'] = st.session_state.hotel_nights
+                order_data.update({'hotel_name': hotel_name, 'hotel_nights': hotel_nights})
             set_session_value('order_data', order_data)
             set_session_value('wizard_step', 3)
             st.rerun()
 
 # שלב 3: פרטי לקוח
 elif current_step == 3:
-    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 3 - פרטי לקוח ונוסעים</h3>', unsafe_allow_html=True)
-    
+    st.markdown("<h3 class='step-header'>שלב 3: פרטי לקוח</h3>", unsafe_allow_html=True)
     order_data = get_session_value('order_data', {})
     
-    st.text_input("שם מלא", key="customer_name", value=order_data.get('customer_name', ''))
-    st.text_input("אימייל", key="customer_email", value=order_data.get('customer_email', ''))
-    st.text_input("טלפון", key="customer_phone", value=order_data.get('customer_phone', ''))
-    
-    col1, col2 = st.columns([1, 1])
+    col1, col2, col3 = st.columns(3)
     with col1:
-        if st.button("⬅️ חזור", use_container_width=True):
+        customer_name = st.text_input("שם הלקוח", value=order_data.get('customer_name', ''))
+    with col2:
+        customer_email = st.text_input("אימייל", value=order_data.get('customer_email', ''))
+    with col3:
+        customer_phone = st.text_input("טלפון", value=order_data.get('customer_phone', ''))
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    c1, c2 = st.columns(2)
+    with c1:
+        if st.button("⬅️ חזור"):
             set_session_value('wizard_step', 2)
             st.rerun()
-    with col2:
-        if st.button("המשך לסיכום ➡️", use_container_width=True, type="primary"):
-            order_data['customer_name'] = st.session_state.customer_name
-            order_data['customer_email'] = st.session_state.customer_email
-            order_data['customer_phone'] = st.session_state.customer_phone
+    with c2:
+        if st.button("המשך לסיכום ➡️", type="primary"):
+            order_data.update({
+                'customer_name': customer_name,
+                'customer_email': customer_email,
+                'customer_phone': customer_phone
+            })
             set_session_value('order_data', order_data)
             set_session_value('wizard_step', 4)
             st.rerun()
 
-# שלב 4: סיכום
+# שלב 4: סיכום ואישור
 elif current_step == 4:
-    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 4 - סיכום ההזמנה</h3>', unsafe_allow_html=True)
-    
+    st.markdown("<h3 class='step-header'>שלב 4: סיכום הזמנה</h3>", unsafe_allow_html=True)
     order_data = get_session_value('order_data', {})
     
-    st.markdown(f"""
-    **סוג מוצר:** {order_data.get('package_type', 'לא נבחר')}  
-    **סוג אירוע:** {order_data.get('event_type', 'לא נבחר')}  
-    **שם האירוע:** {order_data.get('event_name', 'לא הוזן')}  
-    **מקום:** {order_data.get('event_location', 'לא הוזן')}  
-    **תאריך:** {order_data.get('event_date', 'לא נבחר')}  
-    **כרטיסים:** {order_data.get('num_tickets', 0)}  
-    
-    **לקוח:** {order_data.get('customer_name', 'לא הוזן')}  
-    **אימייל:** {order_data.get('customer_email', 'לא הוזן')}  
-    **טלפון:** {order_data.get('customer_phone', 'לא הוזן')}
-    """)
-    
-    if order_data.get('package_type') == 'חבילה מלאה':
-        st.markdown(f"""
-        **מלון:** {order_data.get('hotel_name', 'לא הוזן')}  
-        **לילות:** {order_data.get('hotel_nights', 0)}
-        """)
-    
-    col1, col2, col3 = st.columns([1, 1, 1])
+    col1, col2 = st.columns(2)
     with col1:
-        if st.button("⬅️ חזור", use_container_width=True):
+        st.info("📋 פרטי האירוע")
+        st.write(f"**סוג:** {order_data.get('package_type')}")
+        st.write(f"**אירוע:** {order_data.get('event_name')}")
+        st.write(f"**תאריך:** {order_data.get('event_date')}")
+        st.write(f"**כרטיסים:** {order_data.get('num_tickets')}")
+    with col2:
+        st.info("👤 פרטי הלקוח")
+        st.write(f"**שם:** {order_data.get('customer_name')}")
+        st.write(f"**טלפון:** {order_data.get('customer_phone')}")
+        st.write(f"**אימייל:** {order_data.get('customer_email')}")
+
+    st.markdown("---")
+    c1, c2, c3 = st.columns(3)
+    with c1:
+        if st.button("⬅️ חזור"):
             set_session_value('wizard_step', 3)
             st.rerun()
-    with col2:
-        if st.button("💾 שמור הזמנה", use_container_width=True):
-            saved_order = save_order_to_db(order_data)
-            if saved_order:
-                st.success(f"✅ ההזמנה נשמרה! מספר הזמנה: {saved_order.order_number}")
-    with col3:
-        if st.button("📄 צור PDF", use_container_width=True, type="primary"):
-            st.info("🔄 יוצר PDF...")
-            # כאן תהיה אינטגרציה עם מערכת PDF
-            st.success("✅ PDF נוצר בהצלחה!")
+    with c2:
+        if st.button("❌ ביטול", type="secondary"):
+            set_session_value('wizard_step', 1)
+            set_session_value('order_data', {})
+            st.rerun()
+    with c3:
+        if st.button("✅ אשר וצור הזמנה", type="primary"):
+            # כאן תבוא הלוגיקה של השמירה
+            st.success("ההזמנה נוצרה בהצלחה! (סימולציה)")
+            # save_order_to_db(order_data)
