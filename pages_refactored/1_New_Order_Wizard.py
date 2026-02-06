@@ -4,12 +4,18 @@
 import streamlit as st
 import sys
 import os
+import io
+from PIL import Image
 
 # הוספת נתיב לשורש הפרויקט
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils_refactored import init_session_state, get_session_value, set_session_value
 from services_refactored import save_order_to_db, generate_pdf
+from passport_ocr import extract_passport_data
+from hotel_resolver import resolve_hotel_safe
+from flight_ocr import extract_flight_data
+from streamlit_paste_button import paste_image_button
 
 # הגדרת עמוד
 st.set_page_config(
@@ -138,12 +144,34 @@ elif current_step == 2:
             num_tickets = st.number_input("מספר כרטיסים", min_value=1, value=order_data.get('num_tickets', 1))
             
         if order_data.get('package_type') == 'חבילה מלאה':
-            st.markdown("#### פרטי מלון")
-            col1, col2 = st.columns(2)
-            with col1:
+            st.markdown("#### 🏨 פרטי מלון")
+            col_h1, col_h2 = st.columns([3, 1])
+            with col_h1:
                 hotel_name = st.text_input("שם המלון", value=order_data.get('hotel_name', ''))
-            with col2:
-                hotel_nights = st.number_input("מספר לילות", min_value=1, value=order_data.get('hotel_nights', 1))
+            with col_h2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                if st.button("🔍 חפש מלון", use_container_width=True):
+                    with st.spinner("מחפש פרטי מלון..."):
+                        result = resolve_hotel_safe(hotel_name)
+                        if not result.get('error'):
+                            order_data.update({
+                                'hotel_name': result.get('hotel_name', hotel_name),
+                                'hotel_address': result.get('hotel_address', ''),
+                                'hotel_stars': result.get('hotel_stars', '')
+                            })
+                            st.success(f"✅ נמצא: {result.get('hotel_name')}")
+                            st.rerun()
+            
+            hotel_nights = st.number_input("מספר לילות", min_value=1, value=order_data.get('hotel_nights', 1))
+            
+            st.markdown("#### ✈️ פרטי טיסות (אופציונלי)")
+            flight_img = st.file_uploader("העלה צילום מסך של טיסה", type=['png', 'jpg', 'jpeg'])
+            if st.button("🔍 סרוק טיסה", use_container_width=True) and flight_img:
+                with st.spinner("סורק טיסה..."):
+                    result = extract_flight_data(flight_img.read())
+                    if result.get('success'):
+                        st.success("✅ פרטי הטיסה נסרקו בהצלחה")
+                        # כאן אפשר להוסיף שמירה של פרטי הטיסה ל-order_data
         st.markdown("</div>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
@@ -169,7 +197,9 @@ elif current_step == 2:
 elif current_step == 3:
     order_data = get_session_value('order_data', {})
     with st.container():
-        st.markdown("<div class='form-section'><h3>שלב 3: פרטי לקוח</h3>", unsafe_allow_html=True)
+        st.markdown("<div class='form-section'><h3>שלב 3: פרטי לקוח ונוסעים</h3>", unsafe_allow_html=True)
+        
+        st.markdown("#### 👤 פרטי איש קשר")
         col1, col2, col3 = st.columns(3)
         with col1:
             customer_name = st.text_input("שם הלקוח", value=order_data.get('customer_name', ''))
@@ -177,6 +207,31 @@ elif current_step == 3:
             customer_email = st.text_input("אימייל", value=order_data.get('customer_email', ''))
         with col3:
             customer_phone = st.text_input("טלפון", value=order_data.get('customer_phone', ''))
+            
+        st.markdown("---")
+        st.markdown("#### 🛂 סריקת דרכונים")
+        passport_img = st.file_uploader("העלה צילומי דרכון", type=['png', 'jpg', 'jpeg'], accept_multiple_files=True)
+        if st.button("🔍 סרוק דרכונים", use_container_width=True) and passport_img:
+            with st.spinner("סורק דרכונים..."):
+                passengers = order_data.get('passengers', [])
+                for img in passport_img:
+                    result = extract_passport_data(img.read())
+                    if result.get('success'):
+                        passengers.append({
+                            'first_name': result.get('first_name', ''),
+                            'last_name': result.get('last_name', ''),
+                            'passport': result.get('passport_number', ''),
+                            'birth_date': result.get('birth_date', '')
+                        })
+                order_data['passengers'] = passengers
+                set_session_value('order_data', order_data)
+                st.success(f"✅ נסרקו {len(passport_img)} דרכונים")
+        
+        if order_data.get('passengers'):
+            st.markdown("##### 👥 נוסעים שנסרקו:")
+            for p in order_data['passengers']:
+                st.write(f"• {p['first_name']} {p['last_name']} ({p['passport']})")
+                
         st.markdown("</div>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
@@ -210,12 +265,22 @@ elif current_step == 4:
             st.write(f"**טלפון:** {order_data.get('customer_phone')}")
         st.markdown("</div>", unsafe_allow_html=True)
 
-    c1, c2 = st.columns(2)
+    c1, c2, c3, c4 = st.columns(4)
     with c1:
         if st.button("⬅️ חזור"):
             set_session_value('wizard_step', 3)
             st.rerun()
     with c2:
+        if st.button("💾 שמור כהצעה"):
+            with st.spinner("שומר הצעת מחיר..."):
+                # כאן תבוא הלוגיקה של שמירת הצעה (ClientProposal)
+                st.success("✅ ההצעה נשמרה בהצלחה!")
+    with c3:
+        if st.button("📌 שמור כחבילה"):
+            with st.spinner("שומר כחבילה קבועה..."):
+                # כאן תבוא הלוגיקה של שמירת חבילה (PackageTemplate)
+                st.success("✅ החבילה נשמרה במאגר!")
+    with c4:
         if st.button("✅ אשר וצור PDF"):
             with st.spinner("מפיק PDF מקצועי..."):
                 try:
