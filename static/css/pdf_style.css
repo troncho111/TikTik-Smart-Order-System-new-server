@@ -101,7 +101,7 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding-top: 100px;
+  padding: 100px 40px 60px 40px;  /* 👈 תיקון: הוספת padding מהצדדים */
   background-size: cover;
   background-position: center;
   page-break-after: always;
@@ -125,9 +125,11 @@ body {
   font-weight: 700;
   text-align: center;
   margin: 20px 0;
+  padding: 0 20px;              /* 👈 תיקון: מרווח פנימי */
   color: #1a1a1a;
   text-shadow: 0 2px 8px rgba(0,0,0,0.15);
   line-height: 1.2;
+  word-wrap: break-word;        /* 👈 תיקון: שבירת מילים ארוכות */
 }
 
 .cover-package,
@@ -135,17 +137,21 @@ body {
   font-size: 32px;              /* 👈 גודל תיאור החבילה */
   text-align: center;
   margin: 20px 0;
+  padding: 0 20px;              /* 👈 תיקון: מרווח פנימי */
   color: #2c3e50;
   font-weight: 500;
+  word-wrap: break-word;        /* 👈 תיקון: שבירת מילים ארוכות */
 }
 
 .cover-details,
 .cover-line3 {
   font-size: 22px;              /* 👈 גודל פרטים נוספים */
   text-align: center;
+  padding: 0 20px;              /* 👈 תיקון: מרווח פנימי */
   color: #555;
   margin: 20px 0 60px;
   line-height: 1.6;
+  word-wrap: break-word;        /* 👈 תיקון: שבירת מילים ארוכות */
 }
 
 .cover-footer {
