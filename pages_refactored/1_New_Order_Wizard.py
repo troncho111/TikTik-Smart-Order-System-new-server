@@ -34,6 +34,8 @@ st.markdown("""
         justify-content: space-between;
         margin: 30px 0;
         padding: 0 20px;
+        direction: rtl;
+        flex-direction: row-reverse;
     }
     
     .progress-step {
@@ -73,6 +75,8 @@ st.markdown("""
         font-size: 14px;
         color: #666;
         font-weight: 500;
+        direction: rtl;
+        text-align: center;
     }
     
     .progress-step.active .progress-step-title {
@@ -128,6 +132,23 @@ st.markdown("""
         font-weight: 600;
         font-size: 16px;
         transition: all 0.3s;
+        direction: rtl;
+    }
+    
+    /* שדות קלט */
+    .stTextInput > div > div > input,
+    .stSelectbox > div > div > select,
+    .stTextArea > div > div > textarea,
+    .stNumberInput > div > div > input,
+    .stDateInput > div > div > input {
+        direction: rtl;
+        text-align: right;
+    }
+    
+    /* תוויות */
+    label {
+        direction: rtl;
+        text-align: right;
     }
     
     .stButton > button:hover {
@@ -150,23 +171,31 @@ def show_progress_bar(current_step):
         {"num": 4, "title": "סיכום"}
     ]
     
-    html = '<div class="progress-bar">'
-    for step in steps:
-        status = ""
-        if step["num"] < current_step:
-            status = "completed"
-        elif step["num"] == current_step:
-            status = "active"
-        
-        html += f'''
-        <div class="progress-step {status}">
-            <div class="progress-step-number">{step["num"]}</div>
-            <div class="progress-step-title">{step["title"]}</div>
-        </div>
-        '''
-    html += '</div>'
+    # יצירת עמודות לפס התקדמות
+    cols = st.columns(4)
     
-    st.markdown(html, unsafe_allow_html=True)
+    for idx, step in enumerate(steps):
+        with cols[3-idx]:  # הפוך את הסדר ל-RTL
+            status = ""
+            if step["num"] < current_step:
+                status = "completed"
+                icon = "✅"
+                color = "#27ae60"
+            elif step["num"] == current_step:
+                status = "active"
+                icon = "🔵"
+                color = "#667eea"
+            else:
+                icon = "⚪"
+                color = "#e0e0e0"
+            
+            st.markdown(f"""
+            <div style="text-align: center; padding: 10px;">
+                <div style="font-size: 40px; margin-bottom: 5px;">{icon}</div>
+                <div style="font-size: 18px; font-weight: bold; color: {color}; margin-bottom: 5px;">{step["num"]}</div>
+                <div style="font-size: 14px; color: #666; direction: rtl;">{step["title"]}</div>
+            </div>
+            """, unsafe_allow_html=True)
 
 # כותרת
 st.markdown("""
@@ -184,7 +213,7 @@ st.markdown("---")
 
 # שלב 1: בחירת סוג מוצר ואירוע
 if current_step == 1:
-    st.markdown("### שלב 1 - בחר סוג מוצר ואירוע")
+    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 1 - בחר סוג מוצר ואירוע</h3>', unsafe_allow_html=True)
     
     col1, col2 = st.columns(2)
     
@@ -204,7 +233,7 @@ if current_step == 1:
     
     # בחירת סוג אירוע
     if get_session_value('order_data', {}).get('package_type'):
-        st.markdown("#### בחר סוג אירוע:")
+        st.markdown('<h4 style="direction: rtl; text-align: right;">בחר סוג אירוע:</h4>', unsafe_allow_html=True)
         
         col1, col2, col3 = st.columns(3)
         
@@ -234,7 +263,7 @@ if current_step == 1:
 
 # שלב 2: פרטי אירוע
 elif current_step == 2:
-    st.markdown("### שלב 2 - פרטי האירוע")
+    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 2 - פרטי האירוע</h3>', unsafe_allow_html=True)
     
     order_data = get_session_value('order_data', {})
     
@@ -244,7 +273,7 @@ elif current_step == 2:
     st.number_input("מספר כרטיסים", min_value=1, value=order_data.get('num_tickets', 1), key="num_tickets")
     
     if order_data.get('package_type') == 'חבילה מלאה':
-        st.markdown("#### פרטי מלון")
+        st.markdown('<h4 style="direction: rtl; text-align: right;">פרטי מלון</h4>', unsafe_allow_html=True)
         st.text_input("שם המלון", key="hotel_name", value=order_data.get('hotel_name', ''))
         st.number_input("מספר לילות", min_value=1, value=order_data.get('hotel_nights', 1), key="hotel_nights")
     
@@ -269,7 +298,7 @@ elif current_step == 2:
 
 # שלב 3: פרטי לקוח
 elif current_step == 3:
-    st.markdown("### שלב 3 - פרטי לקוח ונוסעים")
+    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 3 - פרטי לקוח ונוסעים</h3>', unsafe_allow_html=True)
     
     order_data = get_session_value('order_data', {})
     
@@ -293,7 +322,7 @@ elif current_step == 3:
 
 # שלב 4: סיכום
 elif current_step == 4:
-    st.markdown("### שלב 4 - סיכום ההזמנה")
+    st.markdown('<h3 style="direction: rtl; text-align: right;">שלב 4 - סיכום ההזמנה</h3>', unsafe_allow_html=True)
     
     order_data = get_session_value('order_data', {})
     
