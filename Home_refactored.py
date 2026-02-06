@@ -1,183 +1,149 @@
 """
-TikTik Smart Order System - עמוד ראשי
+TikTik Smart Order System - עמוד ראשי (עיצוב מקורי משוחזר)
 """
 import streamlit as st
+import os
 
 st.set_page_config(
     page_title="TikTik Smart Order System",
-    page_icon="🎫",
+    page_icon="🎟️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# CSS מותאם אישית
-st.markdown("""
+# שחזור ה-CSS המקורי של המשתמש אחד-לאחד
+RTL_CSS = """
 <style>
-    .main {
-        direction: rtl;
-        text-align: right;
-    }
-    
-    .hero {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        color: white;
-        padding: 60px 40px;
-        border-radius: 20px;
-        text-align: center;
-        margin-bottom: 40px;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.3);
-    }
-    
-    .hero h1 {
-        font-size: 48px;
-        font-weight: 700;
-        margin-bottom: 20px;
-    }
-    
-    .hero p {
-        font-size: 20px;
-        opacity: 0.9;
-    }
-    
-    .feature-card {
-        background: white;
-        border-radius: 16px;
-        padding: 30px;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        transition: all 0.3s;
-        height: 100%;
-        direction: rtl;
-        text-align: right;
-    }
-    
-    .feature-card:hover {
-        transform: translateY(-5px);
-        box-shadow: 0 8px 25px rgba(0,0,0,0.15);
-    }
-    
-    .feature-icon {
-        font-size: 48px;
-        margin-bottom: 15px;
-        text-align: center;
-    }
-    
-    .feature-title {
-        font-size: 24px;
-        font-weight: 700;
-        margin-bottom: 10px;
-        color: #2c3e50;
-        text-align: right;
-        direction: rtl;
-    }
-    
-    .feature-description {
-        font-size: 16px;
-        color: #7f8c8d;
-        line-height: 1.6;
-        text-align: right;
-        direction: rtl;
-    }
+@import url('https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700&display=swap');
+
+* {
+    font-family: 'Heebo', sans-serif !important;
+}
+
+.main .block-container {
+    direction: rtl;
+    text-align: right;
+}
+
+h1, h2, h3, h4, h5, h6, p, label, span, div {
+    direction: rtl;
+    text-align: right;
+}
+
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stSelectbox > div > div > div,
+.stNumberInput > div > div > input {
+    direction: rtl;
+    text-align: right;
+}
+
+.stButton > button {
+    width: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    padding: 0.75rem 1.5rem;
+    font-size: 1.1rem;
+    font-weight: 600;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+}
+
+.header-container {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    padding: 2rem;
+    border-radius: 15px;
+    margin-bottom: 2rem;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+
+.header-container h1 {
+    color: #fff;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-align: center;
+}
+
+.header-container p {
+    color: #a0a0a0;
+    font-size: 1.1rem;
+    text-align: center;
+}
+
+.order-card {
+    background: #1e1e2e;
+    padding: 1.5rem;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    border: 1px solid #333;
+    transition: all 0.3s ease;
+    color: white;
+}
+
+.order-card:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+}
+
+/* Sidebar fix */
+[data-testid="stSidebar"] {
+    direction: rtl !important;
+}
 </style>
-""", unsafe_allow_html=True)
+"""
 
-# Hero Section
+st.markdown(RTL_CSS, unsafe_allow_html=True)
+
+# שחזור ה-Header המקורי
 st.markdown("""
-<div class="hero">
-    <h1>🎫 TikTik Smart Order System</h1>
-    <p>מערכת הזמנה חכמה לכרטיסים וחבילות מקצועיות</p>
+<div class="header-container">
+    <h1>🎟️ TikTik Smart Order System</h1>
+    <p>מערכת ניהול הזמנות חכמה - כרטיסים וחבילות</p>
 </div>
 """, unsafe_allow_html=True)
 
-# תכונות
-st.markdown("## 🌟 תכונות המערכת")
+# הצגת כרטיסי ניווט בסגנון המקורי
+st.markdown("### 🚀 פעולות מהירות")
 
 col1, col2, col3 = st.columns(3)
 
 with col1:
     st.markdown("""
-    <div class="feature-card">
-        <div class="feature-icon">📝</div>
-        <div class="feature-title">הזמנה חדשה</div>
-        <div class="feature-description">
-            ממשק אשף פשוט וידידותי ליצירת הזמנות חדשות עם 4 שלבים ברורים
-        </div>
+    <div class="order-card">
+        <h2 style='text-align: center;'>📝</h2>
+        <h3 style='text-align: center; color: #667eea;'>הזמנה חדשה</h3>
+        <p style='text-align: center; color: #a0a0a0;'>יצירת הזמנה חדשה ללקוח בממשק אשף נוח</p>
     </div>
     """, unsafe_allow_html=True)
+    if st.button("התחל הזמנה", key="btn_new_order"):
+        st.switch_page("pages/1_New_Order_Wizard.py")
 
 with col2:
     st.markdown("""
-    <div class="feature-card">
-        <div class="feature-icon">📋</div>
-        <div class="feature-title">ניהול הזמנות</div>
-        <div class="feature-description">
-            מעקב אחר כל ההזמנות, עדכון סטטוס, וייצוא נתונים בקלות
-        </div>
+    <div class="order-card">
+        <h2 style='text-align: center;'>📋</h2>
+        <h3 style='text-align: center; color: #667eea;'>ניהול הזמנות</h3>
+        <p style='text-align: center; color: #a0a0a0;'>צפייה, עריכה ומעקב אחר הזמנות קיימות</p>
     </div>
     """, unsafe_allow_html=True)
+    if st.button("לניהול הזמנות", key="btn_manage"):
+        # st.switch_page("pages/2_Order_Management.py")
+        st.info("בקרוב...")
 
 with col3:
     st.markdown("""
-    <div class="feature-card">
-        <div class="feature-icon">📄</div>
-        <div class="feature-title">PDF מקצועי</div>
-        <div class="feature-description">
-            יצירת טפסי הזמנה מעוצבים ומקצועיים ללקוחות
-        </div>
+    <div class="order-card">
+        <h2 style='text-align: center;'>📊</h2>
+        <h3 style='text-align: center; color: #667eea;'>דוחות ונתונים</h3>
+        <p style='text-align: center; color: #a0a0a0;'>ניתוח נתונים וייצוא דוחות למערכת</p>
     </div>
     """, unsafe_allow_html=True)
-
-st.markdown("<br>", unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.markdown("""
-    <div class="feature-card">
-        <div class="feature-icon">🔍</div>
-        <div class="feature-title">חיפוש חכם</div>
-        <div class="feature-description">
-            חיפוש מלונות, טיסות, ואירועים עם אינטגרציות חיצוניות
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col2:
-    st.markdown("""
-    <div class="feature-card">
-        <div class="feature-icon">🤖</div>
-        <div class="feature-title">AI עוזר</div>
-        <div class="feature-description">
-            צ'אט AI לעזרה ותמיכה בזמן אמת
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-with col3:
-    st.markdown("""
-    <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-title">ייצוא נתונים</div>
-        <div class="feature-description">
-            ייצוא הזמנות ל-Excel, CSV ופורמטים נוספים
-        </div>
-    </div>
-    """, unsafe_allow_html=True)
-
-st.markdown("---")
-
-# קריאה לפעולה
-st.markdown("""
-<div style="text-align: center; padding: 40px 0;">
-    <h2 style="color: #2c3e50; margin-bottom: 20px;">מוכנים להתחיל?</h2>
-    <p style="color: #7f8c8d; font-size: 18px; margin-bottom: 30px;">
-        בחרו "הזמנה חדשה" מהתפריט הצדדי כדי ליצור את ההזמנה הראשונה שלכם!
-    </p>
-</div>
-""", unsafe_allow_html=True)
-
-# Footer
-st.markdown("""
-<div style="text-align: center; padding: 20px; color: #95a5a6; font-size: 14px;">
-    <p>TikTik Smart Order System © 2026 | Powered by Streamlit</p>
-</div>
-""", unsafe_allow_html=True)
+    if st.button("לצפייה בדוחות", key="btn_reports"):
+        st.info("בקרוב...")
