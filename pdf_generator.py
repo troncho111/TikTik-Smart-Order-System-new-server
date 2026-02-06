@@ -113,7 +113,7 @@ def generate_pdf(order_data: dict, stadium_image_path: str = None, hotel_image_p
     
     env = Environment(loader=FileSystemLoader(str(template_dir)))
     
-    template_name = 'order_template_2.html' if template_version == 2 else 'order_template.html'
+    template_name = 'order_template_3.html' if template_version == 3 else ('order_template_2.html' if template_version == 2 else 'order_template.html')
     template = env.get_template(template_name)
     
     order_data_with_photo = order_data.copy()
@@ -121,7 +121,10 @@ def generate_pdf(order_data: dict, stadium_image_path: str = None, hotel_image_p
         order_data_with_photo['stadium_photo_path'] = stadium_photo_path
     seatmap_height_px, stadium_photo_height_px = calculate_media_heights(order_data_with_photo)
     
-    cover_image = get_image_data_uri(str(project_root / 'assets' / 'cover_page.jpg'))
+    cover_path = project_root / 'assets' / 'cover_page.jpg'
+    if not cover_path.exists():
+        cover_path = project_root / 'assets' / 'concert_bg.jpg'
+    cover_image = get_image_data_uri(str(cover_path)) if cover_path.exists() else ''
     
     header_banner_path = project_root / 'assets' / 'header_banner.png'
     if not header_banner_path.exists():
@@ -189,7 +192,155 @@ def generate_pdf(order_data: dict, stadium_image_path: str = None, hotel_image_p
     logo_path = get_image_data_uri(str(project_root / 'assets' / 'logo_red.png'))
     if not logo_path:
         logo_path = get_image_data_uri(str(project_root / 'static' / 'logo_red.png'))
+    if not logo_path:
+        logo_path = get_image_data_uri(str(project_root / 'assets' / 'header_banner.png'))
+    if not logo_path:
+        logo_path = get_image_data_uri(str(project_root / 'assets' / 'header_banner.jpg'))
     
+    # Build saved_games with seatmap_image (data URI) per event; resolve path with fallback
+    saved_games_raw = order_data.get('saved_games', [])
+    saved_games_with_maps = []
+    for game in saved_games_raw:
+        g = dict(game)
+        map_path = (
+            g.get('stadium_map_path') or
+            g.get('worldcup_stadium_map') or
+            g.get('league_stadium_map_path') or
+            order_data.get('stadium_image_path') or
+            ''
+        )
+        if map_path:
+            if os.path.exists(map_path):
+                g['seatmap_image'] = get_image_data_uri(map_path)
+            else:
+                full_path = project_root / map_path
+                if full_path.exists():
+                    g['seatmap_image'] = get_image_data_uri(str(full_path))
+                else:
+                    g['seatmap_image'] = ''
+                    print(f"Warning: Stadium map not found: {map_path}")
+        else:
+            g['seatmap_image'] = ''
+        saved_games_with_maps.append(g)
+    
+    # Unified games list: use saved_games only when non-empty (avoid duplicate with main_event); else main_event
+    event_name = (order_data.get('event_name') or '').strip()
+    games = []
+    if saved_games_with_maps:
+        games = saved_games_with_maps
+    elif event_name:
+        venue = order_data.get('venue', '') or order_data.get('venue_name', '')
+        event_city = order_data.get('event_city', '') or venue
+        event_date = order_data.get('event_date', '')
+        details = f"{venue}, {event_city}" if venue else event_date or ''
+        main_event = {
+            'display_text': event_name,
+            'details': details,
+            'event_date': event_date,
+            'event_city': event_city,
+            'category': order_data.get('category', ''),
+            'concert_selected_category': order_data.get('concert_selected_category', ''),
+            'worldcup_category': order_data.get('worldcup_category', ''),
+            'num_tickets': order_data.get('num_tickets', 0),
+            'seatmap_image': stadium_image_uri or '',
+            'venue': venue,
+            'is_date_final': order_data.get('is_date_final', False),
+        }
+        games.append(main_event)
+    
+    total_games = len(games)
+    customer_name = (order_data.get('customer_name') or '').strip()
+    event_type = order_data.get('event_type', 'ספורט')
+
+    # Cover title: multi-event summary for cover page
+    if games:
+        if total_games == 1:
+            cover_title = (games[0].get('display_text') or games[0].get('event_name') or event_name or 'אירוע')
+        elif total_games <= 3:
+            cover_title = " | ".join([f"אירוע {i + 1}: {(g.get('display_text') or g.get('event_name') or 'אירוע')}" for i, g in enumerate(games)])
+        else:
+            cover_title = f"אירוע 1: {(games[0].get('display_text') or games[0].get('event_name') or 'אירוע')} | אירוע 2: {(games[1].get('display_text') or games[1].get('event_name') or 'אירוע')} ועוד {total_games - 2} אירועים"
+    else:
+        cover_title = event_name or ""
+
+    # Line 1: customer name (or fallback)
+    cover_line1 = customer_name if customer_name else "הזמנה רשמית"
+
+    # Line 2: package text + event type
+    if total_games == 0:
+        games_text = "הזמנה"
+    elif total_games == 1:
+        games_text = "משחק אחד"
+    else:
+        games_text = f"חבילת {total_games} משחקים"
+    if event_type and event_type != 'ספורט':
+        cover_line2 = f"{games_text} | {event_type}"
+    else:
+        cover_line2 = games_text
+
+    # Line 3: cities + date (collect from games)
+    cities = []
+    event_dates = []
+    for game in games:
+        city = game.get('event_city') or (game.get('fixture_data') or {}).get('city', '')
+        if not city and game.get('worldcup_venue'):
+            parts = (game.get('worldcup_venue') or '').split(',')
+            if len(parts) >= 2:
+                city = parts[-1].strip()
+        if not city:
+            city = game.get('concert_venue_city') or game.get('venue', '')
+        if city and city not in cities:
+            cities.append(city)
+        date = game.get('event_date') or (game.get('fixture_data') or {}).get('date', '')
+        if date and date not in event_dates:
+            event_dates.append(date)
+
+    if len(cities) == 0:
+        cities_text = ""
+    elif len(cities) == 1:
+        cities_text = f"📍 {cities[0]}"
+    elif len(cities) == 2:
+        cities_text = f"📍 {cities[0]} & {cities[1]}"
+    else:
+        cities_text = f"📍 {cities[0]}, {cities[1]} ועוד"
+
+    date_text = ""
+    if event_dates:
+        try:
+            date_str = event_dates[0]
+            month_num = 0
+            year = ""
+            if '/' in date_str:
+                parts = date_str.split('/')
+                if len(parts) >= 3:
+                    month_num = int(parts[1])
+                    year = parts[2]
+            elif '-' in date_str:
+                parts = date_str.split('-')
+                if len(parts) >= 3:
+                    month_num = int(parts[1])
+                    year = parts[0]
+            months_he = {
+                1: "ינואר", 2: "פברואר", 3: "מרץ", 4: "אפריל",
+                5: "מאי", 6: "יוני", 7: "יולי", 8: "אוגוסט",
+                9: "ספטמבר", 10: "אוקטובר", 11: "נובמבר", 12: "דצמבר"
+            }
+            if month_num in months_he:
+                date_text = f"📅 {months_he[month_num]} {year}"
+            else:
+                date_text = f"📅 {year}" if year else ""
+        except Exception:
+            date_text = ""
+
+    if cities_text and date_text:
+        cover_line3 = f"{cities_text} | {date_text}"
+    elif cities_text:
+        cover_line3 = cities_text
+    elif date_text:
+        cover_line3 = date_text
+    else:
+        cover_line3 = ""
+
     template_data = {
         'product_type': order_data.get('product_type', 'tickets'),
         'event_name': order_data.get('event_name', ''),
@@ -240,11 +391,18 @@ def generate_pdf(order_data: dict, stadium_image_path: str = None, hotel_image_p
         'bag_checked': order_data.get('bag_checked', ''),
         'is_date_final': order_data.get('is_date_final', False),
         'seats_together': order_data.get('seats_together', False),
-        'seats_together_image': image_to_data_uri(str(Path(__file__).parent / 'assets' / 'seats_together.png')) if order_data.get('seats_together', False) else '',
+        'seats_together_image': get_image_data_uri(str(Path(__file__).parent / 'assets' / 'seats_together.png')) if order_data.get('seats_together', False) else '',
         'terms_text': terms_text,
         'legal_text': terms_text,
         'legal_text_page1': terms_text_page1,
         'legal_text_page2': terms_text_page2,
+        'saved_games': saved_games_with_maps,
+        'games': games,
+        'total_games': total_games,
+        'cover_title': cover_title,
+        'cover_line1': cover_line1,
+        'cover_line2': cover_line2,
+        'cover_line3': cover_line3,
     }
     
     html_content = template.render(**template_data)
@@ -258,20 +416,45 @@ def generate_pdf(order_data: dict, stadium_image_path: str = None, hotel_image_p
 
 
 if __name__ == '__main__':
-    if len(sys.argv) > 1:
-        with open(sys.argv[1], 'r', encoding='utf-8') as f:
-            input_data = f.read()
-    else:
-        input_data = sys.stdin.read()
-    
-    order_data = json.loads(input_data)
-    template_version = order_data.get('template_version', 1)
-    pdf_bytes = generate_pdf(
-        order_data, 
-        order_data.get('stadium_image_path'),
-        order_data.get('hotel_image_path'),
-        order_data.get('hotel_image_2_path'),
-        order_data.get('stadium_photo_path'),
-        template_version
-    )
-    print(base64.b64encode(pdf_bytes).decode('utf-8'))
+    try:
+        if len(sys.argv) > 1:
+            with open(sys.argv[1], 'r', encoding='utf-8') as f:
+                input_data = f.read()
+        else:
+            input_data = sys.stdin.read()
+
+        order_data = json.loads(input_data)
+        template_version = order_data.get('template_version', 1)
+        pdf_bytes = generate_pdf(
+            order_data,
+            order_data.get('stadium_image_path'),
+            order_data.get('hotel_image_path'),
+            order_data.get('hotel_image_2_path'),
+            order_data.get('stadium_photo_path'),
+            template_version
+        )
+        print(base64.b64encode(pdf_bytes).decode('utf-8'))
+    except Exception as e:
+        import traceback
+        sys.stderr.write(traceback.format_exc())
+        sys.stderr.write(f"\nPDF generation error: {e}\n")
+        sys.exit(1)
+       else:
+            input_data = sys.stdin.read()
+
+        order_data = json.loads(input_data)
+        template_version = order_data.get('template_version', 1)
+        pdf_bytes = generate_pdf(
+            order_data,
+            order_data.get('stadium_image_path'),
+            order_data.get('hotel_image_path'),
+            order_data.get('hotel_image_2_path'),
+            order_data.get('stadium_photo_path'),
+            template_version
+        )
+        print(base64.b64encode(pdf_bytes).decode('utf-8'))
+    except Exception as e:
+        import traceback
+        sys.stderr.write(traceback.format_exc())
+        sys.stderr.write(f"\nPDF generation error: {e}\n")
+        sys.exit(1)

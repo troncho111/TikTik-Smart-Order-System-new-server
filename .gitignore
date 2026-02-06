@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.env
+*.pkl
+
+# Node / Next
+node_modules/
+.next/
+invoice-component/node_modules/
+invoice-component/.next/
+
+# Secrets / local data
+google-credentials.json
+example_order.json
+
+# Build / IDE
+*.log
+.DS_Store

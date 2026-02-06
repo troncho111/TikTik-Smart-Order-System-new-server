@@ -1,7 +1,13 @@
 import streamlit as st
 import os
+import sys
 import io
 import json
+
+# Project root (where app.py lives) - for worldcup2026.json etc.
+_APP_DIR = os.path.dirname(os.path.abspath(__file__))
+WORLDCUP_JSON_PATH = os.path.join(_APP_DIR, "worldcup2026.json")
+WORLDCUP_STADIUMS_JSON_PATH = os.path.join(_APP_DIR, "worldcup_stadiums_mapping.json")
 import base64
 import secrets
 from datetime import datetime, timedelta
@@ -9,7 +15,7 @@ from PIL import Image
 import tempfile
 import uuid
 import hashlib
-from models import Order, OrderStatus, EventType, AtmosphereImage, User, UserSession, PackageTemplate, get_db, generate_order_number, init_db, HotelCache
+from models import Order, OrderStatus, EventType, AtmosphereImage, User, UserSession, PackageTemplate, get_db, generate_order_number, init_db, HotelCache, ClientProposal, ProposalStatus
 
 def generate_session_token():
     """Generate a random session token"""
@@ -154,6 +160,7 @@ from passport_ocr import extract_passport_data
 from hotel_resolver import resolve_hotel_safe
 from airports import AIRPORTS, get_airport_options, get_airport_code, format_airport_display
 from flight_ocr import extract_flight_data
+from airline_codes import get_airline_from_flight
 from streamlit_paste_button import paste_image_button
 from stadium_api import get_team_info, get_team_map_path, get_all_teams
 from concerts_service import fetch_venue_map_from_ticketmaster, is_ticketmaster_url
@@ -368,6 +375,34 @@ h1, h2, h3, h4, h5, h6, p, label, span, div {
     color: #a0a0a0;
     font-size: 1.1rem;
     text-align: center;
+}
+
+/* Step 1/2 choice screens - centered container, less empty page */
+.step-choice-container {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 1.5rem;
+    direction: rtl;
+    text-align: right;
+}
+
+.step-choice-container + [data-testid="stVerticalBlock"] {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+}
+
+.step-progress {
+    color: #667eea;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.step-helper {
+    color: #666;
+    font-size: 0.95rem;
+    margin-bottom: 1.25rem;
 }
 
 .form-section {
@@ -697,6 +732,13 @@ button[data-testid*="Collapse"],
         margin-bottom: 0.5rem !important;
     }
     
+    /* Step choice container - full width on mobile */
+    .step-choice-container,
+    .step-choice-container + [data-testid="stVerticalBlock"] {
+        max-width: 100% !important;
+        padding: 0.5rem !important;
+    }
+    
     /* Touch-friendly buttons */
     .stButton > button {
         padding: 0.75rem !important;
@@ -954,26 +996,63 @@ def generate_pdf(order_data, stadium_image=None, hotel_image=None, hotel_image_2
     if hotel_image_2:
         hotel_image_2_path = save_image_safely(hotel_image_2, "hotel2_")
     
+    # Build serializable saved_games with stadium_map_path for each; track temp files for cleanup
+    saved_games_temp_paths = []
+    saved_games_serializable = []
+    for sg in order_data.get('saved_games', []):
+        copy = {k: v for k, v in sg.items() if k not in ('saved_stadium_map_bytes', 'pasted_stadium_map')}
+        map_path = None
+        if sg.get('worldcup_stadium_map') and os.path.exists(sg.get('worldcup_stadium_map', '')):
+            map_path = sg['worldcup_stadium_map']
+        elif sg.get('league_stadium_map_path') and os.path.exists(sg.get('league_stadium_map_path', '')):
+            map_path = sg['league_stadium_map_path']
+        elif sg.get('saved_stadium_map_bytes'):
+            map_path = save_image_safely(sg['saved_stadium_map_bytes'], "saved_map_")
+            if map_path:
+                saved_games_temp_paths.append(map_path)
+        elif sg.get('pasted_stadium_map'):
+            map_path = save_image_safely(sg['pasted_stadium_map'], "saved_map_")
+            if map_path:
+                saved_games_temp_paths.append(map_path)
+        if map_path:
+            copy['stadium_map_path'] = map_path
+        saved_games_serializable.append(copy)
+    
+    # If no main stadium image but we have saved_games with a map, use first event's map for main page
+    if not stadium_image_path and saved_games_serializable:
+        first_path = saved_games_serializable[0].get('stadium_map_path')
+        if first_path and os.path.exists(first_path):
+            stadium_image_path = first_path
+    
+    # Safe get for PDF payload (avoid KeyError if a field is missing)
+    event_date_val = order_data.get('event_date')
+    if hasattr(event_date_val, 'strftime'):
+        event_date_val = event_date_val.strftime('%d/%m/%Y %H:%M') if event_date_val else ''
+    elif not isinstance(event_date_val, str):
+        event_date_val = str(event_date_val or '')
+
     pdf_data = {
         'product_type': order_data.get('product_type', 'tickets'),
-        'event_name': order_data['event_name'],
-        'event_date': order_data['event_date'],
-        'venue': order_data['venue'],
+        'event_name': order_data.get('event_name', ''),
+        'event_date': event_date_val,
+        'venue': order_data.get('venue', ''),
+        'venue_name': order_data.get('venue_name', order_data.get('venue', '')),
+        'event_city': order_data.get('event_city', ''),
         'event_type': order_data.get('event_type', ''),
         'category': order_data.get('category', ''),
         'ticket_description': order_data.get('ticket_description', ''),
         'passengers': order_data.get('passengers', []),
-        'price_per_ticket': order_data['price_per_ticket'],
-        'price_nis': order_data['price_nis'],
-        'total_euro': order_data['total_euro'],
-        'total_nis': order_data['total_nis'],
+        'price_per_ticket': order_data.get('price_per_ticket', 0),
+        'price_nis': order_data.get('price_nis', 0),
+        'total_euro': order_data.get('total_euro', 0),
+        'total_nis': order_data.get('total_nis', 0),
         'num_tickets': order_data.get('num_tickets', 1),
         'exchange_rate': order_data.get('exchange_rate', 4.0),
         'order_number': order_data.get('order_number', ''),
-        'customer_name': order_data['customer_name'],
-        'customer_id': order_data['customer_id'],
-        'customer_phone': order_data['customer_phone'],
-        'customer_email': order_data['customer_email'],
+        'customer_name': order_data.get('customer_name', ''),
+        'customer_id': order_data.get('customer_id', ''),
+        'customer_phone': order_data.get('customer_phone', ''),
+        'customer_email': order_data.get('customer_email', ''),
         'hotel_name': order_data.get('hotel_name', ''),
         'hotel_nights': order_data.get('hotel_nights', 0),
         'hotel_stars': order_data.get('hotel_stars', ''),
@@ -992,39 +1071,72 @@ def generate_pdf(order_data, stadium_image=None, hotel_image=None, hotel_image_2
         'stadium_image_path': stadium_image_path,
         'stadium_photo_path': stadium_photo_path,
         'hotel_image_path': order_data.get('hotel_image_path') or hotel_image_path,
-        'hotel_image_2_path': order_data.get('hotel_image_path_2') or hotel_image_2_path
+        'hotel_image_2_path': order_data.get('hotel_image_path_2') or hotel_image_2_path,
+        'saved_games': saved_games_serializable,
     }
     
     json_file = None
     try:
         with tempfile.NamedTemporaryFile(mode='w', suffix='.json', delete=False, encoding='utf-8') as jf:
-            json.dump(pdf_data, jf)
+            json.dump(pdf_data, jf, ensure_ascii=False)
             json_file = jf.name
-        
+
+        pdf_generator_path = os.path.join(_APP_DIR, 'pdf_generator.py')
         result = subprocess.run(
-            ['python3', 'pdf_generator.py', json_file],
+            [sys.executable, pdf_generator_path, json_file],
             capture_output=True,
             text=True,
-            timeout=60
+            timeout=60,
+            cwd=_APP_DIR
         )
-        
+
         if result.returncode != 0:
-            raise Exception(f"PDF generation failed: {result.stderr}")
-        
-        pdf_bytes = base64.b64decode(result.stdout.strip())
+            err_msg = result.stderr or result.stdout or "Unknown error"
+            raise Exception(f"PDF generation failed: {err_msg}")
+
+        raw_stdout = result.stdout.strip()
+        if not raw_stdout:
+            raise Exception("PDF generator returned empty output")
+        try:
+            pdf_bytes = base64.b64decode(raw_stdout)
+        except Exception as e:
+            raise Exception(f"Invalid PDF output (decode error): {e}")
+        if not pdf_bytes.startswith(b'%PDF-'):
+            raise Exception("PDF generator did not produce a valid PDF file")
         return pdf_bytes
         
     finally:
         if json_file and os.path.exists(json_file):
-            os.unlink(json_file)
+            try:
+                os.unlink(json_file)
+            except Exception:
+                pass
         if stadium_image_path and os.path.exists(stadium_image_path):
-            os.unlink(stadium_image_path)
+            try:
+                os.unlink(stadium_image_path)
+            except Exception:
+                pass
         if stadium_photo_path and os.path.exists(stadium_photo_path):
-            os.unlink(stadium_photo_path)
+            try:
+                os.unlink(stadium_photo_path)
+            except Exception:
+                pass
         if hotel_image_path and os.path.exists(hotel_image_path):
-            os.unlink(hotel_image_path)
+            try:
+                os.unlink(hotel_image_path)
+            except Exception:
+                pass
         if hotel_image_2_path and os.path.exists(hotel_image_2_path):
-            os.unlink(hotel_image_2_path)
+            try:
+                os.unlink(hotel_image_2_path)
+            except Exception:
+                pass
+        for p in saved_games_temp_paths:
+            if p and os.path.exists(p):
+                try:
+                    os.unlink(p)
+                except Exception:
+                    pass
 
 def get_event_type_from_hebrew(hebrew_type):
     """Map Hebrew event type to EventType enum"""
@@ -1350,23 +1462,340 @@ def render_header():
     </div>
     """, unsafe_allow_html=True)
 
+
+def show_product_selection():
+    """Step 1: Product type selection"""
+    st.markdown("## שלב 1 - בחר סוג מוצר")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col1, col2 = st.columns(2, gap="large")
+    
+    with col1:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(102, 126, 234, 0.3);
+        " onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(102, 126, 234, 0.5)';" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(102, 126, 234, 0.3)';">
+            <div style="font-size: 5rem; margin-bottom: 1rem;">🎟️</div>
+            <h2 style="color: white; font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700;">כרטיסים בלבד</h2>
+            <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin: 0;">כרטיסים לאירוע בלבד</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("בחר כרטיסים בלבד", type="primary", use_container_width=True, key="btn_tickets"):
+            st.session_state['product_type_selected'] = 'tickets_only'
+            st.session_state['ui_step'] = 2
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            padding: 3rem 2rem;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 280px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(17, 153, 142, 0.3);
+        " onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(17, 153, 142, 0.5)';" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(17, 153, 142, 0.3)';">
+            <div style="font-size: 5rem; margin-bottom: 1rem;">📦</div>
+            <h2 style="color: white; font-size: 2rem; margin-bottom: 0.5rem; font-weight: 700;">חבילה מלאה</h2>
+            <p style="color: rgba(255,255,255,0.9); font-size: 1.1rem; margin: 0;">טיסות + מלון + כרטיסים</p>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("בחר חבילה מלאה", type="primary", use_container_width=True, key="btn_package"):
+            st.session_state['product_type_selected'] = 'full_package'
+            st.session_state['ui_step'] = 2
+            st.rerun()
+
+
+def show_event_selection():
+    """Step 2: Event type selection"""
+    product = st.session_state.get('product_type_selected', 'tickets_only')
+    label = "🎟️ כרטיסים" if product == 'tickets_only' else "📦 חבילה מלאה"
+    
+    st.markdown("## שלב 2 - בחר סוג אירוע")
+    st.info(f"מוצר שנבחר: {label}")
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    col1, col2, col3 = st.columns(3, gap="medium")
+    
+    with col1:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            padding: 2.5rem 1.5rem;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(240, 147, 251, 0.3);
+        " onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(240, 147, 251, 0.5)';" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(240, 147, 251, 0.3)';">
+            <div style="font-size: 4.5rem; margin-bottom: 1rem;">🎤</div>
+            <h2 style="color: white; font-size: 1.8rem; margin: 0; font-weight: 700;">הופעה</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("בחר הופעה", type="primary", use_container_width=True, key="btn_concert"):
+            st.session_state['event_type_selected'] = 'concert'
+            st.session_state['ui_step'] = 3
+            st.rerun()
+    
+    with col2:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            padding: 2.5rem 1.5rem;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(79, 172, 254, 0.3);
+        " onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(79, 172, 254, 0.5)';" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(79, 172, 254, 0.3)';">
+            <div style="font-size: 4.5rem; margin-bottom: 1rem;">⚽</div>
+            <h2 style="color: white; font-size: 1.8rem; margin: 0; font-weight: 700;">כדורגל</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("בחר כדורגל", type="primary", use_container_width=True, key="btn_football"):
+            st.session_state['event_type_selected'] = 'football'
+            st.session_state['ui_step'] = 3
+            st.rerun()
+    
+    with col3:
+        st.markdown("""
+        <div style="
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            padding: 2.5rem 1.5rem;
+            border-radius: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            box-shadow: 0 10px 30px rgba(250, 112, 154, 0.3);
+        " onmouseover="this.style.transform='translateY(-8px)'; this.style.boxShadow='0 15px 40px rgba(250, 112, 154, 0.5)';" 
+           onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 10px 30px rgba(250, 112, 154, 0.3)';">
+            <div style="font-size: 4.5rem; margin-bottom: 1rem;">🏆</div>
+            <h2 style="color: white; font-size: 1.8rem; margin: 0; font-weight: 700;">מונדיאל 2026</h2>
+        </div>
+        """, unsafe_allow_html=True)
+        if st.button("בחר מונדיאל", type="primary", use_container_width=True, key="btn_worldcup"):
+            st.session_state['event_type_selected'] = 'worldcup_2026'
+            st.session_state['ui_step'] = 3
+            st.rerun()
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    if st.button("🔙 חזור לבחירת מוצר", key="btn_back", use_container_width=True):
+        st.session_state['ui_step'] = 1
+        st.rerun()
+
+
+def show_selection_summary():
+    """Display summary of selected product and event type with option to change"""
+    product_type = st.session_state.get('product_type_selected')
+    event_type = st.session_state.get('event_type_selected')
+    
+    # Product labels
+    product_label = "🎟️ כרטיסים בלבד" if product_type == 'tickets_only' else "📦 חבילה מלאה"
+    
+    # Event labels
+    event_labels = {
+        'concert': '🎤 הופעה',
+        'football': '⚽ כדורגל',
+        'worldcup_2026': '🏆 מונדיאל 2026'
+    }
+    event_label = event_labels.get(event_type, '')
+    
+    col1, col2 = st.columns([3, 1])
+    
+    with col1:
+        st.info(f"📋 **בחירה:** {product_label}  |  {event_label}")
+    
+    with col2:
+        if st.button("🔄 שנה בחירה", type="secondary", use_container_width=True, key="reset_selection"):
+            st.session_state['ui_step'] = 1
+            st.session_state['product_type_selected'] = None
+            st.session_state['event_type_selected'] = None
+            st.rerun()
+    
+    st.markdown("---")
+
+
 def page_new_order():
-    """New order page"""
+    """New order page with stepped UI"""
     render_header()
     
+    # Initialize UI step
+    if 'ui_step' not in st.session_state:
+        st.session_state['ui_step'] = 1
+    
+    # Initialize other session state
+    if 'passengers' not in st.session_state:
+        st.session_state.passengers = []
+    if 'order_generated' not in st.session_state:
+        st.session_state.order_generated = False
+    if 'random_data' not in st.session_state:
+        st.session_state.random_data = None
+
+    # Load proposal data into form when coming from "ערוך" in הצעות ללקוח
+    load_proposal = st.session_state.pop('load_proposal_data', None)
+    if load_proposal and isinstance(load_proposal, dict):
+        flights_list = load_proposal.get('flights') or []
+        outbound = next((f for f in flights_list if f.get('direction') == 'הלוך'), {})
+        ret = next((f for f in flights_list if f.get('direction') == 'חזור'), {})
+        st.session_state.flights_data = {
+            'outbound': {
+                'from': outbound.get('from', 'TLV'),
+                'to': outbound.get('to', ''),
+                'date': outbound.get('date', ''),
+                'time': outbound.get('time', ''),
+                'flight_no': outbound.get('flight_no', ''),
+                'airline': outbound.get('airline', '')
+            },
+            'return': {
+                'from': ret.get('from', ''),
+                'to': ret.get('to', 'TLV'),
+                'date': ret.get('date', ''),
+                'time': ret.get('time', ''),
+                'flight_no': ret.get('flight_no', ''),
+                'airline': ret.get('airline', '')
+            }
+        }
+        st.session_state.random_data = {
+            'customer_name': load_proposal.get('customer_name', ''),
+            'customer_id': load_proposal.get('customer_id', ''),
+            'customer_phone': load_proposal.get('customer_phone', ''),
+            'customer_email': load_proposal.get('customer_email', ''),
+            'product_type': 'package' if load_proposal.get('product_type') == 'package' else 'tickets',
+            'event_name': load_proposal.get('event_name', ''),
+            'event_type': load_proposal.get('event_type', 'כדורגל'),
+            'event_date': load_proposal.get('event_date', ''),
+            'event_time': load_proposal.get('event_time', ''),
+            'venue': load_proposal.get('venue', ''),
+            'ticket_description': load_proposal.get('ticket_description', ''),
+            'category': load_proposal.get('category', ''),
+            'num_tickets': int(load_proposal.get('num_tickets', 0)) or 2,
+            'price_euro': float(load_proposal.get('price_per_ticket', 0)) or 330,
+            'hotel_name': load_proposal.get('hotel_name', ''),
+            'hotel_nights': int(load_proposal.get('hotel_nights', 0)) or 3,
+            'hotel_stars': load_proposal.get('hotel_stars', ''),
+            'hotel_meals': load_proposal.get('hotel_meals', 'ארוחת בוקר'),
+            'outbound_from': outbound.get('from', 'TLV'),
+            'outbound_to': outbound.get('to', ''),
+            'outbound_date': outbound.get('date', ''),
+            'outbound_time': outbound.get('time', ''),
+            'outbound_flight': outbound.get('flight_no', ''),
+            'outbound_airline': outbound.get('airline', ''),
+            'return_from': ret.get('from', ''),
+            'return_to': ret.get('to', 'TLV'),
+            'return_date': ret.get('date', ''),
+            'return_time': ret.get('time', ''),
+            'return_flight': ret.get('flight_no', ''),
+            'return_airline': ret.get('airline', ''),
+            'transfers': bool(load_proposal.get('transfers', False)),
+            'bag_trolley': bool(load_proposal.get('bag_trolley', False)),
+        }
+        saved_games_raw = load_proposal.get('saved_games') or []
+        saved_games = []
+        for game in saved_games_raw:
+            g = dict(game)
+            if not g.get('stadium_map_path') and (g.get('worldcup_stadium_map') or g.get('league_stadium_map_path')):
+                g['stadium_map_path'] = g.get('worldcup_stadium_map') or g.get('league_stadium_map_path')
+            if not g.get('stadium_map_path') and g.get('worldcup_venue'):
+                try:
+                    venue_name = (g.get('worldcup_venue') or '').split(',')[0].strip()
+                    if venue_name and os.path.exists(WORLDCUP_STADIUMS_JSON_PATH):
+                        with open(WORLDCUP_STADIUMS_JSON_PATH, 'r', encoding='utf-8') as f:
+                            wc_stadiums = json.load(f)
+                        stadium_info = (wc_stadiums.get('stadiums') or {}).get(venue_name, {})
+                        if stadium_info.get('map_file'):
+                            map_file = stadium_info['map_file']
+                            base = os.path.dirname(os.path.abspath(__file__))
+                            full_path = os.path.join(base, map_file)
+                            if os.path.exists(full_path):
+                                g['stadium_map_path'] = full_path
+                            elif os.path.exists(map_file):
+                                g['stadium_map_path'] = map_file
+                except Exception:
+                    pass
+            saved_games.append(g)
+        st.session_state.saved_games = saved_games
+        if saved_games and not st.session_state.get('football_league'):
+            first = saved_games[0]
+            if first.get('worldcup_venue') or first.get('worldcup_stadium_map') or (first.get('fixture_data') and isinstance(first.get('fixture_data'), dict)):
+                st.session_state['football_league'] = "מונדיאל 2026"
+        passengers = load_proposal.get('passengers') or []
+        if isinstance(passengers, str):
+            try:
+                passengers = json.loads(passengers)
+            except Exception:
+                passengers = []
+        # Form uses passenger_list with first_name, last_name, passport, birth_date, passport_expiry, ticket_type
+        if passengers:
+            pl = []
+            for p in passengers:
+                pl.append({
+                    'first_name': p.get('first_name', p.get('name', '').split()[0] if p.get('name') else ''),
+                    'last_name': p.get('last_name', p.get('name', '').split()[-1] if p.get('name') and len(p.get('name', '').split()) > 1 else ''),
+                    'passport': p.get('passport', p.get('passport_number', '')),
+                    'birth_date': p.get('birth_date', p.get('dob', '')),
+                    'passport_expiry': p.get('passport_expiry', ''),
+                    'ticket_type': p.get('ticket_type', 'כרטיס רגיל')
+                })
+            st.session_state.passenger_list = pl
+        else:
+            st.session_state.passenger_list = [{'first_name': '', 'last_name': '', 'passport': '', 'birth_date': '', 'passport_expiry': '', 'ticket_type': 'כרטיס רגיל'}]
+        st.session_state.ui_step = 3
+        st.session_state.product_type_selected = 'full_package' if load_proposal.get('product_type') == 'package' else 'tickets_only'
+        st.session_state.event_type_selected = 'football' if (load_proposal.get('event_type') == 'כדורגל' or load_proposal.get('event_type') == 'ספורט') else ('concert' if load_proposal.get('event_type') == 'הופעה' else 'other')
+        st.rerun()
+
+    # Route to appropriate screen based on ui_step
+    if st.session_state['ui_step'] == 1:
+        show_product_selection()
+        return
+    elif st.session_state['ui_step'] == 2:
+        show_event_selection()
+        return
+    elif st.session_state['ui_step'] == 3:
+        # Show summary and form
+        show_selection_summary()
+        # Continue to show the full OLD FORM below (it has all the smart features)
+        # We just skip the product_type and event_type selection since already done in steps 1-2
+        pass
+    
+    # === OLD FORM BELOW (WILL BE REMOVED) ===
+    # Success message if package loaded
     if st.session_state.get('package_loaded_success'):
         pkg_name = st.session_state['package_loaded_success']
         st.success(f"✅ נטענה חבילה: {pkg_name}")
         st.info("💡 עכשיו רק צריך להוסיף פרטי נוסעים ולקוח!")
         del st.session_state['package_loaded_success']
-    
-    if 'passengers' not in st.session_state:
-        st.session_state.passengers = []
-    if 'order_generated' not in st.session_state:
-        st.session_state.order_generated = False
-    
-    if 'random_data' not in st.session_state:
-        st.session_state.random_data = None
     
     st.markdown("""
         <a href="https://travel-agents-calculatornew.pages.dev/" target="_blank" style="
@@ -1393,16 +1822,20 @@ def page_new_order():
         
         rd = st.session_state.random_data or {}
         
-        st.markdown('<div class="form-section"><h3>📦 סוג המוצר</h3></div>', unsafe_allow_html=True)
-        product_options = ["tickets", "package"]
-        product_default = 1 if rd.get('product_type') == 'package' else 0
-        product_type = st.radio(
-            "בחר סוג מוצר",
-            options=product_options,
-            index=product_default,
-            format_func=lambda x: "🎫 כרטיסים בלבד" if x == "tickets" else "✈️ חבילה מלאה (טיסה + מלון + כרטיס)",
-            horizontal=True
-        )
+        # סוג מוצר - השתמש בבחירה משלב 1 ו-2 אם קיימת
+        if st.session_state.get('ui_step') == 3 and st.session_state.get('product_type_selected'):
+            product_type = "package" if st.session_state.get('product_type_selected') == 'full_package' else "tickets"
+        else:
+            st.markdown('<div class="form-section"><h3>📦 סוג המוצר</h3></div>', unsafe_allow_html=True)
+            product_options = ["tickets", "package"]
+            product_default = 1 if rd.get('product_type') == 'package' else 0
+            product_type = st.radio(
+                "בחר סוג מוצר",
+                options=product_options,
+                index=product_default,
+                format_func=lambda x: "🎫 כרטיסים בלבד" if x == "tickets" else "✈️ חבילה מלאה (טיסה + מלון + כרטיס)",
+                horizontal=True
+            )
         
         st.markdown('<div class="form-section"><h3>📦 טעינה מחבילה קבועה</h3></div>', unsafe_allow_html=True)
         
@@ -1473,12 +1906,14 @@ def page_new_order():
                         st.session_state['flight_outbound_date'] = flights['outbound'].get('date', '')
                         st.session_state['flight_outbound_time'] = flights['outbound'].get('time', '')
                         st.session_state['flight_outbound_no'] = flights['outbound'].get('flight_number', '')
+                        st.session_state['flight_outbound_airline'] = flights['outbound'].get('airline', '')
                     if flights.get('return'):
                         st.session_state['flight_return_from'] = flights['return'].get('from', '')
                         st.session_state['flight_return_to'] = flights['return'].get('to', '')
                         st.session_state['flight_return_date'] = flights['return'].get('date', '')
                         st.session_state['flight_return_time'] = flights['return'].get('time', '')
                         st.session_state['flight_return_no'] = flights['return'].get('flight_number', '')
+                        st.session_state['flight_return_airline'] = flights['return'].get('airline', '')
                     
                     if pkg_data.get('stadium_map_data'):
                         import base64
@@ -1685,11 +2120,13 @@ def page_new_order():
             st.session_state['flight_outbound_date'] = flights['outbound']['date']
             st.session_state['flight_outbound_time'] = flights['outbound']['time']
             st.session_state['flight_outbound_no'] = flights['outbound']['flight_number']
+            st.session_state['flight_outbound_airline'] = get_airline_from_flight(flights['outbound']['flight_number'])
             st.session_state['flight_return_from'] = flights['return']['from']
             st.session_state['flight_return_to'] = flights['return']['to']
             st.session_state['flight_return_date'] = flights['return']['date']
             st.session_state['flight_return_time'] = flights['return']['time']
             st.session_state['flight_return_no'] = flights['return']['flight_number']
+            st.session_state['flight_return_airline'] = get_airline_from_flight(flights['return']['flight_number'])
             
             st.rerun()
         
@@ -1705,7 +2142,8 @@ def page_new_order():
                     'pasted_stadium_map', 'saved_stadium_map_path', 'saved_stadium_map_bytes', '_selected_concert',
                     '_from_saved_concert', 'concert_venue_info', 'concert_artist_en',
                     'concert_artist_he', 'concert_venue_name', 'concert_venue_city',
-                    'concert_selected_category', '_concert_venue_id'
+                    'concert_selected_category', '_concert_venue_id', 'games', 'saved_games', 'finished_adding_games',
+                    'flights_data', 'show_save_package_form', 'show_save_proposal_form'
                 ]
                 for key in keys_to_clear:
                     if key in st.session_state:
@@ -1714,358 +2152,780 @@ def page_new_order():
                     if key.startswith(('first_name_', 'last_name_', 'passport_', 'birth_date_', 'passport_expiry_', 'flight_')):
                         del st.session_state[key]
                 st.session_state.passenger_list = [{'first_name': '', 'last_name': '', 'passport': '', 'birth_date': '', 'passport_expiry': '', 'ticket_type': 'כרטיס רגיל'}]
+                st.success("✅ הטופס נוקה!")
                 st.rerun()
         
-        st.markdown('<div class="form-section"><h3>🎭 פרטי האירוע</h3></div>', unsafe_allow_html=True)
+        # Initialize saved games list
+        if 'saved_games' not in st.session_state:
+            st.session_state['saved_games'] = []
         
-        event_types = ["כדורגל", "הופעה", "אחר"]
-        default_type_idx = event_types.index(rd.get('event_type', 'כדורגל')) if rd.get('event_type') in event_types else 0
-        event_type = st.selectbox("סוג אירוע", event_types, index=default_type_idx)
+        st.markdown('<div class="form-section"><h3>🎭 פרטי האירועים</h3></div>', unsafe_allow_html=True)
         
-        if event_type == "כדורגל":
-            from sports_api import LEAGUES, get_teams_by_league, get_hebrew_name, TEAM_HEBREW_NAMES, find_fixture
-            
-            st.markdown("##### ⚽ בחירת קבוצות (השלמה אוטומטית)")
-            
-            col_league = st.columns([1])[0]
-            with col_league:
-                league_options = ["-- בחר ליגה --"] + list(LEAGUES.keys())
-                selected_league = st.selectbox("ליגה", league_options, key="football_league")
-            
-            is_worldcup = selected_league == "מונדיאל 2026"
-            
-            if is_worldcup:
-                try:
-                    with open('worldcup2026.json', 'r', encoding='utf-8') as f:
-                        wc_data = json.load(f)
-                    wc_matches = wc_data.get('matches', [])
-                except:
-                    wc_matches = []
-                
-                NATIONAL_TEAM_HEBREW = {
-                    "Mexico": "מקסיקו", "South Africa": "דרום אפריקה", "South Korea": "דרום קוריאה",
-                    "Canada": "קנדה", "USA": "ארה\"ב", "Paraguay": "פרגוואי", "Haiti": "האיטי",
-                    "Scotland": "סקוטלנד", "Australia": "אוסטרליה", "Brazil": "ברזיל", "Morocco": "מרוקו",
-                    "Qatar": "קטאר", "Switzerland": "שוויץ", "Ivory Coast": "חוף השנהב",
-                    "Ecuador": "אקוודור", "Germany": "גרמניה", "Curacao": "קוראסאו",
-                    "Netherlands": "הולנד", "Japan": "יפן", "Tunisia": "טוניסיה",
-                    "Saudi Arabia": "סעודיה", "Uruguay": "אורוגוואי", "Spain": "ספרד",
-                    "Cabo Verde": "קאבו ורדה", "Iran": "איראן", "New Zealand": "ניו זילנד",
-                    "Belgium": "בלגיה", "Egypt": "מצרים", "France": "צרפת", "Senegal": "סנגל",
-                    "Norway": "נורבגיה", "Argentina": "ארגנטינה", "Algeria": "אלג'יריה",
-                    "Austria": "אוסטריה", "Jordan": "ירדן", "Ghana": "גאנה", "Panama": "פנמה",
-                    "England": "אנגליה", "Croatia": "קרואטיה", "Portugal": "פורטוגל",
-                    "Uzbekistan": "אוזבקיסטן", "Colombia": "קולומביה"
-                }
-                
-                def get_team_heb(name):
-                    return NATIONAL_TEAM_HEBREW.get(name, name)
-                
-                def format_date(date_str):
+        # Display saved games (improved: expanders/cards with details and delete)
+        if st.session_state['saved_games']:
+            st.markdown("##### ✅ אירועים שנשמרו:")
+            saved_list = st.session_state['saved_games']
+            for idx, saved_game in enumerate(saved_list):
+                game_text = saved_game.get('display_text', f"אירוע {idx + 1}")
+                details = saved_game.get('details', '')
+                title = f"אירוע {idx + 1}: {game_text}"
+                if len(saved_list) >= 2:
+                    with st.expander(title, expanded=(idx == 0)):
+                        if details:
+                            st.caption(details)
+                        if st.button("🗑️ מחק אירוע", key=f"delete_saved_game_{idx}", help="מחק אירוע"):
+                            st.session_state['saved_games'].pop(idx)
+                            st.rerun()
+                else:
+                    st.success(f"**{idx + 1}.** {game_text}")
+                    if details:
+                        st.caption(details)
+                    if st.button("🗑️", key=f"delete_saved_game_{idx}", help="מחק אירוע"):
+                        st.session_state['saved_games'].pop(idx)
+                        st.rerun()
+            st.markdown("---")
+        
+        if st.session_state.get('finished_adding_games', False):
+            # User chose "Save and finish" – show only list + add-another button, then skip to hotel
+            if st.button("➕ הוסף אירוע נוסף", key="add_another_event_btn", type="primary", use_container_width=True):
+                st.session_state['finished_adding_games'] = False
+                st.rerun()
+            # Set event_name, venue, event_date, event_time, event_type, category from first saved game for downstream
+            from datetime import datetime as _dt, date as _date, time as _time
+            saved = st.session_state.get('saved_games', [])
+            if saved:
+                first = saved[0]
+                event_type = first.get('event_type', 'כדורגל')
+                event_name = first.get('display_text', 'אירוע')
+                fixture = first.get('fixture_data', {})
+                venue = first.get('worldcup_venue') or ''
+                if not venue and fixture:
+                    venue = (fixture.get('venue') or '') + (f", {fixture.get('city')}" if fixture.get('city') else '')
+                if not venue and first.get('concert_venue_name'):
+                    venue = first.get('concert_venue_name', '') + (f", {first.get('concert_venue_city', '')}" if first.get('concert_venue_city') else '')
+                if fixture.get('date'):
                     try:
-                        from datetime import datetime as dt
-                        d = dt.strptime(date_str, "%Y-%m-%d")
-                        return d.strftime("%d/%m/%Y")
-                    except:
-                        return date_str
-                
-                match_options = ["-- בחר משחק --"]
-                for m in wc_matches:
-                    team1_heb = get_team_heb(m['team1'])
-                    team2_heb = get_team_heb(m['team2'])
-                    date_fmt = format_date(m['date'])
-                    option = f"משחק {m['match_num']}: {team1_heb} נגד {team2_heb} ({date_fmt})"
-                    match_options.append(option)
-                
-                selected_match = st.selectbox("🏆 בחר משחק מונדיאל", match_options, key="worldcup_match")
-                
-                if selected_match and selected_match != "-- בחר משחק --":
-                    match_num = int(selected_match.split(":")[0].replace("משחק ", "").strip())
-                    match_data = next((m for m in wc_matches if m['match_num'] == match_num), None)
-                    
-                    if match_data:
-                        team1_heb = get_team_heb(match_data['team1'])
-                        team2_heb = get_team_heb(match_data['team2'])
-                        st.session_state['home_team_hebrew'] = team1_heb
-                        st.session_state['away_team_hebrew'] = team2_heb
-                        st.session_state['selected_team_data'] = {'name': match_data['team1']}
-                        st.session_state['away_team_data'] = {'name': match_data['team2']}
-                        st.session_state['fixture_data'] = {
-                            'date': match_data['date'],
-                            'time': match_data['time'],
-                            'venue': match_data['venue'],
-                            'city': match_data['city'],
-                            'round': match_data['round']
-                        }
-                        st.session_state['worldcup_venue'] = f"{match_data['venue']}, {match_data['city']}"
-                        
-                        try:
-                            with open('worldcup_stadiums_mapping.json', 'r', encoding='utf-8') as f:
-                                wc_stadiums = json.load(f)
-                            stadium_info = wc_stadiums.get('stadiums', {}).get(match_data['venue'], {})
-                            if stadium_info.get('map_file'):
-                                st.session_state['worldcup_stadium_map'] = stadium_info['map_file']
-                            else:
-                                st.session_state['worldcup_stadium_map'] = ''
-                        except:
-                            st.session_state['worldcup_stadium_map'] = ''
-                        
-                        st.info(f"🏆 **{match_data['round']}** | {team1_heb} נגד {team2_heb}")
-                        st.caption(f"📍 {match_data['venue']}, {match_data['city']} | 📅 {format_date(match_data['date'])} {match_data['time']}")
-                        
-                        wc_categories = ["קטגוריה 3/4", "קטגוריה 3", "קטגוריה 2", "קטגוריה 1"]
-                        st.selectbox("🎫 בחר קטגוריית כרטיסים", wc_categories, key="worldcup_category")
+                        event_date = _dt.strptime(fixture['date'], "%Y-%m-%d").date()
+                    except Exception:
+                        event_date = _date.today()
                 else:
-                    st.session_state['fixture_data'] = {}
-                    st.session_state['selected_team_data'] = {}
-                    st.session_state['away_team_data'] = {}
-                    st.session_state['home_team_hebrew'] = ''
-                    st.session_state['away_team_hebrew'] = ''
-                    st.session_state['worldcup_venue'] = ''
+                    event_date = _date.today()
+                if fixture.get('time'):
+                    try:
+                        tstr = (fixture.get('time') or '')[:5]
+                        event_time = _dt.strptime(tstr, "%H:%M").time() if len(tstr) == 5 else _time(12, 0)
+                    except Exception:
+                        event_time = _time(12, 0)
+                else:
+                    event_time = _time(12, 0)
+                category = first.get('worldcup_category') or first.get('concert_selected_category') or 'CAT 1'
             else:
-                from sports_api import get_season_fixtures
+                event_type = 'כדורגל'
+                event_name = ''
+                venue = ''
+                event_date = _date.today()
+                event_time = _time(12, 0)
+                category = 'CAT 1'
+            # So col2 and order_data don't fail when form was skipped (UnboundLocalError)
+            stadium_image = None
+            auto_stadium_map = None
+            is_date_final = False
+            seats_together = False
+            st.markdown("---")
+        else:
+            if st.session_state['saved_games']:
+                st.info(f"💡 סה\"כ {len(st.session_state['saved_games'])} אירועים נשמרו. ממשיך למלא פרטי אירוע נוסף...")
+                st.markdown("---")
+        
+                # Determine event type
+            if st.session_state.get('ui_step') == 3 and st.session_state.get('event_type_selected'):
+                event_map = {'concert': 'הופעה', 'football': 'כדורגל', 'worldcup_2026': 'כדורגל'}
+                event_type = event_map.get(st.session_state.get('event_type_selected'), 'כדורגל')
+                # אם נבחר מונדיאל, נגדיר את הליגה אוטומטית
+                if st.session_state.get('event_type_selected') == 'worldcup_2026':
+                    st.session_state['football_league'] = "מונדיאל 2026"
+            else:
+                event_types = ["כדורגל", "הופעה", "אחר"]
+                default_type_idx = event_types.index(rd.get('event_type', 'כדורגל')) if rd.get('event_type') in event_types else 0
+                event_type = st.selectbox("סוג אירוע", event_types, index=default_type_idx)
+        
+            if event_type == "כדורגל":
+                from sports_api import LEAGUES, get_teams_by_league, get_hebrew_name, TEAM_HEBREW_NAMES, find_fixture
+            
+                st.markdown("##### ⚽ בחירת קבוצות (השלמה אוטומטית)")
+            
+                col_league = st.columns([1])[0]
+                with col_league:
+                    league_options = ["-- בחר ליגה --"] + list(LEAGUES.keys())
+                    selected_league = st.selectbox("ליגה", league_options, key="football_league")
+            
+                is_worldcup = selected_league == "מונדיאל 2026"
+            
+                if is_worldcup:
+                    try:
+                        with open(WORLDCUP_JSON_PATH, 'r', encoding='utf-8') as f:
+                            wc_data = json.load(f)
+                        wc_matches = wc_data.get('matches', [])
+                    except Exception as e:
+                        wc_matches = []
+                        if not os.path.exists(WORLDCUP_JSON_PATH):
+                            st.error(f"קובץ משחקי מונדיאל לא נמצא: {WORLDCUP_JSON_PATH}")
+                        else:
+                            st.error(f"שגיאה בטעינת משחקי מונדיאל: {e}")
                 
-                teams = []
-                fixtures = []
-                if selected_league and selected_league != "-- בחר ליגה --":
-                    english_league = LEAGUES.get(selected_league, "")
-                    teams = get_teams_by_league(english_league)
-                    fixtures = get_season_fixtures(english_league)
-                else:
-                    st.session_state['fixture_data'] = {}
-                    st.session_state['selected_team_data'] = {}
-                    st.session_state['away_team_data'] = {}
+                    NATIONAL_TEAM_HEBREW = {
+                        "Mexico": "מקסיקו", "South Africa": "דרום אפריקה", "South Korea": "דרום קוריאה",
+                        "Canada": "קנדה", "USA": "ארה\"ב", "Paraguay": "פרגוואי", "Haiti": "האיטי",
+                        "Scotland": "סקוטלנד", "Australia": "אוסטרליה", "Brazil": "ברזיל", "Morocco": "מרוקו",
+                        "Qatar": "קטאר", "Switzerland": "שוויץ", "Ivory Coast": "חוף השנהב",
+                        "Ecuador": "אקוודור", "Germany": "גרמניה", "Curacao": "קוראסאו",
+                        "Netherlands": "הולנד", "Japan": "יפן", "Tunisia": "טוניסיה",
+                        "Saudi Arabia": "סעודיה", "Uruguay": "אורוגוואי", "Spain": "ספרד",
+                        "Cabo Verde": "קאבו ורדה", "Iran": "איראן", "New Zealand": "ניו זילנד",
+                        "Belgium": "בלגיה", "Egypt": "מצרים", "France": "צרפת", "Senegal": "סנגל",
+                        "Norway": "נורבגיה", "Argentina": "ארגנטינה", "Algeria": "אלג'יריה",
+                        "Austria": "אוסטריה", "Jordan": "ירדן", "Ghana": "גאנה", "Panama": "פנמה",
+                        "England": "אנגליה", "Croatia": "קרואטיה", "Portugal": "פורטוגל",
+                        "Uzbekistan": "אוזבקיסטן", "Colombia": "קולומביה"
+                    }
                 
-                selection_modes = ["🎯 בחר משחק מרשימה", "✏️ בחר קבוצות ידנית"]
-                selection_mode = st.radio("אופן בחירה", selection_modes, horizontal=True, key="football_selection_mode", label_visibility="collapsed")
+                    def get_team_heb(name):
+                        return NATIONAL_TEAM_HEBREW.get(name, name)
                 
-                prev_mode = st.session_state.get('_prev_football_mode', '')
-                if prev_mode != selection_mode:
-                    st.session_state['_prev_football_mode'] = selection_mode
-                    st.session_state['fixture_data'] = {}
-                    st.session_state['selected_team_data'] = {}
-                    st.session_state['away_team_data'] = {}
-                    st.session_state['home_team_hebrew'] = ''
-                    st.session_state['away_team_hebrew'] = ''
-                
-                if selection_mode == "🎯 בחר משחק מרשימה" and not fixtures:
-                    st.warning("⚠️ אין נתוני משחקים זמינים לליגה זו. השתמש בבחירה ידנית.")
-                
-                if selection_mode == "🎯 בחר משחק מרשימה" and fixtures:
-                    team_filter = st.text_input("🔍 חפש קבוצה (עברית/אנגלית)", placeholder="למשל: ברצלונה, Real Madrid", key="football_team_filter")
-                    
-                    def format_fixture_date(date_str):
+                    def format_date(date_str):
                         try:
                             from datetime import datetime as dt
                             d = dt.strptime(date_str, "%Y-%m-%d")
                             return d.strftime("%d/%m/%Y")
                         except:
                             return date_str
-                    
-                    from datetime import datetime as dt
-                    today = dt.now().date()
-                    future_fixtures = []
-                    for f in fixtures:
-                        try:
-                            match_date = dt.strptime(f['date'], "%Y-%m-%d").date()
-                            if match_date >= today:
-                                future_fixtures.append(f)
-                        except:
-                            future_fixtures.append(f)
-                    
-                    filtered_fixtures = future_fixtures
-                    if team_filter:
-                        filter_lower = team_filter.lower().strip()
-                        eng_name = TEAM_HEBREW_NAMES.get(team_filter.strip(), '')
-                        
-                        filtered_fixtures = []
-                        for f in future_fixtures:
-                            home_lower = f['home_team'].lower()
-                            away_lower = f['away_team'].lower()
-                            home_heb = get_hebrew_name(f['home_team']).lower()
-                            away_heb = get_hebrew_name(f['away_team']).lower()
-                            
-                            match_found = (
-                                filter_lower in home_lower or filter_lower in away_lower or
-                                filter_lower in home_heb or filter_lower in away_heb or
-                                home_lower in filter_lower or away_lower in filter_lower or
-                                (eng_name and (eng_name.lower() in home_lower or eng_name.lower() in away_lower))
-                            )
-                            if match_found:
-                                filtered_fixtures.append(f)
-                    
-                    filtered_fixtures = sorted(filtered_fixtures, key=lambda x: x.get('date', ''))
-                    
+                
                     match_options = ["-- בחר משחק --"]
-                    for f in filtered_fixtures:
-                        home_heb = get_hebrew_name(f['home_team'])
-                        away_heb = get_hebrew_name(f['away_team'])
-                        date_fmt = format_fixture_date(f['date'])
-                        time_str = f.get('time', '')[:5] if f.get('time') else ''
-                        round_str = f.get('round', '')
-                        
-                        option = f"⚽ {home_heb} נגד {away_heb}"
-                        option += f" | 📅 {date_fmt}"
-                        if time_str and time_str != '00:00':
-                            option += f" ⏰ {time_str}"
-                        match_options.append((option, f))
+                    for m in wc_matches:
+                        team1_heb = get_team_heb(m['team1'])
+                        team2_heb = get_team_heb(m['team2'])
+                        date_fmt = format_date(m['date'])
+                        option = f"משחק {m['match_num']}: {team1_heb} נגד {team2_heb} ({date_fmt})"
+                        match_options.append(option)
+                
+                    selected_match = st.selectbox("🏆 בחר משחק מונדיאל", match_options, key="worldcup_match")
+                
+                    if selected_match and selected_match != "-- בחר משחק --":
+                        match_num = int(selected_match.split(":")[0].replace("משחק ", "").strip())
+                        match_data = next((m for m in wc_matches if m['match_num'] == match_num), None)
                     
-                    match_display_options = [m[0] if isinstance(m, tuple) else m for m in match_options]
-                    filter_key = f"league_match_{len(filtered_fixtures)}_{team_filter[:10] if team_filter else 'all'}"
-                    selected_match_idx = st.selectbox("⚽ בחר משחק", range(len(match_display_options)), 
-                                                       format_func=lambda x: match_display_options[x], 
-                                                       key=filter_key)
-                    
-                    if selected_match_idx > 0:
-                        selected_fixture = match_options[selected_match_idx][1]
+                        if match_data:
+                            team1_heb = get_team_heb(match_data['team1'])
+                            team2_heb = get_team_heb(match_data['team2'])
+                            st.session_state['home_team_hebrew'] = team1_heb
+                            st.session_state['away_team_hebrew'] = team2_heb
+                            st.session_state['selected_team_data'] = {'name': match_data['team1']}
+                            st.session_state['away_team_data'] = {'name': match_data['team2']}
+                            st.session_state['fixture_data'] = {
+                                'date': match_data['date'],
+                                'time': match_data['time'],
+                                'venue': match_data['venue'],
+                                'city': match_data['city'],
+                                'round': match_data['round']
+                            }
+                            st.session_state['worldcup_venue'] = f"{match_data['venue']}, {match_data['city']}"
                         
-                        home_team = next((t for t in teams if t['name'].lower() == selected_fixture['home_team'].lower() or 
-                                          selected_fixture['home_team'].lower() in t['name'].lower() or
-                                          t['name'].lower() in selected_fixture['home_team'].lower()), None)
-                        away_team = next((t for t in teams if t['name'].lower() == selected_fixture['away_team'].lower() or
-                                          selected_fixture['away_team'].lower() in t['name'].lower() or
-                                          t['name'].lower() in selected_fixture['away_team'].lower()), None)
+                            try:
+                                with open(WORLDCUP_STADIUMS_JSON_PATH, 'r', encoding='utf-8') as f:
+                                    wc_stadiums = json.load(f)
+                                stadium_info = wc_stadiums.get('stadiums', {}).get(match_data['venue'], {})
+                                if stadium_info.get('map_file'):
+                                    st.session_state['worldcup_stadium_map'] = stadium_info['map_file']
+                                else:
+                                    st.session_state['worldcup_stadium_map'] = ''
+                            except:
+                                st.session_state['worldcup_stadium_map'] = ''
                         
-                        if not home_team:
-                            home_team = {'name': selected_fixture['home_team'], 'stadium': '', 'stadium_location': ''}
-                        if not away_team:
-                            away_team = {'name': selected_fixture['away_team'], 'stadium': '', 'stadium_location': ''}
+                            st.info(f"🏆 **{match_data['round']}** | {team1_heb} נגד {team2_heb}")
+                            st.caption(f"📍 {match_data['venue']}, {match_data['city']} | 📅 {format_date(match_data['date'])} {match_data['time']}")
                         
-                        home_heb = get_hebrew_name(selected_fixture['home_team'])
-                        away_heb = get_hebrew_name(selected_fixture['away_team'])
-                        
-                        st.session_state['selected_team_data'] = home_team
-                        st.session_state['away_team_data'] = away_team
-                        st.session_state['home_team_hebrew'] = home_heb
-                        st.session_state['away_team_hebrew'] = away_heb
-                        st.session_state['fixture_data'] = {
-                            'date': selected_fixture['date'],
-                            'time': selected_fixture.get('time', ''),
-                            'round': selected_fixture.get('round', '')
-                        }
-                        
-                        st.success(f"✅ **{home_heb}** נגד **{away_heb}**")
-                        date_fmt = format_fixture_date(selected_fixture['date'])
-                        time_str = selected_fixture.get('time', '')[:5] if selected_fixture.get('time') else ''
-                        info_text = f"📅 {date_fmt}"
-                        if time_str and time_str != '00:00':
-                            info_text += f" | ⏰ {time_str}"
-                        if home_team.get('stadium'):
-                            info_text += f" | 🏟️ {home_team['stadium']}"
-                        st.caption(info_text)
+                            wc_categories = ["קטגוריה 3/4", "קטגוריה 3", "קטגוריה 2", "קטגוריה 1"]
+                            st.selectbox("🎫 בחר קטגוריית כרטיסים", wc_categories, key="worldcup_category")
                     else:
                         st.session_state['fixture_data'] = {}
                         st.session_state['selected_team_data'] = {}
                         st.session_state['away_team_data'] = {}
                         st.session_state['home_team_hebrew'] = ''
                         st.session_state['away_team_hebrew'] = ''
-                    
-                    if not fixtures:
-                        st.info("💡 לא נמצאו משחקים לליגה זו. נסה לבחור קבוצות ידנית.")
-                
+                        st.session_state['worldcup_venue'] = ''
                 else:
-                    col_team1, col_team2 = st.columns(2)
-                    with col_team1:
-                        if teams:
-                            team_options = ["-- קבוצה מארחת --"] + [f"{get_hebrew_name(t['name'])} ({t['name']})" for t in teams]
-                            selected_team1 = st.selectbox("קבוצה מארחת 🏠", team_options, key="football_team1")
-                            
-                            if selected_team1 and selected_team1 != "-- קבוצה מארחת --":
-                                team_name_eng = selected_team1.split("(")[-1].replace(")", "").strip()
-                                selected_team = next((t for t in teams if t['name'] == team_name_eng), None)
-                                if selected_team:
-                                    st.session_state['selected_team_data'] = selected_team
-                                    st.session_state['home_team_hebrew'] = selected_team1.split(" (")[0]
-                            else:
-                                st.session_state['selected_team_data'] = {}
-                                st.session_state['home_team_hebrew'] = ''
-                        else:
-                            st.selectbox("קבוצה מארחת 🏠", ["-- בחר ליגה קודם --"], disabled=True, key="team1_disabled")
+                    from sports_api import get_season_fixtures
+                
+                    teams = []
+                    fixtures = []
+                    if selected_league and selected_league != "-- בחר ליגה --":
+                        english_league = LEAGUES.get(selected_league, "") or selected_league
+                        teams = get_teams_by_league(english_league)
+                        fixtures = get_season_fixtures(english_league)
+                        if not fixtures and selected_league:
+                            fixtures = get_season_fixtures(selected_league)
+                        if not teams and selected_league:
+                            teams = get_teams_by_league(selected_league)
+                    else:
+                        st.session_state['fixture_data'] = {}
+                        st.session_state['selected_team_data'] = {}
+                        st.session_state['away_team_data'] = {}
+                
+                    selection_modes = ["🎯 בחר משחק מרשימה", "✏️ בחר קבוצות ידנית"]
+                    selection_mode = st.radio("אופן בחירה", selection_modes, horizontal=True, key="football_selection_mode", label_visibility="collapsed")
+                
+                    prev_mode = st.session_state.get('_prev_football_mode', '')
+                    if prev_mode != selection_mode:
+                        st.session_state['_prev_football_mode'] = selection_mode
+                        st.session_state['fixture_data'] = {}
+                        st.session_state['selected_team_data'] = {}
+                        st.session_state['away_team_data'] = {}
+                        st.session_state['home_team_hebrew'] = ''
+                        st.session_state['away_team_hebrew'] = ''
+                
+                    if selection_mode == "🎯 בחר משחק מרשימה" and not fixtures:
+                        st.warning("⚠️ אין נתוני משחקים זמינים לליגה זו. השתמש בבחירה ידנית.")
+                
+                    if selection_mode == "🎯 בחר משחק מרשימה" and fixtures:
+                        team_filter = st.text_input("🔍 חפש קבוצה (עברית/אנגלית)", placeholder="למשל: ברצלונה, Real Madrid", key="football_team_filter")
                     
-                    with col_team2:
-                        if teams:
-                            team_options2 = ["-- קבוצה אורחת --"] + [f"{get_hebrew_name(t['name'])} ({t['name']})" for t in teams]
-                            selected_team2 = st.selectbox("קבוצה אורחת ✈️", team_options2, key="football_team2")
-                            
-                            if selected_team2 and selected_team2 != "-- קבוצה אורחת --":
-                                team_name_eng2 = selected_team2.split("(")[-1].replace(")", "").strip()
-                                away_team = next((t for t in teams if t['name'] == team_name_eng2), None)
-                                if away_team:
-                                    st.session_state['away_team_data'] = away_team
-                                st.session_state['away_team_hebrew'] = selected_team2.split(" (")[0]
-                            else:
-                                st.session_state['away_team_data'] = {}
-                                st.session_state['away_team_hebrew'] = ''
-                        else:
-                            st.selectbox("קבוצה אורחת ✈️", ["-- בחר ליגה קודם --"], disabled=True, key="team2_disabled")
-                
-                team_data = st.session_state.get('selected_team_data', {})
-                home_heb = st.session_state.get('home_team_hebrew', '')
-                away_heb = st.session_state.get('away_team_hebrew', '')
-                
-                if team_data.get('badge') and home_heb:
-                    col_badge, col_info = st.columns([1, 3])
-                    with col_badge:
-                        st.image(team_data['badge'], width=60)
-                    with col_info:
-                        match_text = f"**{home_heb}**" + (f" נגד **{away_heb}**" if away_heb else "")
-                        st.markdown(match_text)
-                        if team_data.get('stadium'):
-                            st.caption(f"🏟️ {team_data['stadium']}")
-                
-                current_key = f"{selected_league}_{team_data.get('name', '')}_{st.session_state.get('away_team_data', {}).get('name', '')}"
-                if st.session_state.get('fixture_lookup_key') != current_key:
-                    st.session_state['fixture_data'] = {}
-                    st.session_state['fixture_lookup_key'] = current_key
-                
-                if team_data.get('name') and st.session_state.get('away_team_data', {}).get('name'):
-                    home_name = team_data['name']
-                    away_name = st.session_state['away_team_data']['name']
-                    english_league = LEAGUES.get(selected_league, "")
+                        def format_fixture_date(date_str):
+                            try:
+                                from datetime import datetime as dt
+                                d = dt.strptime(date_str, "%Y-%m-%d")
+                                return d.strftime("%d/%m/%Y")
+                            except:
+                                return date_str
                     
-                    if not st.session_state.get('fixture_data'):
-                        fixture = find_fixture(home_name, away_name, english_league)
-                        if fixture and fixture.get('date'):
-                            time_str = fixture.get('time', '')
-                            if time_str and time_str not in ('00:00:00', '00:00', ''):
-                                st.session_state['fixture_data'] = fixture
-                                st.success(f"📅 נמצא משחק: {fixture['date']} {time_str[:5]}")
-                            elif fixture.get('date'):
-                                st.session_state['fixture_data'] = {'date': fixture['date']}
-                                st.success(f"📅 נמצא משחק: {fixture['date']}")
+                        from datetime import datetime as dt
+                        today = dt.now().date()
+                        future_fixtures = []
+                        for f in fixtures:
+                            try:
+                                match_date = dt.strptime(f.get('date', '') or '', "%Y-%m-%d").date()
+                                if match_date >= today:
+                                    future_fixtures.append(f)
+                            except Exception:
+                                future_fixtures.append(f)
+                        # If no future fixtures, show all so list is never empty
+                        if not future_fixtures and fixtures:
+                            future_fixtures = fixtures
+                        filtered_fixtures = future_fixtures
+                        if team_filter:
+                            filter_lower = team_filter.lower().strip()
+                            eng_name = TEAM_HEBREW_NAMES.get(team_filter.strip(), '')
+                        
+                            filtered_fixtures = []
+                            for f in future_fixtures:
+                                home_lower = f['home_team'].lower()
+                                away_lower = f['away_team'].lower()
+                                home_heb = get_hebrew_name(f['home_team']).lower()
+                                away_heb = get_hebrew_name(f['away_team']).lower()
+                            
+                                match_found = (
+                                    filter_lower in home_lower or filter_lower in away_lower or
+                                    filter_lower in home_heb or filter_lower in away_heb or
+                                    home_lower in filter_lower or away_lower in filter_lower or
+                                    (eng_name and (eng_name.lower() in home_lower or eng_name.lower() in away_lower))
+                                )
+                                if match_found:
+                                    filtered_fixtures.append(f)
+                    
+                        filtered_fixtures = sorted(filtered_fixtures, key=lambda x: x.get('date', ''))
+                    
+                        match_options = ["-- בחר משחק --"]
+                        for f in filtered_fixtures:
+                            home_heb = get_hebrew_name(f['home_team'])
+                            away_heb = get_hebrew_name(f['away_team'])
+                            date_fmt = format_fixture_date(f['date'])
+                            time_str = f.get('time', '')[:5] if f.get('time') else ''
+                            round_str = f.get('round', '')
+                        
+                            option = f"⚽ {home_heb} נגד {away_heb}"
+                            option += f" | 📅 {date_fmt}"
+                            if time_str and time_str != '00:00':
+                                option += f" ⏰ {time_str}"
+                            match_options.append((option, f))
+                    
+                        match_display_options = [m[0] if isinstance(m, tuple) else m for m in match_options]
+                        filter_key = f"league_match_{len(filtered_fixtures)}_{team_filter[:10] if team_filter else 'all'}"
+                        selected_match_idx = st.selectbox("⚽ בחר משחק", range(len(match_display_options)), 
+                                                           format_func=lambda x: match_display_options[x], 
+                                                           key=filter_key)
+                    
+                        if selected_match_idx > 0 and selected_match_idx < len(match_options) and isinstance(match_options[selected_match_idx], tuple):
+                            selected_fixture = match_options[selected_match_idx][1]
+                            home_team = next((t for t in teams if t['name'].lower() == (selected_fixture.get('home_team') or '').lower() or 
+                                              (selected_fixture.get('home_team') or '').lower() in t['name'].lower() or
+                                              t['name'].lower() in (selected_fixture.get('home_team') or '').lower()), None)
+                            away_team = next((t for t in teams if t['name'].lower() == (selected_fixture.get('away_team') or '').lower() or
+                                              (selected_fixture.get('away_team') or '').lower() in t['name'].lower() or
+                                              t['name'].lower() in (selected_fixture.get('away_team') or '').lower()), None)
+                            if not home_team:
+                                home_team = {'name': selected_fixture.get('home_team', ''), 'stadium': '', 'stadium_location': ''}
+                            if not away_team:
+                                away_team = {'name': selected_fixture.get('away_team', ''), 'stadium': '', 'stadium_location': ''}
+                            home_heb = get_hebrew_name(selected_fixture.get('home_team', ''))
+                            away_heb = get_hebrew_name(selected_fixture.get('away_team', ''))
+                            st.session_state['selected_team_data'] = home_team
+                            st.session_state['away_team_data'] = away_team
+                            st.session_state['home_team_hebrew'] = home_heb
+                            st.session_state['away_team_hebrew'] = away_heb
+                            st.session_state['fixture_data'] = {
+                                'date': selected_fixture.get('date', ''),
+                                'time': selected_fixture.get('time', ''),
+                                'round': selected_fixture.get('round', '')
+                            }
+                            st.success(f"✅ **{home_heb}** נגד **{away_heb}**")
+                            date_fmt = format_fixture_date(selected_fixture.get('date', ''))
+                            time_str = selected_fixture.get('time', '')[:5] if selected_fixture.get('time') else ''
+                            info_text = f"📅 {date_fmt}"
+                            if time_str and time_str != '00:00':
+                                info_text += f" | ⏰ {time_str}"
+                            if home_team.get('stadium'):
+                                info_text += f" | 🏟️ {home_team['stadium']}"
+                            st.caption(info_text)
+                        else:
+                            st.session_state['fixture_data'] = {}
+                            st.session_state['selected_team_data'] = {}
+                            st.session_state['away_team_data'] = {}
+                            st.session_state['home_team_hebrew'] = ''
+                            st.session_state['away_team_hebrew'] = ''
+                    
+                        if not fixtures:
+                            st.info("💡 לא נמצאו משחקים לליגה זו. נסה לבחור קבוצות ידנית.")
+                
+                    else:
+                        col_team1, col_team2 = st.columns(2)
+                        with col_team1:
+                            if teams:
+                                team_options = ["-- קבוצה מארחת --"] + [f"{get_hebrew_name(t['name'])} ({t['name']})" for t in teams]
+                                selected_team1 = st.selectbox("קבוצה מארחת 🏠", team_options, key="football_team1")
+                            
+                                if selected_team1 and selected_team1 != "-- קבוצה מארחת --":
+                                    team_name_eng = selected_team1.split("(")[-1].replace(")", "").strip()
+                                    selected_team = next((t for t in teams if t['name'] == team_name_eng), None)
+                                    if selected_team:
+                                        st.session_state['selected_team_data'] = selected_team
+                                        st.session_state['home_team_hebrew'] = selected_team1.split(" (")[0]
+                                else:
+                                    st.session_state['selected_team_data'] = {}
+                                    st.session_state['home_team_hebrew'] = ''
+                            else:
+                                st.selectbox("קבוצה מארחת 🏠", ["-- בחר ליגה קודם --"], disabled=True, key="team1_disabled")
+                    
+                        with col_team2:
+                            if teams:
+                                team_options2 = ["-- קבוצה אורחת --"] + [f"{get_hebrew_name(t['name'])} ({t['name']})" for t in teams]
+                                selected_team2 = st.selectbox("קבוצה אורחת ✈️", team_options2, key="football_team2")
+                            
+                                if selected_team2 and selected_team2 != "-- קבוצה אורחת --":
+                                    team_name_eng2 = selected_team2.split("(")[-1].replace(")", "").strip()
+                                    away_team = next((t for t in teams if t['name'] == team_name_eng2), None)
+                                    if away_team:
+                                        st.session_state['away_team_data'] = away_team
+                                    st.session_state['away_team_hebrew'] = selected_team2.split(" (")[0]
+                                else:
+                                    st.session_state['away_team_data'] = {}
+                                    st.session_state['away_team_hebrew'] = ''
+                            else:
+                                st.selectbox("קבוצה אורחת ✈️", ["-- בחר ליגה קודם --"], disabled=True, key="team2_disabled")
+                
+                    team_data = st.session_state.get('selected_team_data', {})
+                    home_heb = st.session_state.get('home_team_hebrew', '')
+                    away_heb = st.session_state.get('away_team_hebrew', '')
+                
+                    if team_data.get('badge') and home_heb:
+                        col_badge, col_info = st.columns([1, 3])
+                        with col_badge:
+                            st.image(team_data['badge'], width=60)
+                        with col_info:
+                            match_text = f"**{home_heb}**" + (f" נגד **{away_heb}**" if away_heb else "")
+                            st.markdown(match_text)
+                            if team_data.get('stadium'):
+                                st.caption(f"🏟️ {team_data['stadium']}")
+                
+                    current_key = f"{selected_league}_{team_data.get('name', '')}_{st.session_state.get('away_team_data', {}).get('name', '')}"
+                    if st.session_state.get('fixture_lookup_key') != current_key:
+                        st.session_state['fixture_data'] = {}
+                        st.session_state['fixture_lookup_key'] = current_key
+                
+                    if team_data.get('name') and st.session_state.get('away_team_data', {}).get('name'):
+                        home_name = team_data['name']
+                        away_name = st.session_state['away_team_data']['name']
+                        english_league = LEAGUES.get(selected_league, "")
+                    
+                        if not st.session_state.get('fixture_data'):
+                            fixture = find_fixture(home_name, away_name, english_league)
+                            if fixture and fixture.get('date'):
+                                time_str = fixture.get('time', '')
+                                if time_str and time_str not in ('00:00:00', '00:00', ''):
+                                    st.session_state['fixture_data'] = fixture
+                                    st.success(f"📅 נמצא משחק: {fixture['date']} {time_str[:5]}")
+                                elif fixture.get('date'):
+                                    st.session_state['fixture_data'] = {'date': fixture['date']}
+                                    st.success(f"📅 נמצא משחק: {fixture['date']}")
         
-        elif event_type == "הופעה":
-            from concerts_data import get_all_venues
-            from concerts_service import search_artists, get_events_by_attraction_id, get_popular_artists, format_concert_for_display, search_events_combined, search_concerts_by_location
+            elif event_type == "הופעה":
+                from concerts_data import get_all_venues
+                from concerts_service import search_artists, get_events_by_attraction_id, get_popular_artists, format_concert_for_display, search_events_combined, search_concerts_by_location
             
-            st.markdown("##### 🎤 בחירת אמן")
+                st.markdown("##### 🎤 בחירת אמן")
             
-            popular_artists = get_popular_artists()
-            saved_concerts = get_saved_concerts()
-            saved_artists = get_saved_artists()
+                popular_artists = get_popular_artists()
+                saved_concerts = get_saved_concerts()
+                saved_artists = get_saved_artists()
             
-            artist_options = ["-- בחר אמן --"]
-            if saved_concerts:
-                artist_options.append("⭐ הופעות שמורות")
-            artist_options.append("📸 סריקת הופעה מתמונה")
-            artist_options += [f"{a['name_he']} ({a['name_en']})" for a in popular_artists]
-            if saved_artists:
-                artist_options += [f"⭐ {a['name_he']} ({a['name_en']})" for a in saved_artists]
-            artist_options.append("🔍 חיפוש אמן אחר...")
-            
-            selected_artist_option = st.selectbox("🎤 אמן", artist_options, key="concert_artist_select")
-            
-            artist_id = None
-            artist_name_en = ''
-            artist_name_he = ''
-            
-            if selected_artist_option == "⭐ הופעות שמורות":
-                st.markdown("##### ⭐ הופעות שמורות")
-                
+                artist_options = ["-- בחר אמן --"]
                 if saved_concerts:
-                    saved_options = ["-- בחר הופעה שמורה --"]
-                    for sc in saved_concerts:
-                        date_str = sc.get('date', '')
+                    artist_options.append("⭐ הופעות שמורות")
+                artist_options.append("📸 סריקת הופעה מתמונה")
+                artist_options += [f"{a['name_he']} ({a['name_en']})" for a in popular_artists]
+                if saved_artists:
+                    artist_options += [f"⭐ {a['name_he']} ({a['name_en']})" for a in saved_artists]
+                artist_options.append("🔍 חיפוש אמן אחר...")
+            
+                selected_artist_option = st.selectbox("🎤 אמן", artist_options, key="concert_artist_select")
+            
+                artist_id = None
+                artist_name_en = ''
+                artist_name_he = ''
+            
+                if selected_artist_option == "⭐ הופעות שמורות":
+                    st.markdown("##### ⭐ הופעות שמורות")
+                
+                    if saved_concerts:
+                        saved_options = ["-- בחר הופעה שמורה --"]
+                        for sc in saved_concerts:
+                            date_str = sc.get('date', '')
+                            if date_str:
+                                try:
+                                    from datetime import datetime as dt
+                                    date_obj = dt.strptime(date_str, '%Y-%m-%d')
+                                    date_str = date_obj.strftime('%d/%m/%Y')
+                                except:
+                                    pass
+                            artist_name = sc.get('artist_he') or sc.get('artist', '')
+                            venue = sc.get('venue', '')
+                            city = sc.get('city', '')
+                            display = f"{artist_name} @ {venue}"
+                            if city:
+                                display += f", {city}"
+                            if date_str:
+                                display += f" ({date_str})"
+                            saved_options.append(display)
+                    
+                        selected_saved_idx = st.selectbox(
+                            "⭐ בחר הופעה שמורה",
+                            range(len(saved_options)),
+                            format_func=lambda i: saved_options[i],
+                            key="saved_concert_select"
+                        )
+                    
+                        if selected_saved_idx and selected_saved_idx > 0:
+                            selected_saved = saved_concerts[selected_saved_idx - 1]
+                            artist_name_en = selected_saved.get('artist', '')
+                            artist_name_he = selected_saved.get('artist_he') or artist_name_en
+                        
+                            st.session_state['concert_artist_en'] = artist_name_en
+                            st.session_state['concert_artist_he'] = artist_name_he
+                            st.session_state['concert_venue_name'] = selected_saved.get('venue', '')
+                            st.session_state['concert_venue_city'] = selected_saved.get('city', '')
+                            st.session_state['_selected_concert'] = selected_saved
+                            st.session_state['concert_venue_info'] = {
+                                'name_he': selected_saved.get('venue', ''),
+                                'city_he': selected_saved.get('city', ''),
+                                'country': selected_saved.get('country', '')
+                            }
+                            st.session_state['concert_selected_category'] = selected_saved.get('category', 'General Admission')
+                            st.session_state['_from_saved_concert'] = True
+                        
+                            # Load stadium map from database (base64) or file path
+                            if selected_saved.get('stadium_map_data'):
+                                import base64
+                                from io import BytesIO
+                                img_data = base64.b64decode(selected_saved.get('stadium_map_data'))
+                                st.session_state['saved_stadium_map_bytes'] = img_data
+                            elif selected_saved.get('stadium_map_path') and os.path.exists(selected_saved.get('stadium_map_path')):
+                                with open(selected_saved.get('stadium_map_path'), 'rb') as f:
+                                    st.session_state['saved_stadium_map_bytes'] = f.read()
+                        
+                            has_map = selected_saved.get('stadium_map_data') or (selected_saved.get('stadium_map_path') and os.path.exists(selected_saved.get('stadium_map_path', '')))
+                            st.success(f"✅ נטען: {artist_name_he} @ {selected_saved.get('venue', '')}" + (" (כולל תרשים מושבים)" if has_map else ""))
+                            st.caption(f"📍 {selected_saved.get('city', '')}, {selected_saved.get('country', '')} | 🎫 {selected_saved.get('category', 'General Admission')}")
+                        
+                            if selected_saved.get('date'):
+                                st.session_state['_extracted_date'] = selected_saved.get('date', '')
+                                st.session_state['_extracted_time'] = selected_saved.get('time', '')
+                        
+                            if selected_saved.get('url'):
+                                st.markdown(f"🔗 [קישור לאירוע]({selected_saved.get('url')})")
+                        
+                            categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
+                            default_cat_idx = categories.index(selected_saved.get('category', 'General Admission')) if selected_saved.get('category') in categories else 5
+                            selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, index=default_cat_idx, key="saved_concert_category")
+                            st.session_state['concert_selected_category'] = selected_cat
+                    else:
+                        st.info("אין הופעות שמורות. שמור הופעות מ'הזנה ידנית' כדי לראות אותן כאן.")
+            
+                elif selected_artist_option == "📸 סריקת הופעה מתמונה":
+                    from concert_ocr import extract_concert_data
+                
+                    st.markdown("##### 📸 סריקת הופעה מתמונה")
+                    st.info("💡 העלה צילום מסך של דף ההופעה והמערכת תחלץ את הפרטים אוטומטית")
+                
+                    col_upload, col_paste = st.columns([3, 1])
+                    with col_upload:
+                        concert_screenshot = st.file_uploader(
+                            "📷 העלה צילום מסך של דף האירוע",
+                            type=['png', 'jpg', 'jpeg'],
+                            key="concert_ocr_upload",
+                            help="צלם מסך מאתר המכירות והעלה כאן"
+                        )
+                    with col_paste:
+                        concert_paste = paste_image_button("📋 הדבק", key="concert_ocr_paste")
+                        if concert_paste.image_data:
+                            st.session_state['concert_pasted_image'] = concert_paste.image_data
+                            st.image(concert_paste.image_data, caption="תמונה שהודבקה", width=100)
+                
+                    concert_image_to_scan = concert_screenshot or st.session_state.get('concert_pasted_image')
+                
+                    scan_concert_btn = st.button("🔍 סרוק פרטי הופעה", type="primary", use_container_width=True, key="scan_concert_btn")
+                
+                    if st.session_state.get('concert_ocr_result'):
+                        ocr_result = st.session_state['concert_ocr_result']
+                        st.success("✅ הסריקה הושלמה! הפרטים מולאו בטופס למטה.")
+                    
+                        st.markdown("**פרטים שזוהו:**")
+                        if ocr_result.get('artist_name'):
+                            st.write(f"🎤 אמן: {ocr_result.get('artist_name')}")
+                        if ocr_result.get('event_name'):
+                            st.write(f"🎭 אירוע: {ocr_result.get('event_name')}")
+                        if ocr_result.get('event_date'):
+                            st.write(f"📅 תאריך: {ocr_result.get('event_date')} {ocr_result.get('event_time', '')}")
+                        if ocr_result.get('venue_name'):
+                            st.write(f"📍 מקום: {ocr_result.get('venue_name')}, {ocr_result.get('venue_city', '')}")
+                        if ocr_result.get('categories'):
+                            cats = ocr_result.get('categories', [])
+                            if cats:
+                                st.write("🎫 קטגוריות:")
+                                for cat in cats[:5]:
+                                    price_str = f" - €{cat.get('price')}" if cat.get('price') else ""
+                                    st.write(f"  • {cat.get('name', 'כללי')}{price_str}")
+                    
+                        st.session_state['concert_artist_en'] = ocr_result.get('artist_name', '')
+                        st.session_state['concert_artist_he'] = ocr_result.get('artist_name', '')
+                        st.session_state['concert_venue_name'] = ocr_result.get('venue_name', '')
+                        st.session_state['concert_venue_city'] = ocr_result.get('venue_city', '')
+                        st.session_state['concert_venue_info'] = {
+                            'name_he': ocr_result.get('venue_name', ''),
+                            'city_he': ocr_result.get('venue_city', ''),
+                            'country': ocr_result.get('venue_country', '')
+                        }
+                        st.session_state['_ocr_event_name'] = ocr_result.get('event_name', '')
+                        st.session_state['_ocr_event_date'] = ocr_result.get('event_date', '')
+                        st.session_state['_ocr_event_time'] = ocr_result.get('event_time', '')
+                        st.session_state['_ocr_categories'] = ocr_result.get('categories', [])
+                    
+                        if ocr_result.get('categories'):
+                            cat_names = [c.get('name', 'General') for c in ocr_result.get('categories', [])]
+                            selected_ocr_cat = st.selectbox("🎫 בחר קטגוריה", cat_names, key="ocr_category_select")
+                            st.session_state['concert_selected_category'] = selected_ocr_cat
+                    
+                        st.markdown("---")
+                        if st.button("⭐ שמור הופעה לשימוש חוזר", use_container_width=True, key="save_ocr_concert"):
+                            from models import SavedConcert as SavedConcertModel
+                            db = get_db()
+                            if db:
+                                try:
+                                    date_str = ocr_result.get('event_date', '')
+                                    try:
+                                        from datetime import datetime as dt
+                                        if '/' in date_str:
+                                            parsed = dt.strptime(date_str, '%d/%m/%Y')
+                                            date_str = parsed.strftime('%Y-%m-%d')
+                                    except:
+                                        pass
+                                
+                                    new_concert = SavedConcertModel(
+                                        artist_name=ocr_result.get('artist_name', ''),
+                                        artist_name_he=ocr_result.get('artist_name', ''),
+                                        event_name=ocr_result.get('event_name', ''),
+                                        venue_name=ocr_result.get('venue_name', ''),
+                                        city=ocr_result.get('venue_city', ''),
+                                        country=ocr_result.get('venue_country', ''),
+                                        event_date=date_str,
+                                        event_time=ocr_result.get('event_time', ''),
+                                        category=st.session_state.get('concert_selected_category', 'General Admission'),
+                                        source='ocr'
+                                    )
+                                    db.add(new_concert)
+                                    db.commit()
+                                    st.success("✅ ההופעה נשמרה! תוכל לבחור אותה מ'הופעות שמורות'.")
+                                except Exception as e:
+                                    db.rollback()
+                                    st.error(f"❌ שגיאה בשמירה: {str(e)}")
+                                finally:
+                                    db.close()
+                
+                    if scan_concert_btn:
+                        if concert_image_to_scan:
+                            with st.spinner("🔍 סורק את פרטי ההופעה..."):
+                                if concert_screenshot:
+                                    image_bytes = concert_screenshot.read()
+                                else:
+                                    pasted_img = st.session_state['concert_pasted_image']
+                                    img_byte_arr = io.BytesIO()
+                                    pasted_img.save(img_byte_arr, format='PNG')
+                                    image_bytes = img_byte_arr.getvalue()
+                            
+                                result = extract_concert_data(image_bytes)
+                            
+                                if result.get('success'):
+                                    st.session_state['concert_ocr_result'] = result
+                                    st.rerun()
+                                else:
+                                    st.error(f"❌ לא הצלחנו לזהות פרטי הופעה: {result.get('error', 'נסה תמונה ברורה יותר')}")
+                        else:
+                            st.warning("⚠️ יש להעלות צילום מסך לפני הסריקה")
+            
+                elif selected_artist_option == "🔍 חיפוש אמן אחר...":
+                    artist_search = st.text_input(
+                        "🔍 חיפוש באנגלית", 
+                        value=st.session_state.get('_artist_search_query', ''),
+                        placeholder="Type artist name in English...",
+                        key="artist_search_input"
+                    )
+                    st.session_state['_artist_search_query'] = artist_search
+                
+                    if artist_search and len(artist_search.strip()) >= 2:
+                        search_key = f"search_{artist_search.strip().lower()}"
+                    
+                        if st.session_state.get('_last_artist_search') != search_key:
+                            st.session_state['_last_artist_search'] = search_key
+                            st.session_state['_artist_results'] = []
+                        
+                            with st.spinner("🔍 מחפש אמנים ב-Ticketmaster..."):
+                                result = search_artists(artist_search.strip())
+                                if result.get('error'):
+                                    st.warning(f"⚠️ שגיאה בחיפוש: {result['error']}")
+                                elif result.get('artists'):
+                                    st.session_state['_artist_results'] = result['artists']
+                                else:
+                                    st.info("לא נמצאו אמנים. נסה חיפוש אחר.")
+                    
+                        artist_results = st.session_state.get('_artist_results', [])
+                    
+                        if artist_results:
+                            search_options = ["-- בחר מתוצאות החיפוש --"]
+                            for a in artist_results:
+                                events_txt = f" ({a.get('upcoming_events', 0)} הופעות)" if a.get('upcoming_events', 0) > 0 else ""
+                                genre_txt = f" • {a.get('genre', '')}" if a.get('genre') else ""
+                                search_options.append(f"{a['name']}{genre_txt}{events_txt}")
+                        
+                            selected_search_idx = st.selectbox(
+                                "🎤 בחר אמן מתוצאות החיפוש",
+                                range(len(search_options)),
+                                format_func=lambda i: search_options[i],
+                                key="concert_search_result_select"
+                            )
+                        
+                            if selected_search_idx and selected_search_idx > 0:
+                                selected = artist_results[selected_search_idx - 1]
+                                artist_id = selected.get('id', '')
+                                artist_name_en = selected.get('name', '')
+                                artist_name_he = artist_name_en
+                                selected_genre = selected.get('genre', '')
+                                selected_image = selected.get('image_url', '')
+                            
+                                st.session_state['_search_selected_artist_id'] = artist_id
+                                st.session_state['_search_selected_artist_name'] = artist_name_en
+                                st.session_state['_search_selected_artist_genre'] = selected_genre
+                                st.session_state['_search_selected_artist_image'] = selected_image
+                            
+                                if st.button("⭐ הוסף לאמנים שלי", key="save_artist_btn", use_container_width=True):
+                                    success = save_artist_to_favorites(
+                                        name_en=artist_name_en,
+                                        name_he=artist_name_en,
+                                        ticketmaster_id=artist_id,
+                                        genre=selected_genre,
+                                        image_url=selected_image
+                                    )
+                                    if success:
+                                        st.success(f"✅ האמן {artist_name_en} נוסף לרשימה שלך!")
+                                        st.rerun()
+                                    else:
+                                        st.error("❌ שגיאה בהוספת האמן")
+                            elif st.session_state.get('_search_selected_artist_id'):
+                                artist_id = st.session_state.get('_search_selected_artist_id', '')
+                                artist_name_en = st.session_state.get('_search_selected_artist_name', '')
+                                artist_name_he = artist_name_en
+            
+                elif selected_artist_option and selected_artist_option not in ["-- בחר אמן --", "🔍 חיפוש אמן אחר..."]:
+                    is_saved_artist = selected_artist_option.startswith("⭐ ")
+                    clean_option = selected_artist_option[2:] if is_saved_artist else selected_artist_option
+                
+                    artist_name_he = clean_option.split(" (")[0]
+                    artist_name_en = clean_option.split("(")[-1].replace(")", "").strip()
+                
+                    if is_saved_artist:
+                        artist_info = next((a for a in saved_artists if a['name_en'] == artist_name_en), None)
+                    else:
+                        artist_info = next((a for a in popular_artists if a['name_en'] == artist_name_en), None)
+                
+                    if artist_info:
+                        artist_id = artist_info['id']
+                        st.session_state['_artist_results'] = []
+                        st.session_state['_artist_search_query'] = ''
+                        st.session_state['_search_selected_artist_id'] = ''
+                        st.session_state['_search_selected_artist_name'] = ''
+            
+                # For search mode, always use session state values if available
+                if selected_artist_option == "🔍 חיפוש אמן אחר..." and st.session_state.get('_search_selected_artist_id'):
+                    artist_id = st.session_state.get('_search_selected_artist_id', '')
+                    artist_name_en = st.session_state.get('_search_selected_artist_name', '')
+                    artist_name_he = artist_name_en
+            
+                if artist_id or (artist_name_en and selected_artist_option == "🔍 חיפוש אמן אחר..."):
+                    if artist_name_en:
+                        st.session_state['concert_artist_en'] = artist_name_en
+                        st.session_state['concert_artist_he'] = artist_name_he or artist_name_en
+                        st.session_state['_selected_artist_id'] = artist_id or ''
+                
+                    events_key = f"events_combined_{artist_id or artist_name_en}"
+                
+                    if st.session_state.get('_last_events_fetch') != events_key:
+                        st.session_state['_last_events_fetch'] = events_key
+                    
+                        with st.spinner(f"🎫 מחפש הופעות של {artist_name_he or artist_name_en} (Ticketmaster + מקורות נוספים)..."):
+                            events_result = search_events_combined(artist_name_en, artist_id or '', size=50)
+                        
+                            if events_result.get('error'):
+                                st.warning(f"⚠️ שגיאה: {events_result['error']}")
+                                st.session_state['_live_concerts'] = []
+                            elif events_result.get('concerts'):
+                                st.session_state['_live_concerts'] = events_result['concerts']
+                                sources_text = ""
+                                if events_result.get('sources'):
+                                    sources_text = " (ממספר מקורות)"
+                                st.success(f"🎫 נמצאו {events_result['total']} הופעות קרובות של {artist_name_he or artist_name_en} באירופה{sources_text}")
+                            else:
+                                st.session_state['_live_concerts'] = []
+                                st.info(f"🎤 {artist_name_he or artist_name_en} - לא נמצאו הופעות קרובות באירופה")
+                else:
+                    if selected_artist_option == "-- בחר אמן --":
+                        st.session_state['_live_concerts'] = []
+                        st.session_state['_selected_artist_id'] = ''
+                        st.session_state['concert_artist_en'] = ''
+                        st.session_state['concert_artist_he'] = ''
+                        st.session_state['_last_events_fetch'] = ''
+            
+                live_concerts = st.session_state.get('_live_concerts', [])
+            
+                if live_concerts:
+                    concert_options = ["-- בחר הופעה --"]
+                    for i, c in enumerate(live_concerts):
+                        date_str = c.get('date', '')
                         if date_str:
                             try:
                                 from datetime import datetime as dt
@@ -2073,678 +2933,61 @@ def page_new_order():
                                 date_str = date_obj.strftime('%d/%m/%Y')
                             except:
                                 pass
-                        artist_name = sc.get('artist_he') or sc.get('artist', '')
-                        venue = sc.get('venue', '')
-                        city = sc.get('city', '')
-                        display = f"{artist_name} @ {venue}"
-                        if city:
-                            display += f", {city}"
-                        if date_str:
-                            display += f" ({date_str})"
-                        saved_options.append(display)
-                    
-                    selected_saved_idx = st.selectbox(
-                        "⭐ בחר הופעה שמורה",
-                        range(len(saved_options)),
-                        format_func=lambda i: saved_options[i],
-                        key="saved_concert_select"
-                    )
-                    
-                    if selected_saved_idx and selected_saved_idx > 0:
-                        selected_saved = saved_concerts[selected_saved_idx - 1]
-                        artist_name_en = selected_saved.get('artist', '')
-                        artist_name_he = selected_saved.get('artist_he') or artist_name_en
-                        
-                        st.session_state['concert_artist_en'] = artist_name_en
-                        st.session_state['concert_artist_he'] = artist_name_he
-                        st.session_state['concert_venue_name'] = selected_saved.get('venue', '')
-                        st.session_state['concert_venue_city'] = selected_saved.get('city', '')
-                        st.session_state['_selected_concert'] = selected_saved
-                        st.session_state['concert_venue_info'] = {
-                            'name_he': selected_saved.get('venue', ''),
-                            'city_he': selected_saved.get('city', ''),
-                            'country': selected_saved.get('country', '')
-                        }
-                        st.session_state['concert_selected_category'] = selected_saved.get('category', 'General Admission')
-                        st.session_state['_from_saved_concert'] = True
-                        
-                        # Load stadium map from database (base64) or file path
-                        if selected_saved.get('stadium_map_data'):
-                            import base64
-                            from io import BytesIO
-                            img_data = base64.b64decode(selected_saved.get('stadium_map_data'))
-                            st.session_state['saved_stadium_map_bytes'] = img_data
-                        elif selected_saved.get('stadium_map_path') and os.path.exists(selected_saved.get('stadium_map_path')):
-                            with open(selected_saved.get('stadium_map_path'), 'rb') as f:
-                                st.session_state['saved_stadium_map_bytes'] = f.read()
-                        
-                        has_map = selected_saved.get('stadium_map_data') or (selected_saved.get('stadium_map_path') and os.path.exists(selected_saved.get('stadium_map_path', '')))
-                        st.success(f"✅ נטען: {artist_name_he} @ {selected_saved.get('venue', '')}" + (" (כולל תרשים מושבים)" if has_map else ""))
-                        st.caption(f"📍 {selected_saved.get('city', '')}, {selected_saved.get('country', '')} | 🎫 {selected_saved.get('category', 'General Admission')}")
-                        
-                        if selected_saved.get('date'):
-                            st.session_state['_extracted_date'] = selected_saved.get('date', '')
-                            st.session_state['_extracted_time'] = selected_saved.get('time', '')
-                        
-                        if selected_saved.get('url'):
-                            st.markdown(f"🔗 [קישור לאירוע]({selected_saved.get('url')})")
-                        
-                        categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
-                        default_cat_idx = categories.index(selected_saved.get('category', 'General Admission')) if selected_saved.get('category') in categories else 5
-                        selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, index=default_cat_idx, key="saved_concert_category")
-                        st.session_state['concert_selected_category'] = selected_cat
-                else:
-                    st.info("אין הופעות שמורות. שמור הופעות מ'הזנה ידנית' כדי לראות אותן כאן.")
-            
-            elif selected_artist_option == "📸 סריקת הופעה מתמונה":
-                from concert_ocr import extract_concert_data
+                        time_str = c.get('time', '')
+                        venue = c.get('venue', '')
+                        city = c.get('city', '')
+                        country = c.get('country', '')
+                        display = f"{date_str} {time_str} - {venue}, {city} ({country})"
+                        concert_options.append(display)
                 
-                st.markdown("##### 📸 סריקת הופעה מתמונה")
-                st.info("💡 העלה צילום מסך של דף ההופעה והמערכת תחלץ את הפרטים אוטומטית")
+                    concert_options.append("✏️ הזנה ידנית...")
+                    manual_entry_idx = len(concert_options) - 1
                 
-                col_upload, col_paste = st.columns([3, 1])
-                with col_upload:
-                    concert_screenshot = st.file_uploader(
-                        "📷 העלה צילום מסך של דף האירוע",
-                        type=['png', 'jpg', 'jpeg'],
-                        key="concert_ocr_upload",
-                        help="צלם מסך מאתר המכירות והעלה כאן"
-                    )
-                with col_paste:
-                    concert_paste = paste_image_button("📋 הדבק", key="concert_ocr_paste")
-                    if concert_paste.image_data:
-                        st.session_state['concert_pasted_image'] = concert_paste.image_data
-                        st.image(concert_paste.image_data, caption="תמונה שהודבקה", width=100)
-                
-                concert_image_to_scan = concert_screenshot or st.session_state.get('concert_pasted_image')
-                
-                scan_concert_btn = st.button("🔍 סרוק פרטי הופעה", type="primary", use_container_width=True, key="scan_concert_btn")
-                
-                if st.session_state.get('concert_ocr_result'):
-                    ocr_result = st.session_state['concert_ocr_result']
-                    st.success("✅ הסריקה הושלמה! הפרטים מולאו בטופס למטה.")
-                    
-                    st.markdown("**פרטים שזוהו:**")
-                    if ocr_result.get('artist_name'):
-                        st.write(f"🎤 אמן: {ocr_result.get('artist_name')}")
-                    if ocr_result.get('event_name'):
-                        st.write(f"🎭 אירוע: {ocr_result.get('event_name')}")
-                    if ocr_result.get('event_date'):
-                        st.write(f"📅 תאריך: {ocr_result.get('event_date')} {ocr_result.get('event_time', '')}")
-                    if ocr_result.get('venue_name'):
-                        st.write(f"📍 מקום: {ocr_result.get('venue_name')}, {ocr_result.get('venue_city', '')}")
-                    if ocr_result.get('categories'):
-                        cats = ocr_result.get('categories', [])
-                        if cats:
-                            st.write("🎫 קטגוריות:")
-                            for cat in cats[:5]:
-                                price_str = f" - €{cat.get('price')}" if cat.get('price') else ""
-                                st.write(f"  • {cat.get('name', 'כללי')}{price_str}")
-                    
-                    st.session_state['concert_artist_en'] = ocr_result.get('artist_name', '')
-                    st.session_state['concert_artist_he'] = ocr_result.get('artist_name', '')
-                    st.session_state['concert_venue_name'] = ocr_result.get('venue_name', '')
-                    st.session_state['concert_venue_city'] = ocr_result.get('venue_city', '')
-                    st.session_state['concert_venue_info'] = {
-                        'name_he': ocr_result.get('venue_name', ''),
-                        'city_he': ocr_result.get('venue_city', ''),
-                        'country': ocr_result.get('venue_country', '')
-                    }
-                    st.session_state['_ocr_event_name'] = ocr_result.get('event_name', '')
-                    st.session_state['_ocr_event_date'] = ocr_result.get('event_date', '')
-                    st.session_state['_ocr_event_time'] = ocr_result.get('event_time', '')
-                    st.session_state['_ocr_categories'] = ocr_result.get('categories', [])
-                    
-                    if ocr_result.get('categories'):
-                        cat_names = [c.get('name', 'General') for c in ocr_result.get('categories', [])]
-                        selected_ocr_cat = st.selectbox("🎫 בחר קטגוריה", cat_names, key="ocr_category_select")
-                        st.session_state['concert_selected_category'] = selected_ocr_cat
-                    
-                    st.markdown("---")
-                    if st.button("⭐ שמור הופעה לשימוש חוזר", use_container_width=True, key="save_ocr_concert"):
-                        from models import SavedConcert as SavedConcertModel
-                        db = get_db()
-                        if db:
-                            try:
-                                date_str = ocr_result.get('event_date', '')
-                                try:
-                                    from datetime import datetime as dt
-                                    if '/' in date_str:
-                                        parsed = dt.strptime(date_str, '%d/%m/%Y')
-                                        date_str = parsed.strftime('%Y-%m-%d')
-                                except:
-                                    pass
-                                
-                                new_concert = SavedConcertModel(
-                                    artist_name=ocr_result.get('artist_name', ''),
-                                    artist_name_he=ocr_result.get('artist_name', ''),
-                                    event_name=ocr_result.get('event_name', ''),
-                                    venue_name=ocr_result.get('venue_name', ''),
-                                    city=ocr_result.get('venue_city', ''),
-                                    country=ocr_result.get('venue_country', ''),
-                                    event_date=date_str,
-                                    event_time=ocr_result.get('event_time', ''),
-                                    category=st.session_state.get('concert_selected_category', 'General Admission'),
-                                    source='ocr'
-                                )
-                                db.add(new_concert)
-                                db.commit()
-                                st.success("✅ ההופעה נשמרה! תוכל לבחור אותה מ'הופעות שמורות'.")
-                            except Exception as e:
-                                db.rollback()
-                                st.error(f"❌ שגיאה בשמירה: {str(e)}")
-                            finally:
-                                db.close()
-                
-                if scan_concert_btn:
-                    if concert_image_to_scan:
-                        with st.spinner("🔍 סורק את פרטי ההופעה..."):
-                            if concert_screenshot:
-                                image_bytes = concert_screenshot.read()
-                            else:
-                                pasted_img = st.session_state['concert_pasted_image']
-                                img_byte_arr = io.BytesIO()
-                                pasted_img.save(img_byte_arr, format='PNG')
-                                image_bytes = img_byte_arr.getvalue()
-                            
-                            result = extract_concert_data(image_bytes)
-                            
-                            if result.get('success'):
-                                st.session_state['concert_ocr_result'] = result
-                                st.rerun()
-                            else:
-                                st.error(f"❌ לא הצלחנו לזהות פרטי הופעה: {result.get('error', 'נסה תמונה ברורה יותר')}")
-                    else:
-                        st.warning("⚠️ יש להעלות צילום מסך לפני הסריקה")
-            
-            elif selected_artist_option == "🔍 חיפוש אמן אחר...":
-                artist_search = st.text_input(
-                    "🔍 חיפוש באנגלית", 
-                    value=st.session_state.get('_artist_search_query', ''),
-                    placeholder="Type artist name in English...",
-                    key="artist_search_input"
-                )
-                st.session_state['_artist_search_query'] = artist_search
-                
-                if artist_search and len(artist_search.strip()) >= 2:
-                    search_key = f"search_{artist_search.strip().lower()}"
-                    
-                    if st.session_state.get('_last_artist_search') != search_key:
-                        st.session_state['_last_artist_search'] = search_key
-                        st.session_state['_artist_results'] = []
-                        
-                        with st.spinner("🔍 מחפש אמנים ב-Ticketmaster..."):
-                            result = search_artists(artist_search.strip())
-                            if result.get('error'):
-                                st.warning(f"⚠️ שגיאה בחיפוש: {result['error']}")
-                            elif result.get('artists'):
-                                st.session_state['_artist_results'] = result['artists']
-                            else:
-                                st.info("לא נמצאו אמנים. נסה חיפוש אחר.")
-                    
-                    artist_results = st.session_state.get('_artist_results', [])
-                    
-                    if artist_results:
-                        search_options = ["-- בחר מתוצאות החיפוש --"]
-                        for a in artist_results:
-                            events_txt = f" ({a.get('upcoming_events', 0)} הופעות)" if a.get('upcoming_events', 0) > 0 else ""
-                            genre_txt = f" • {a.get('genre', '')}" if a.get('genre') else ""
-                            search_options.append(f"{a['name']}{genre_txt}{events_txt}")
-                        
-                        selected_search_idx = st.selectbox(
-                            "🎤 בחר אמן מתוצאות החיפוש",
-                            range(len(search_options)),
-                            format_func=lambda i: search_options[i],
-                            key="concert_search_result_select"
-                        )
-                        
-                        if selected_search_idx and selected_search_idx > 0:
-                            selected = artist_results[selected_search_idx - 1]
-                            artist_id = selected.get('id', '')
-                            artist_name_en = selected.get('name', '')
-                            artist_name_he = artist_name_en
-                            selected_genre = selected.get('genre', '')
-                            selected_image = selected.get('image_url', '')
-                            
-                            st.session_state['_search_selected_artist_id'] = artist_id
-                            st.session_state['_search_selected_artist_name'] = artist_name_en
-                            st.session_state['_search_selected_artist_genre'] = selected_genre
-                            st.session_state['_search_selected_artist_image'] = selected_image
-                            
-                            if st.button("⭐ הוסף לאמנים שלי", key="save_artist_btn", use_container_width=True):
-                                success = save_artist_to_favorites(
-                                    name_en=artist_name_en,
-                                    name_he=artist_name_en,
-                                    ticketmaster_id=artist_id,
-                                    genre=selected_genre,
-                                    image_url=selected_image
-                                )
-                                if success:
-                                    st.success(f"✅ האמן {artist_name_en} נוסף לרשימה שלך!")
-                                    st.rerun()
-                                else:
-                                    st.error("❌ שגיאה בהוספת האמן")
-                        elif st.session_state.get('_search_selected_artist_id'):
-                            artist_id = st.session_state.get('_search_selected_artist_id', '')
-                            artist_name_en = st.session_state.get('_search_selected_artist_name', '')
-                            artist_name_he = artist_name_en
-            
-            elif selected_artist_option and selected_artist_option not in ["-- בחר אמן --", "🔍 חיפוש אמן אחר..."]:
-                is_saved_artist = selected_artist_option.startswith("⭐ ")
-                clean_option = selected_artist_option[2:] if is_saved_artist else selected_artist_option
-                
-                artist_name_he = clean_option.split(" (")[0]
-                artist_name_en = clean_option.split("(")[-1].replace(")", "").strip()
-                
-                if is_saved_artist:
-                    artist_info = next((a for a in saved_artists if a['name_en'] == artist_name_en), None)
-                else:
-                    artist_info = next((a for a in popular_artists if a['name_en'] == artist_name_en), None)
-                
-                if artist_info:
-                    artist_id = artist_info['id']
-                    st.session_state['_artist_results'] = []
-                    st.session_state['_artist_search_query'] = ''
-                    st.session_state['_search_selected_artist_id'] = ''
-                    st.session_state['_search_selected_artist_name'] = ''
-            
-            # For search mode, always use session state values if available
-            if selected_artist_option == "🔍 חיפוש אמן אחר..." and st.session_state.get('_search_selected_artist_id'):
-                artist_id = st.session_state.get('_search_selected_artist_id', '')
-                artist_name_en = st.session_state.get('_search_selected_artist_name', '')
-                artist_name_he = artist_name_en
-            
-            if artist_id or (artist_name_en and selected_artist_option == "🔍 חיפוש אמן אחר..."):
-                if artist_name_en:
-                    st.session_state['concert_artist_en'] = artist_name_en
-                    st.session_state['concert_artist_he'] = artist_name_he or artist_name_en
-                    st.session_state['_selected_artist_id'] = artist_id or ''
-                
-                events_key = f"events_combined_{artist_id or artist_name_en}"
-                
-                if st.session_state.get('_last_events_fetch') != events_key:
-                    st.session_state['_last_events_fetch'] = events_key
-                    
-                    with st.spinner(f"🎫 מחפש הופעות של {artist_name_he or artist_name_en} (Ticketmaster + מקורות נוספים)..."):
-                        events_result = search_events_combined(artist_name_en, artist_id or '', size=50)
-                        
-                        if events_result.get('error'):
-                            st.warning(f"⚠️ שגיאה: {events_result['error']}")
-                            st.session_state['_live_concerts'] = []
-                        elif events_result.get('concerts'):
-                            st.session_state['_live_concerts'] = events_result['concerts']
-                            sources_text = ""
-                            if events_result.get('sources'):
-                                sources_text = " (ממספר מקורות)"
-                            st.success(f"🎫 נמצאו {events_result['total']} הופעות קרובות של {artist_name_he or artist_name_en} באירופה{sources_text}")
-                        else:
-                            st.session_state['_live_concerts'] = []
-                            st.info(f"🎤 {artist_name_he or artist_name_en} - לא נמצאו הופעות קרובות באירופה")
-            else:
-                if selected_artist_option == "-- בחר אמן --":
-                    st.session_state['_live_concerts'] = []
-                    st.session_state['_selected_artist_id'] = ''
-                    st.session_state['concert_artist_en'] = ''
-                    st.session_state['concert_artist_he'] = ''
-                    st.session_state['_last_events_fetch'] = ''
-            
-            live_concerts = st.session_state.get('_live_concerts', [])
-            
-            if live_concerts:
-                concert_options = ["-- בחר הופעה --"]
-                for i, c in enumerate(live_concerts):
-                    date_str = c.get('date', '')
-                    if date_str:
-                        try:
-                            from datetime import datetime as dt
-                            date_obj = dt.strptime(date_str, '%Y-%m-%d')
-                            date_str = date_obj.strftime('%d/%m/%Y')
-                        except:
-                            pass
-                    time_str = c.get('time', '')
-                    venue = c.get('venue', '')
-                    city = c.get('city', '')
-                    country = c.get('country', '')
-                    display = f"{date_str} {time_str} - {venue}, {city} ({country})"
-                    concert_options.append(display)
-                
-                concert_options.append("✏️ הזנה ידנית...")
-                manual_entry_idx = len(concert_options) - 1
-                
-                prev_venue = st.session_state.get('_prev_concert_venue', '')
-                selected_concert_idx = st.selectbox(
-                    "🏟️ מקום ההופעה", 
-                    range(len(concert_options)),
-                    format_func=lambda i: concert_options[i],
-                    key="concert_venue_dropdown"
-                )
-                
-                if selected_concert_idx == manual_entry_idx:
-                    st.session_state['_manual_concert_entry'] = True
-                    
-                    # Check if coming from saved concert - preserve data
-                    from_saved = st.session_state.get('_from_saved_concert', False)
-                    saved_concert_data = st.session_state.get('_selected_concert', {}) if from_saved else {}
-                    
-                    if not from_saved:
-                        st.session_state['_selected_concert'] = {}
-                        st.session_state['concert_venue_name'] = ''
-                        st.session_state['concert_venue_city'] = ''
-                        st.session_state['_concert_venue_id'] = ''
-                        st.session_state['concert_venue_info'] = {}
-                    else:
-                        # Pre-populate extracted_concert with saved concert data for form fields
-                        if saved_concert_data and '_extracted_concert' not in st.session_state:
-                            st.session_state['_extracted_concert'] = {
-                                'venue': saved_concert_data.get('venue', ''),
-                                'city': saved_concert_data.get('city', ''),
-                                'country': saved_concert_data.get('country', ''),
-                                'date': saved_concert_data.get('date', ''),
-                                'time': saved_concert_data.get('time', ''),
-                                'url': saved_concert_data.get('url', ''),
-                                'source': 'saved'
-                            }
-                    
-                    st.markdown("---")
-                    st.markdown("##### ✏️ הזנה ידנית של פרטי ההופעה")
-                    
-                    st.markdown("**🔗 יש לך לינק לאירוע?** הדבק אותו ונחלץ את הפרטים אוטומטית:")
-                    
-                    url_col1, url_col2 = st.columns([4, 1])
-                    with url_col1:
-                        event_url = st.text_input("🔗 לינק לאירוע", key="manual_event_url", placeholder="https://www.ticketmaster.com/...", label_visibility="collapsed")
-                    with url_col2:
-                        extract_btn = st.button("🔍 חלץ", key="extract_url_btn", use_container_width=True)
-                    
-                    if extract_btn and event_url:
-                        from concerts_service import extract_concert_from_url
-                        with st.spinner("מחלץ פרטי אירוע..."):
-                            result = extract_concert_from_url(event_url)
-                            if result.get('error'):
-                                st.error(f"❌ {result['error']}")
-                            elif result.get('concert'):
-                                extracted = result['concert']
-                                st.session_state['_extracted_concert'] = extracted
-                                st.session_state['_from_saved_concert'] = False  # Reset flag since we got new data
-                                st.success(f"✅ נמצא! מקור: {extracted.get('source', 'Unknown')}")
-                                st.rerun()
-                    
-                    extracted = st.session_state.get('_extracted_concert', {})
-                    
-                    manual_venue = st.text_input("🏟️ שם מקום ההופעה *", 
-                        value=extracted.get('venue', ''),
-                        key="manual_venue_name", 
-                        placeholder="לדוגמה: O2 Arena")
-                    
-                    mcol1, mcol2 = st.columns(2)
-                    with mcol1:
-                        manual_city = st.text_input("🌆 עיר", 
-                            value=extracted.get('city', ''),
-                            key="manual_venue_city", 
-                            placeholder="לדוגמה: לונדון")
-                    with mcol2:
-                        manual_country = st.text_input("🌍 מדינה", 
-                            value=extracted.get('country', ''),
-                            key="manual_venue_country", 
-                            placeholder="לדוגמה: אנגליה")
-                    
-                    if extracted.get('date') or extracted.get('time'):
-                        st.caption(f"📅 תאריך שחולץ: {extracted.get('date', '')} {extracted.get('time', '')}")
-                        st.session_state['_extracted_date'] = extracted.get('date', '')
-                        st.session_state['_extracted_time'] = extracted.get('time', '')
-                    
-                    if manual_venue:
-                        st.session_state['concert_venue_name'] = manual_venue
-                        st.session_state['concert_venue_city'] = manual_city or ''
-                        st.session_state['_concert_venue_id'] = ''
-                        st.session_state['concert_venue_info'] = {
-                            'name_he': manual_venue,
-                            'city_he': manual_city or '',
-                            'country': manual_country or ''
-                        }
-                        
-                        categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
-                        selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown")
-                        st.session_state['concert_selected_category'] = selected_cat
-                        
-                        st.markdown("---")
-                        if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_1", use_container_width=True):
-                            artist_en = st.session_state.get('concert_artist_en', '')
-                            artist_he = st.session_state.get('concert_artist_he', artist_en)
-                            if artist_en and manual_venue:
-                                map_data = None
-                                map_mime = None
-                                if 'pasted_stadium_map' in st.session_state and st.session_state['pasted_stadium_map']:
-                                    try:
-                                        from io import BytesIO
-                                        img_buffer = BytesIO()
-                                        st.session_state['pasted_stadium_map'].save(img_buffer, format='PNG')
-                                        map_data = img_buffer.getvalue()
-                                        map_mime = 'image/png'
-                                    except Exception as e:
-                                        st.warning(f"⚠️ לא הצלחתי לשמור את התרשים: {e}")
-                                
-                                success = save_concert_to_favorites(
-                                    artist_name=artist_en,
-                                    artist_name_he=artist_he,
-                                    venue_name=manual_venue,
-                                    city=manual_city,
-                                    country=manual_country,
-                                    event_date=extracted.get('date'),
-                                    event_time=extracted.get('time'),
-                                    event_url=event_url if event_url else extracted.get('url'),
-                                    category=selected_cat,
-                                    source=extracted.get('source', 'manual'),
-                                    stadium_map_data=map_data,
-                                    stadium_map_mime=map_mime
-                                )
-                                if success:
-                                    st.success("✅ ההופעה נשמרה לקבועות!" + (" (כולל תרשים מושבים)" if map_data else ""))
-                                else:
-                                    st.error("❌ שגיאה בשמירת ההופעה")
-                            else:
-                                st.warning("⚠️ נא לבחור אמן ולהזין שם מקום ההופעה")
-                    else:
-                        st.warning("⚠️ נא להזין שם מקום ההופעה")
-                    
-                elif selected_concert_idx and selected_concert_idx > 0:
-                    st.session_state['_manual_concert_entry'] = False
-                    selected_concert = live_concerts[selected_concert_idx - 1]
-                    st.session_state['concert_venue_name'] = selected_concert.get('venue', '')
-                    st.session_state['concert_venue_city'] = selected_concert.get('city', '')
-                    st.session_state['_concert_venue_id'] = selected_concert.get('id', '')
-                    st.session_state['_selected_concert'] = selected_concert
-                    
-                    st.caption(f"📍 {selected_concert.get('venue', '')}, {selected_concert.get('city', '')} ({selected_concert.get('country', '')})")
-                    
-                    if selected_concert.get('address'):
-                        st.caption(f"📮 כתובת: {selected_concert.get('address', '')}")
-                    
-                    if selected_concert.get('capacity'):
-                        st.caption(f"👥 קיבולת: {selected_concert.get('capacity', ''):,} אנשים")
-                    
-                    if selected_concert.get('price_min') or selected_concert.get('price_max'):
-                        price_info = f"💰 מחירים: {selected_concert.get('price_min', 'N/A')} - {selected_concert.get('price_max', 'N/A')} {selected_concert.get('currency', 'EUR')}"
-                        st.caption(price_info)
-                    
-                    if selected_concert.get('url'):
-                        st.markdown(f"🎫 [מעבר לעמוד ההזמנה של Ticketmaster]({selected_concert.get('url')})")
-                    
-                    categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
-                    selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown")
-                    st.session_state['concert_selected_category'] = selected_cat
-                    
-                    # Save to favorites button for API concerts
-                    if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_api", use_container_width=True):
-                        artist_en = st.session_state.get('concert_artist_en', '')
-                        artist_he = st.session_state.get('concert_artist_he', artist_en)
-                        if artist_en and selected_concert.get('venue'):
-                            success = save_concert_to_favorites(
-                                artist_name=artist_en,
-                                artist_name_he=artist_he,
-                                venue_name=selected_concert.get('venue', ''),
-                                city=selected_concert.get('city', ''),
-                                country=selected_concert.get('country', ''),
-                                event_date=selected_concert.get('date'),
-                                event_time=selected_concert.get('time'),
-                                event_url=selected_concert.get('url'),
-                                category=selected_cat,
-                                source='ticketmaster'
-                            )
-                            if success:
-                                st.success("✅ ההופעה נשמרה לקבועות!")
-                            else:
-                                st.error("❌ שגיאה בשמירת ההופעה")
-                        else:
-                            st.warning("⚠️ נא לבחור אמן ומקום הופעה")
-                elif prev_venue != selected_concert_idx:
-                    st.session_state['concert_venue_info'] = {}
-                    st.session_state['concert_venue_name'] = ''
-                    st.session_state['concert_venue_city'] = ''
-                    st.session_state['concert_selected_category'] = ''
-                    st.session_state['_concert_venue_id'] = ''
-                    st.session_state['_selected_concert'] = {}
-                    st.session_state['_manual_concert_entry'] = False
-                st.session_state['_prev_concert_venue'] = selected_concert_idx
-            else:
-                # Check if we have a selected artist from search with no European concerts
-                has_selected_search_artist = (
-                    selected_artist_option == "🔍 חיפוש אמן אחר..." and 
-                    st.session_state.get('_search_selected_artist_id')
-                )
-                
-                if has_selected_search_artist:
-                    # Artist from search has no European concerts - go directly to manual entry
-                    st.session_state['_manual_concert_entry'] = True
-                    
-                    st.markdown("---")
-                    st.markdown("##### ✏️ הזנה ידנית של פרטי ההופעה")
-                    st.info("💡 לא נמצאו הופעות אירופאיות. ניתן להזין פרטים ידנית או להדביק לינק לאירוע.")
-                    
-                    st.markdown("**🔗 יש לך לינק לאירוע?** הדבק אותו ונחלץ את הפרטים אוטומטית:")
-                    
-                    url_col1, url_col2 = st.columns([4, 1])
-                    with url_col1:
-                        event_url = st.text_input("🔗 לינק לאירוע", key="manual_event_url_search", placeholder="https://www.ticketmaster.com/...", label_visibility="collapsed")
-                    with url_col2:
-                        extract_btn = st.button("🔍 חלץ", key="extract_url_btn_search", use_container_width=True)
-                    
-                    if extract_btn and event_url:
-                        from concerts_service import extract_concert_from_url
-                        with st.spinner("מחלץ פרטי אירוע..."):
-                            result = extract_concert_from_url(event_url)
-                            if result.get('error'):
-                                st.error(f"❌ {result['error']}")
-                            elif result.get('concert'):
-                                extracted = result['concert']
-                                st.session_state['_extracted_concert'] = extracted
-                                st.success(f"✅ נמצא! מקור: {extracted.get('source', 'Unknown')}")
-                                st.rerun()
-                    
-                    extracted = st.session_state.get('_extracted_concert', {})
-                    
-                    manual_venue = st.text_input("🏟️ שם מקום ההופעה *", 
-                        value=extracted.get('venue', ''),
-                        key="manual_venue_name_search", 
-                        placeholder="לדוגמה: O2 Arena")
-                    
-                    mcol1, mcol2 = st.columns(2)
-                    with mcol1:
-                        manual_city = st.text_input("🌆 עיר", 
-                            value=extracted.get('city', ''),
-                            key="manual_venue_city_search", 
-                            placeholder="לדוגמה: לונדון")
-                    with mcol2:
-                        manual_country = st.text_input("🌍 מדינה", 
-                            value=extracted.get('country', ''),
-                            key="manual_venue_country_search", 
-                            placeholder="לדוגמה: אנגליה")
-                    
-                    if extracted.get('date') or extracted.get('time'):
-                        st.caption(f"📅 תאריך שחולץ: {extracted.get('date', '')} {extracted.get('time', '')}")
-                        st.session_state['_extracted_date'] = extracted.get('date', '')
-                        st.session_state['_extracted_time'] = extracted.get('time', '')
-                    
-                    if manual_venue:
-                        st.session_state['concert_venue_name'] = manual_venue
-                        st.session_state['concert_venue_city'] = manual_city or ''
-                        st.session_state['_concert_venue_id'] = ''
-                        st.session_state['concert_venue_info'] = {
-                            'name_he': manual_venue,
-                            'city_he': manual_city or '',
-                            'country': manual_country or ''
-                        }
-                        
-                        categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
-                        selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown_search")
-                        st.session_state['concert_selected_category'] = selected_cat
-                        
-                        st.markdown("---")
-                        if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_2", use_container_width=True):
-                            artist_en = st.session_state.get('concert_artist_en', '') or st.session_state.get('_search_selected_artist_name', '')
-                            artist_he = st.session_state.get('concert_artist_he', artist_en)
-                            if artist_en and manual_venue:
-                                map_data = None
-                                map_mime = None
-                                if 'pasted_stadium_map' in st.session_state and st.session_state['pasted_stadium_map']:
-                                    try:
-                                        from io import BytesIO
-                                        img_buffer = BytesIO()
-                                        st.session_state['pasted_stadium_map'].save(img_buffer, format='PNG')
-                                        map_data = img_buffer.getvalue()
-                                        map_mime = 'image/png'
-                                    except:
-                                        pass
-                                success = save_concert_to_favorites(
-                                    artist_name=artist_en,
-                                    artist_name_he=artist_he,
-                                    venue_name=manual_venue,
-                                    city=manual_city,
-                                    country=manual_country,
-                                    event_date=extracted.get('date'),
-                                    event_time=extracted.get('time'),
-                                    event_url=event_url if event_url else extracted.get('url'),
-                                    category=selected_cat,
-                                    source=extracted.get('source', 'manual'),
-                                    stadium_map_data=map_data,
-                                    stadium_map_mime=map_mime
-                                )
-                                if success:
-                                    st.success("✅ ההופעה נשמרה לקבועות!" + (" (כולל תרשים מושבים)" if map_data else ""))
-                                else:
-                                    st.error("❌ שגיאה בשמירת ההופעה")
-                            else:
-                                st.warning("⚠️ נא לבחור אמן ולהזין שם מקום ההופעה")
-                    else:
-                        st.warning("⚠️ נא להזין שם מקום ההופעה")
-                else:
-                    # No artist selected - show generic venue list
-                    venues = get_all_venues()
-                    venue_options = ["-- בחר מקום הופעה --"] + [f"{v['name_he']} - {v['city_he']}" for v in venues] + ["✏️ הזנה ידנית..."]
-                    manual_venue_idx = len(venue_options) - 1
-                    
                     prev_venue = st.session_state.get('_prev_concert_venue', '')
-                    selected_venue = st.selectbox("🏟️ מקום ההופעה", venue_options, key="concert_venue_dropdown")
+                    selected_concert_idx = st.selectbox(
+                        "🏟️ מקום ההופעה", 
+                        range(len(concert_options)),
+                        format_func=lambda i: concert_options[i],
+                        key="concert_venue_dropdown"
+                    )
                 
-                    if selected_venue == "✏️ הזנה ידנית...":
+                    if selected_concert_idx == manual_entry_idx:
                         st.session_state['_manual_concert_entry'] = True
-                        st.session_state['_selected_concert'] = {}
-                        st.session_state['concert_venue_name'] = ''
-                        st.session_state['concert_venue_city'] = ''
-                        st.session_state['_concert_venue_id'] = ''
-                        st.session_state['concert_venue_info'] = {}
-                        
+                    
+                        # Check if coming from saved concert - preserve data
+                        from_saved = st.session_state.get('_from_saved_concert', False)
+                        saved_concert_data = st.session_state.get('_selected_concert', {}) if from_saved else {}
+                    
+                        if not from_saved:
+                            st.session_state['_selected_concert'] = {}
+                            st.session_state['concert_venue_name'] = ''
+                            st.session_state['concert_venue_city'] = ''
+                            st.session_state['_concert_venue_id'] = ''
+                            st.session_state['concert_venue_info'] = {}
+                        else:
+                            # Pre-populate extracted_concert with saved concert data for form fields
+                            if saved_concert_data and '_extracted_concert' not in st.session_state:
+                                st.session_state['_extracted_concert'] = {
+                                    'venue': saved_concert_data.get('venue', ''),
+                                    'city': saved_concert_data.get('city', ''),
+                                    'country': saved_concert_data.get('country', ''),
+                                    'date': saved_concert_data.get('date', ''),
+                                    'time': saved_concert_data.get('time', ''),
+                                    'url': saved_concert_data.get('url', ''),
+                                    'source': 'saved'
+                                }
+                    
                         st.markdown("---")
                         st.markdown("##### ✏️ הזנה ידנית של פרטי ההופעה")
-                        
+                    
                         st.markdown("**🔗 יש לך לינק לאירוע?** הדבק אותו ונחלץ את הפרטים אוטומטית:")
-                        
+                    
                         url_col1, url_col2 = st.columns([4, 1])
                         with url_col1:
-                            event_url = st.text_input("🔗 לינק לאירוע", key="manual_event_url_fallback", placeholder="https://www.ticketmaster.com/...", label_visibility="collapsed")
+                            event_url = st.text_input("🔗 לינק לאירוע", key="manual_event_url", placeholder="https://www.ticketmaster.com/...", label_visibility="collapsed")
                         with url_col2:
-                            extract_btn = st.button("🔍 חלץ", key="extract_url_btn_fallback", use_container_width=True)
-                        
+                            extract_btn = st.button("🔍 חלץ", key="extract_url_btn", use_container_width=True)
+                    
                         if extract_btn and event_url:
                             from concerts_service import extract_concert_from_url
                             with st.spinner("מחלץ פרטי אירוע..."):
@@ -2754,33 +2997,34 @@ def page_new_order():
                                 elif result.get('concert'):
                                     extracted = result['concert']
                                     st.session_state['_extracted_concert'] = extracted
+                                    st.session_state['_from_saved_concert'] = False  # Reset flag since we got new data
                                     st.success(f"✅ נמצא! מקור: {extracted.get('source', 'Unknown')}")
                                     st.rerun()
-                        
+                    
                         extracted = st.session_state.get('_extracted_concert', {})
-                        
+                    
                         manual_venue = st.text_input("🏟️ שם מקום ההופעה *", 
                             value=extracted.get('venue', ''),
-                            key="manual_venue_name_fallback", 
+                            key="manual_venue_name", 
                             placeholder="לדוגמה: O2 Arena")
-                        
+                    
                         mcol1, mcol2 = st.columns(2)
                         with mcol1:
                             manual_city = st.text_input("🌆 עיר", 
                                 value=extracted.get('city', ''),
-                                key="manual_venue_city_fallback", 
+                                key="manual_venue_city", 
                                 placeholder="לדוגמה: לונדון")
                         with mcol2:
                             manual_country = st.text_input("🌍 מדינה", 
                                 value=extracted.get('country', ''),
-                                key="manual_venue_country_fallback", 
+                                key="manual_venue_country", 
                                 placeholder="לדוגמה: אנגליה")
-                        
+                    
                         if extracted.get('date') or extracted.get('time'):
                             st.caption(f"📅 תאריך שחולץ: {extracted.get('date', '')} {extracted.get('time', '')}")
                             st.session_state['_extracted_date'] = extracted.get('date', '')
                             st.session_state['_extracted_time'] = extracted.get('time', '')
-                        
+                    
                         if manual_venue:
                             st.session_state['concert_venue_name'] = manual_venue
                             st.session_state['concert_venue_city'] = manual_city or ''
@@ -2790,15 +3034,16 @@ def page_new_order():
                                 'city_he': manual_city or '',
                                 'country': manual_country or ''
                             }
-                            
+                        
                             categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
                             selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown")
                             st.session_state['concert_selected_category'] = selected_cat
-                            
+                        
                             st.markdown("---")
-                            manual_artist_name = st.text_input("🎤 שם אמן (באנגלית)", key="manual_artist_fallback", placeholder="לדוגמה: Ed Sheeran")
-                            if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_3", use_container_width=True):
-                                if manual_artist_name and manual_venue:
+                            if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_1", use_container_width=True):
+                                artist_en = st.session_state.get('concert_artist_en', '')
+                                artist_he = st.session_state.get('concert_artist_he', artist_en)
+                                if artist_en and manual_venue:
                                     map_data = None
                                     map_mime = None
                                     if 'pasted_stadium_map' in st.session_state and st.session_state['pasted_stadium_map']:
@@ -2808,11 +3053,12 @@ def page_new_order():
                                             st.session_state['pasted_stadium_map'].save(img_buffer, format='PNG')
                                             map_data = img_buffer.getvalue()
                                             map_mime = 'image/png'
-                                        except:
-                                            pass
+                                        except Exception as e:
+                                            st.warning(f"⚠️ לא הצלחתי לשמור את התרשים: {e}")
+                                
                                     success = save_concert_to_favorites(
-                                        artist_name=manual_artist_name,
-                                        artist_name_he=manual_artist_name,
+                                        artist_name=artist_en,
+                                        artist_name_he=artist_he,
                                         venue_name=manual_venue,
                                         city=manual_city,
                                         country=manual_country,
@@ -2829,339 +3075,734 @@ def page_new_order():
                                     else:
                                         st.error("❌ שגיאה בשמירת ההופעה")
                                 else:
-                                    st.warning("⚠️ נא להזין שם אמן ושם מקום ההופעה")
+                                    st.warning("⚠️ נא לבחור אמן ולהזין שם מקום ההופעה")
                         else:
                             st.warning("⚠️ נא להזין שם מקום ההופעה")
-                            
-                    elif selected_venue and selected_venue != "-- בחר מקום הופעה --":
-                        venue_he = selected_venue.split(" - ")[0]
-                        venue_info = next((v for v in venues if v['name_he'] == venue_he), None)
-                        if venue_info:
-                            st.session_state['concert_venue_info'] = venue_info
-                            st.session_state['concert_venue_name'] = venue_info['name_he']
-                            st.session_state['concert_venue_city'] = venue_info['city_he']
-                            st.session_state['_concert_venue_id'] = venue_info.get('id', '')
-                            
-                            st.caption(f"📍 {venue_info['city_he']}, {venue_info['country']} | 👥 קיבולת: {venue_info['capacity']:,}")
-                            
-                            categories = venue_info.get('categories', ['General Admission'])
-                            selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown")
-                            st.session_state['concert_selected_category'] = selected_cat
-                    elif prev_venue != selected_venue:
+                    
+                    elif selected_concert_idx and selected_concert_idx > 0:
+                        st.session_state['_manual_concert_entry'] = False
+                        selected_concert = live_concerts[selected_concert_idx - 1]
+                        st.session_state['concert_venue_name'] = selected_concert.get('venue', '')
+                        st.session_state['concert_venue_city'] = selected_concert.get('city', '')
+                        st.session_state['_concert_venue_id'] = selected_concert.get('id', '')
+                        st.session_state['_selected_concert'] = selected_concert
+                    
+                        st.caption(f"📍 {selected_concert.get('venue', '')}, {selected_concert.get('city', '')} ({selected_concert.get('country', '')})")
+                    
+                        if selected_concert.get('address'):
+                            st.caption(f"📮 כתובת: {selected_concert.get('address', '')}")
+                    
+                        if selected_concert.get('capacity'):
+                            st.caption(f"👥 קיבולת: {selected_concert.get('capacity', ''):,} אנשים")
+                    
+                        if selected_concert.get('price_min') or selected_concert.get('price_max'):
+                            price_info = f"💰 מחירים: {selected_concert.get('price_min', 'N/A')} - {selected_concert.get('price_max', 'N/A')} {selected_concert.get('currency', 'EUR')}"
+                            st.caption(price_info)
+                    
+                        if selected_concert.get('url'):
+                            st.markdown(f"🎫 [מעבר לעמוד ההזמנה של Ticketmaster]({selected_concert.get('url')})")
+                    
+                        categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
+                        selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown")
+                        st.session_state['concert_selected_category'] = selected_cat
+                    
+                        # Save to favorites button for API concerts
+                        if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_api", use_container_width=True):
+                            artist_en = st.session_state.get('concert_artist_en', '')
+                            artist_he = st.session_state.get('concert_artist_he', artist_en)
+                            if artist_en and selected_concert.get('venue'):
+                                success = save_concert_to_favorites(
+                                    artist_name=artist_en,
+                                    artist_name_he=artist_he,
+                                    venue_name=selected_concert.get('venue', ''),
+                                    city=selected_concert.get('city', ''),
+                                    country=selected_concert.get('country', ''),
+                                    event_date=selected_concert.get('date'),
+                                    event_time=selected_concert.get('time'),
+                                    event_url=selected_concert.get('url'),
+                                    category=selected_cat,
+                                    source='ticketmaster'
+                                )
+                                if success:
+                                    st.success("✅ ההופעה נשמרה לקבועות!")
+                                else:
+                                    st.error("❌ שגיאה בשמירת ההופעה")
+                            else:
+                                st.warning("⚠️ נא לבחור אמן ומקום הופעה")
+                    elif prev_venue != selected_concert_idx:
                         st.session_state['concert_venue_info'] = {}
                         st.session_state['concert_venue_name'] = ''
                         st.session_state['concert_venue_city'] = ''
                         st.session_state['concert_selected_category'] = ''
                         st.session_state['_concert_venue_id'] = ''
-                    st.session_state['_prev_concert_venue'] = selected_venue
+                        st.session_state['_selected_concert'] = {}
+                        st.session_state['_manual_concert_entry'] = False
+                    st.session_state['_prev_concert_venue'] = selected_concert_idx
+                else:
+                    # Check if we have a selected artist from search with no European concerts
+                    has_selected_search_artist = (
+                        selected_artist_option == "🔍 חיפוש אמן אחר..." and 
+                        st.session_state.get('_search_selected_artist_id')
+                    )
+                
+                    if has_selected_search_artist:
+                        # Artist from search has no European concerts - go directly to manual entry
+                        st.session_state['_manual_concert_entry'] = True
+                    
+                        st.markdown("---")
+                        st.markdown("##### ✏️ הזנה ידנית של פרטי ההופעה")
+                        st.info("💡 לא נמצאו הופעות אירופאיות. ניתן להזין פרטים ידנית או להדביק לינק לאירוע.")
+                    
+                        st.markdown("**🔗 יש לך לינק לאירוע?** הדבק אותו ונחלץ את הפרטים אוטומטית:")
+                    
+                        url_col1, url_col2 = st.columns([4, 1])
+                        with url_col1:
+                            event_url = st.text_input("🔗 לינק לאירוע", key="manual_event_url_search", placeholder="https://www.ticketmaster.com/...", label_visibility="collapsed")
+                        with url_col2:
+                            extract_btn = st.button("🔍 חלץ", key="extract_url_btn_search", use_container_width=True)
+                    
+                        if extract_btn and event_url:
+                            from concerts_service import extract_concert_from_url
+                            with st.spinner("מחלץ פרטי אירוע..."):
+                                result = extract_concert_from_url(event_url)
+                                if result.get('error'):
+                                    st.error(f"❌ {result['error']}")
+                                elif result.get('concert'):
+                                    extracted = result['concert']
+                                    st.session_state['_extracted_concert'] = extracted
+                                    st.success(f"✅ נמצא! מקור: {extracted.get('source', 'Unknown')}")
+                                    st.rerun()
+                    
+                        extracted = st.session_state.get('_extracted_concert', {})
+                    
+                        manual_venue = st.text_input("🏟️ שם מקום ההופעה *", 
+                            value=extracted.get('venue', ''),
+                            key="manual_venue_name_search", 
+                            placeholder="לדוגמה: O2 Arena")
+                    
+                        mcol1, mcol2 = st.columns(2)
+                        with mcol1:
+                            manual_city = st.text_input("🌆 עיר", 
+                                value=extracted.get('city', ''),
+                                key="manual_venue_city_search", 
+                                placeholder="לדוגמה: לונדון")
+                        with mcol2:
+                            manual_country = st.text_input("🌍 מדינה", 
+                                value=extracted.get('country', ''),
+                                key="manual_venue_country_search", 
+                                placeholder="לדוגמה: אנגליה")
+                    
+                        if extracted.get('date') or extracted.get('time'):
+                            st.caption(f"📅 תאריך שחולץ: {extracted.get('date', '')} {extracted.get('time', '')}")
+                            st.session_state['_extracted_date'] = extracted.get('date', '')
+                            st.session_state['_extracted_time'] = extracted.get('time', '')
+                    
+                        if manual_venue:
+                            st.session_state['concert_venue_name'] = manual_venue
+                            st.session_state['concert_venue_city'] = manual_city or ''
+                            st.session_state['_concert_venue_id'] = ''
+                            st.session_state['concert_venue_info'] = {
+                                'name_he': manual_venue,
+                                'city_he': manual_city or '',
+                                'country': manual_country or ''
+                            }
+                        
+                            categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
+                            selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown_search")
+                            st.session_state['concert_selected_category'] = selected_cat
+                        
+                            st.markdown("---")
+                            if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_2", use_container_width=True):
+                                artist_en = st.session_state.get('concert_artist_en', '') or st.session_state.get('_search_selected_artist_name', '')
+                                artist_he = st.session_state.get('concert_artist_he', artist_en)
+                                if artist_en and manual_venue:
+                                    map_data = None
+                                    map_mime = None
+                                    if 'pasted_stadium_map' in st.session_state and st.session_state['pasted_stadium_map']:
+                                        try:
+                                            from io import BytesIO
+                                            img_buffer = BytesIO()
+                                            st.session_state['pasted_stadium_map'].save(img_buffer, format='PNG')
+                                            map_data = img_buffer.getvalue()
+                                            map_mime = 'image/png'
+                                        except:
+                                            pass
+                                    success = save_concert_to_favorites(
+                                        artist_name=artist_en,
+                                        artist_name_he=artist_he,
+                                        venue_name=manual_venue,
+                                        city=manual_city,
+                                        country=manual_country,
+                                        event_date=extracted.get('date'),
+                                        event_time=extracted.get('time'),
+                                        event_url=event_url if event_url else extracted.get('url'),
+                                        category=selected_cat,
+                                        source=extracted.get('source', 'manual'),
+                                        stadium_map_data=map_data,
+                                        stadium_map_mime=map_mime
+                                    )
+                                    if success:
+                                        st.success("✅ ההופעה נשמרה לקבועות!" + (" (כולל תרשים מושבים)" if map_data else ""))
+                                    else:
+                                        st.error("❌ שגיאה בשמירת ההופעה")
+                                else:
+                                    st.warning("⚠️ נא לבחור אמן ולהזין שם מקום ההופעה")
+                        else:
+                            st.warning("⚠️ נא להזין שם מקום ההופעה")
+                    else:
+                        # No artist selected - show generic venue list
+                        venues = get_all_venues()
+                        venue_options = ["-- בחר מקום הופעה --"] + [f"{v['name_he']} - {v['city_he']}" for v in venues] + ["✏️ הזנה ידנית..."]
+                        manual_venue_idx = len(venue_options) - 1
+                    
+                        prev_venue = st.session_state.get('_prev_concert_venue', '')
+                        selected_venue = st.selectbox("🏟️ מקום ההופעה", venue_options, key="concert_venue_dropdown")
+                
+                        if selected_venue == "✏️ הזנה ידנית...":
+                            st.session_state['_manual_concert_entry'] = True
+                            st.session_state['_selected_concert'] = {}
+                            st.session_state['concert_venue_name'] = ''
+                            st.session_state['concert_venue_city'] = ''
+                            st.session_state['_concert_venue_id'] = ''
+                            st.session_state['concert_venue_info'] = {}
+                        
+                            st.markdown("---")
+                            st.markdown("##### ✏️ הזנה ידנית של פרטי ההופעה")
+                        
+                            st.markdown("**🔗 יש לך לינק לאירוע?** הדבק אותו ונחלץ את הפרטים אוטומטית:")
+                        
+                            url_col1, url_col2 = st.columns([4, 1])
+                            with url_col1:
+                                event_url = st.text_input("🔗 לינק לאירוע", key="manual_event_url_fallback", placeholder="https://www.ticketmaster.com/...", label_visibility="collapsed")
+                            with url_col2:
+                                extract_btn = st.button("🔍 חלץ", key="extract_url_btn_fallback", use_container_width=True)
+                        
+                            if extract_btn and event_url:
+                                from concerts_service import extract_concert_from_url
+                                with st.spinner("מחלץ פרטי אירוע..."):
+                                    result = extract_concert_from_url(event_url)
+                                    if result.get('error'):
+                                        st.error(f"❌ {result['error']}")
+                                    elif result.get('concert'):
+                                        extracted = result['concert']
+                                        st.session_state['_extracted_concert'] = extracted
+                                        st.success(f"✅ נמצא! מקור: {extracted.get('source', 'Unknown')}")
+                                        st.rerun()
+                        
+                            extracted = st.session_state.get('_extracted_concert', {})
+                        
+                            manual_venue = st.text_input("🏟️ שם מקום ההופעה *", 
+                                value=extracted.get('venue', ''),
+                                key="manual_venue_name_fallback", 
+                                placeholder="לדוגמה: O2 Arena")
+                        
+                            mcol1, mcol2 = st.columns(2)
+                            with mcol1:
+                                manual_city = st.text_input("🌆 עיר", 
+                                    value=extracted.get('city', ''),
+                                    key="manual_venue_city_fallback", 
+                                    placeholder="לדוגמה: לונדון")
+                            with mcol2:
+                                manual_country = st.text_input("🌍 מדינה", 
+                                    value=extracted.get('country', ''),
+                                    key="manual_venue_country_fallback", 
+                                    placeholder="לדוגמה: אנגליה")
+                        
+                            if extracted.get('date') or extracted.get('time'):
+                                st.caption(f"📅 תאריך שחולץ: {extracted.get('date', '')} {extracted.get('time', '')}")
+                                st.session_state['_extracted_date'] = extracted.get('date', '')
+                                st.session_state['_extracted_time'] = extracted.get('time', '')
+                        
+                            if manual_venue:
+                                st.session_state['concert_venue_name'] = manual_venue
+                                st.session_state['concert_venue_city'] = manual_city or ''
+                                st.session_state['_concert_venue_id'] = ''
+                                st.session_state['concert_venue_info'] = {
+                                    'name_he': manual_venue,
+                                    'city_he': manual_city or '',
+                                    'country': manual_country or ''
+                                }
+                            
+                                categories = ['VIP', 'Golden Circle', 'Floor', 'Lower Tier', 'Upper Tier', 'General Admission']
+                                selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown")
+                                st.session_state['concert_selected_category'] = selected_cat
+                            
+                                st.markdown("---")
+                                manual_artist_name = st.text_input("🎤 שם אמן (באנגלית)", key="manual_artist_fallback", placeholder="לדוגמה: Ed Sheeran")
+                                if st.button("⭐ שמור להופעות קבועות", key="save_concert_btn_3", use_container_width=True):
+                                    if manual_artist_name and manual_venue:
+                                        map_data = None
+                                        map_mime = None
+                                        if 'pasted_stadium_map' in st.session_state and st.session_state['pasted_stadium_map']:
+                                            try:
+                                                from io import BytesIO
+                                                img_buffer = BytesIO()
+                                                st.session_state['pasted_stadium_map'].save(img_buffer, format='PNG')
+                                                map_data = img_buffer.getvalue()
+                                                map_mime = 'image/png'
+                                            except:
+                                                pass
+                                        success = save_concert_to_favorites(
+                                            artist_name=manual_artist_name,
+                                            artist_name_he=manual_artist_name,
+                                            venue_name=manual_venue,
+                                            city=manual_city,
+                                            country=manual_country,
+                                            event_date=extracted.get('date'),
+                                            event_time=extracted.get('time'),
+                                            event_url=event_url if event_url else extracted.get('url'),
+                                            category=selected_cat,
+                                            source=extracted.get('source', 'manual'),
+                                            stadium_map_data=map_data,
+                                            stadium_map_mime=map_mime
+                                        )
+                                        if success:
+                                            st.success("✅ ההופעה נשמרה לקבועות!" + (" (כולל תרשים מושבים)" if map_data else ""))
+                                        else:
+                                            st.error("❌ שגיאה בשמירת ההופעה")
+                                    else:
+                                        st.warning("⚠️ נא להזין שם אמן ושם מקום ההופעה")
+                            else:
+                                st.warning("⚠️ נא להזין שם מקום ההופעה")
+                            
+                        elif selected_venue and selected_venue != "-- בחר מקום הופעה --":
+                            venue_he = selected_venue.split(" - ")[0]
+                            venue_info = next((v for v in venues if v['name_he'] == venue_he), None)
+                            if venue_info:
+                                st.session_state['concert_venue_info'] = venue_info
+                                st.session_state['concert_venue_name'] = venue_info['name_he']
+                                st.session_state['concert_venue_city'] = venue_info['city_he']
+                                st.session_state['_concert_venue_id'] = venue_info.get('id', '')
+                            
+                                st.caption(f"📍 {venue_info['city_he']}, {venue_info['country']} | 👥 קיבולת: {venue_info['capacity']:,}")
+                            
+                                categories = venue_info.get('categories', ['General Admission'])
+                                selected_cat = st.selectbox("🎫 קטגוריית כרטיסים", categories, key="concert_category_dropdown")
+                                st.session_state['concert_selected_category'] = selected_cat
+                        elif prev_venue != selected_venue:
+                            st.session_state['concert_venue_info'] = {}
+                            st.session_state['concert_venue_name'] = ''
+                            st.session_state['concert_venue_city'] = ''
+                            st.session_state['concert_selected_category'] = ''
+                            st.session_state['_concert_venue_id'] = ''
+                        st.session_state['_prev_concert_venue'] = selected_venue
         
-        default_event_name = rd.get('event_name', '')
-        team_data = st.session_state.get('selected_team_data', {})
-        home_heb = st.session_state.get('home_team_hebrew', '')
-        away_heb = st.session_state.get('away_team_hebrew', '')
-        if event_type == "כדורגל" and home_heb and not default_event_name:
-            if away_heb:
-                default_event_name = f"{home_heb} נגד {away_heb}"
-            else:
-                default_event_name = f"{home_heb} נגד "
-        elif event_type == "הופעה" and not default_event_name:
-            ocr_event_name = st.session_state.get('_ocr_event_name', '')
-            if ocr_event_name:
-                default_event_name = ocr_event_name
-            else:
-                artist_he = st.session_state.get('concert_artist_he', '')
-                venue_name = st.session_state.get('concert_venue_name', '')
-                if artist_he and venue_name:
-                    default_event_name = f"הופעה של {artist_he} ב{venue_name}"
-                elif artist_he:
-                    default_event_name = f"הופעה של {artist_he}"
+            default_event_name = rd.get('event_name', '')
+            team_data = st.session_state.get('selected_team_data', {})
+            home_heb = st.session_state.get('home_team_hebrew', '')
+            away_heb = st.session_state.get('away_team_hebrew', '')
+            if event_type == "כדורגל" and home_heb and not default_event_name:
+                if away_heb:
+                    default_event_name = f"{home_heb} נגד {away_heb}"
+                else:
+                    default_event_name = f"{home_heb} נגד "
+            elif event_type == "הופעה" and not default_event_name:
+                ocr_event_name = st.session_state.get('_ocr_event_name', '')
+                if ocr_event_name:
+                    default_event_name = ocr_event_name
+                else:
+                    artist_he = st.session_state.get('concert_artist_he', '')
+                    venue_name = st.session_state.get('concert_venue_name', '')
+                    if artist_he and venue_name:
+                        default_event_name = f"הופעה של {artist_he} ב{venue_name}"
+                    elif artist_he:
+                        default_event_name = f"הופעה של {artist_he}"
         
-        event_name = st.text_input("שם האירוע", value=default_event_name, placeholder="לדוגמה: Real Madrid vs Barcelona")
+            event_name = st.text_input("שם האירוע", value=default_event_name, placeholder="לדוגמה: Real Madrid vs Barcelona")
         
-        fixture_data = st.session_state.get('fixture_data', {})
-        selected_concert = st.session_state.get('_selected_concert', {})
-        default_date = None
-        default_time = None
+            fixture_data = st.session_state.get('fixture_data', {})
+            selected_concert = st.session_state.get('_selected_concert', {})
+            default_date = None
+            default_time = None
         
-        if fixture_data.get('date'):
-            try:
-                from datetime import datetime as dt
-                default_date = dt.strptime(fixture_data['date'], "%Y-%m-%d").date()
-            except:
-                pass
-        if fixture_data.get('time'):
-            try:
-                from datetime import datetime as dt
-                time_str = fixture_data['time'][:5] if len(fixture_data['time']) >= 5 else fixture_data['time']
-                default_time = dt.strptime(time_str, "%H:%M").time()
-            except:
-                pass
-        
-        if selected_concert.get('date') and not default_date:
-            try:
-                from datetime import datetime as dt
-                default_date = dt.strptime(selected_concert['date'], "%Y-%m-%d").date()
-            except:
-                pass
-        if selected_concert.get('time') and not default_time:
-            try:
-                from datetime import datetime as dt
-                time_str = selected_concert['time'][:5] if len(selected_concert['time']) >= 5 else selected_concert['time']
-                default_time = dt.strptime(time_str, "%H:%M").time()
-            except:
-                pass
-        
-        extracted_date = st.session_state.get('_extracted_date', '')
-        extracted_time = st.session_state.get('_extracted_time', '')
-        if extracted_date and not default_date:
-            try:
-                from datetime import datetime as dt
-                default_date = dt.strptime(extracted_date, "%Y-%m-%d").date()
-            except:
-                pass
-        if extracted_time and not default_time:
-            try:
-                from datetime import datetime as dt
-                time_str = extracted_time[:5] if len(extracted_time) >= 5 else extracted_time
-                default_time = dt.strptime(time_str, "%H:%M").time()
-            except:
-                pass
-        
-        ocr_date = st.session_state.get('_ocr_event_date', '')
-        ocr_time = st.session_state.get('_ocr_event_time', '')
-        if ocr_date and not default_date:
-            try:
-                from datetime import datetime as dt
-                default_date = dt.strptime(ocr_date, "%d/%m/%Y").date()
-            except:
+            if fixture_data.get('date'):
                 try:
-                    default_date = dt.strptime(ocr_date, "%Y-%m-%d").date()
+                    from datetime import datetime as dt
+                    default_date = dt.strptime(fixture_data['date'], "%Y-%m-%d").date()
                 except:
                     pass
-        if ocr_time and not default_time:
-            try:
-                from datetime import datetime as dt
-                time_str = ocr_time[:5] if len(ocr_time) >= 5 else ocr_time
-                default_time = dt.strptime(time_str, "%H:%M").time()
-            except:
-                pass
+            if fixture_data.get('time'):
+                try:
+                    from datetime import datetime as dt
+                    time_str = fixture_data['time'][:5] if len(fixture_data['time']) >= 5 else fixture_data['time']
+                    default_time = dt.strptime(time_str, "%H:%M").time()
+                except:
+                    pass
         
-        col_date, col_time = st.columns(2)
-        with col_date:
-            if default_date:
-                event_date = st.date_input("תאריך האירוע", value=default_date)
-            else:
-                event_date = st.date_input("תאריך האירוע")
-        with col_time:
-            if default_time:
-                event_time = st.time_input("שעת האירוע", value=default_time)
-            else:
-                event_time = st.time_input("שעת האירוע")
+            if selected_concert.get('date') and not default_date:
+                try:
+                    from datetime import datetime as dt
+                    default_date = dt.strptime(selected_concert['date'], "%Y-%m-%d").date()
+                except:
+                    pass
+            if selected_concert.get('time') and not default_time:
+                try:
+                    from datetime import datetime as dt
+                    time_str = selected_concert['time'][:5] if len(selected_concert['time']) >= 5 else selected_concert['time']
+                    default_time = dt.strptime(time_str, "%H:%M").time()
+                except:
+                    pass
         
-        date_status = st.radio(
-            "סטטוס התאריך",
-            options=["התאריך אינו סופי", "התאריך הינו סופי"],
-            index=0,
-            horizontal=True,
-            key="date_status_radio"
-        )
-        is_date_final = (date_status == "התאריך הינו סופי")
+            extracted_date = st.session_state.get('_extracted_date', '')
+            extracted_time = st.session_state.get('_extracted_time', '')
+            if extracted_date and not default_date:
+                try:
+                    from datetime import datetime as dt
+                    default_date = dt.strptime(extracted_date, "%Y-%m-%d").date()
+                except:
+                    pass
+            if extracted_time and not default_time:
+                try:
+                    from datetime import datetime as dt
+                    time_str = extracted_time[:5] if len(extracted_time) >= 5 else extracted_time
+                    default_time = dt.strptime(time_str, "%H:%M").time()
+                except:
+                    pass
         
-        seats_together = st.checkbox("🪑 ישיבה 3 יחד", value=False, key="seats_together_checkbox")
+            ocr_date = st.session_state.get('_ocr_event_date', '')
+            ocr_time = st.session_state.get('_ocr_event_time', '')
+            if ocr_date and not default_date:
+                try:
+                    from datetime import datetime as dt
+                    default_date = dt.strptime(ocr_date, "%d/%m/%Y").date()
+                except:
+                    try:
+                        default_date = dt.strptime(ocr_date, "%Y-%m-%d").date()
+                    except:
+                        pass
+            if ocr_time and not default_time:
+                try:
+                    from datetime import datetime as dt
+                    time_str = ocr_time[:5] if len(ocr_time) >= 5 else ocr_time
+                    default_time = dt.strptime(time_str, "%H:%M").time()
+                except:
+                    pass
         
-        default_venue = rd.get('venue', '')
-        if st.session_state.get('worldcup_venue'):
-            default_venue = st.session_state['worldcup_venue']
-        elif event_type == "כדורגל" and team_data.get('stadium') and not default_venue:
-            default_venue = f"{team_data['stadium']}, {team_data.get('stadium_location', '')}"
-        elif event_type == "הופעה" and not default_venue:
-            venue_name = st.session_state.get('concert_venue_name', '')
-            venue_city = st.session_state.get('concert_venue_city', '')
-            if venue_name and venue_city:
-                default_venue = f"{venue_name}, {venue_city}"
-        
-        venue = st.text_input("מקום האירוע / אצטדיון", value=default_venue, placeholder="לדוגמה: Santiago Bernabeu, Madrid")
-        
-        st.markdown("**🗺️ תרשים מושבים (Seat Map)**")
-        
-        auto_stadium_map = None
-        
-        wc_map = st.session_state.get('worldcup_stadium_map', '')
-        if wc_map and os.path.exists(wc_map):
-            auto_stadium_map = wc_map
-            venue_name = st.session_state.get('fixture_data', {}).get('venue', '')
-            st.success(f"✅ נמצאה מפת אצטדיון FIFA עבור {venue_name}")
-            st.image(wc_map, caption="מפת קטגוריות מושבים - FIFA World Cup 2026", use_container_width=True)
-        elif event_type == "כדורגל" and team_data.get('name'):
-            team_name_eng = team_data.get('name', '')
-            map_path = get_team_map_path(team_name_eng)
-            if map_path and os.path.exists(map_path):
-                auto_stadium_map = map_path
-                st.success(f"✅ נמצאה מפת אצטדיון אוטומטית עבור {st.session_state.get('home_team_hebrew', team_name_eng)}")
-                st.image(map_path, caption="מפת אצטדיון", use_container_width=True)
-        elif event_type == "הופעה":
-            from concerts_data import get_venue_map_path, CONCERT_DEFAULT_BG
-            
-            concert_venue_info = st.session_state.get('concert_venue_info', {})
-            concert_venue_id = st.session_state.get('_concert_venue_id', '')
-            selected_concert = st.session_state.get('_selected_concert', {})
-            
-            if selected_concert:
-                venue_name = selected_concert.get('venue', '')
-                venue_city = selected_concert.get('city', '')
-                capacity = selected_concert.get('capacity', 0)
-                concert_url = selected_concert.get('url', '')
-                
-                concert_map_path = None
-                if concert_venue_id:
-                    # Check for existing maps with any extension
-                    for map_ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
-                        possible_map = f"attached_assets/concert_venue_maps/{concert_venue_id}.{map_ext}"
-                        if os.path.exists(possible_map):
-                            concert_map_path = possible_map
-                            break
-                
-                if concert_map_path:
-                    auto_stadium_map = concert_map_path
-                    st.success(f"✅ נמצאה מפת מושבים שמורה עבור {venue_name}")
-                    st.image(concert_map_path, caption=f"מפת מושבים - {venue_name}", use_container_width=True)
-                    
-                    if st.button("🗑️ מחק מפה שמורה", key=f"delete_map_{concert_venue_id}"):
-                        try:
-                            os.remove(concert_map_path)
-                            st.success("✅ המפה נמחקה!")
-                            st.rerun()
-                        except Exception as e:
-                            st.error(f"❌ שגיאה במחיקה: {str(e)}")
+            col_date, col_time = st.columns(2)
+            with col_date:
+                if default_date:
+                    event_date = st.date_input("תאריך האירוע", value=default_date)
                 else:
-                    if capacity:
-                        st.info(f"🎤 **{venue_name}, {venue_city}** - קיבולת: {capacity:,} מושבים")
-                    else:
-                        st.info(f"🎤 **{venue_name}, {venue_city}**")
+                    event_date = st.date_input("תאריך האירוע")
+            with col_time:
+                if default_time:
+                    event_time = st.time_input("שעת האירוע", value=default_time)
+                else:
+                    event_time = st.time_input("שעת האירוע")
+        
+            date_status = st.radio(
+                "סטטוס התאריך",
+                options=["התאריך אינו סופי", "התאריך הינו סופי"],
+                index=0,
+                horizontal=True,
+                key="date_status_radio"
+            )
+            is_date_final = (date_status == "התאריך הינו סופי")
+        
+            seats_together = st.checkbox("🪑 ישיבה 3 יחד", value=False, key="seats_together_checkbox")
+        
+            default_venue = rd.get('venue', '')
+            if st.session_state.get('worldcup_venue'):
+                default_venue = st.session_state['worldcup_venue']
+            elif event_type == "כדורגל" and team_data.get('stadium') and not default_venue:
+                default_venue = f"{team_data['stadium']}, {team_data.get('stadium_location', '')}"
+            elif event_type == "הופעה" and not default_venue:
+                venue_name = st.session_state.get('concert_venue_name', '')
+                venue_city = st.session_state.get('concert_venue_city', '')
+                if venue_name and venue_city:
+                    default_venue = f"{venue_name}, {venue_city}"
+        
+            venue = st.text_input("מקום האירוע / אצטדיון", value=default_venue, placeholder="לדוגמה: Santiago Bernabeu, Madrid")
+        
+            st.markdown("**🗺️ תרשים מושבים (Seat Map)**")
+        
+            auto_stadium_map = None
+        
+            wc_map = st.session_state.get('worldcup_stadium_map', '')
+            if wc_map and os.path.exists(wc_map):
+                auto_stadium_map = wc_map
+                venue_name = st.session_state.get('fixture_data', {}).get('venue', '')
+                st.success(f"✅ נמצאה מפת אצטדיון FIFA עבור {venue_name}")
+                st.image(wc_map, caption="מפת קטגוריות מושבים - FIFA World Cup 2026", use_container_width=True)
+            elif event_type == "כדורגל" and team_data.get('name'):
+                team_name_eng = team_data.get('name', '')
+                map_path = get_team_map_path(team_name_eng)
+                if map_path and os.path.exists(map_path):
+                    auto_stadium_map = map_path
+                    st.success(f"✅ נמצאה מפת אצטדיון אוטומטית עבור {st.session_state.get('home_team_hebrew', team_name_eng)}")
+                    st.image(map_path, caption="מפת אצטדיון", use_container_width=True)
+            elif event_type == "הופעה":
+                from concerts_data import get_venue_map_path, CONCERT_DEFAULT_BG
+            
+                concert_venue_info = st.session_state.get('concert_venue_info', {})
+                concert_venue_id = st.session_state.get('_concert_venue_id', '')
+                selected_concert = st.session_state.get('_selected_concert', {})
+            
+                if selected_concert:
+                    venue_name = selected_concert.get('venue', '')
+                    venue_city = selected_concert.get('city', '')
+                    capacity = selected_concert.get('capacity', 0)
+                    concert_url = selected_concert.get('url', '')
+                
+                    concert_map_path = None
+                    if concert_venue_id:
+                        # Check for existing maps with any extension
+                        for map_ext in ['png', 'jpg', 'jpeg', 'gif', 'webp']:
+                            possible_map = f"attached_assets/concert_venue_maps/{concert_venue_id}.{map_ext}"
+                            if os.path.exists(possible_map):
+                                concert_map_path = possible_map
+                                break
+                
+                    if concert_map_path:
+                        auto_stadium_map = concert_map_path
+                        st.success(f"✅ נמצאה מפת מושבים שמורה עבור {venue_name}")
+                        st.image(concert_map_path, caption=f"מפת מושבים - {venue_name}", use_container_width=True)
                     
-                    # Try to auto-fetch map from Ticketmaster CDN
-                    venue_id_tm = selected_concert.get('venue_id', '')
-                    auto_map_found = False
-                    
-                    if venue_id_tm and not concert_map_path:
-                        # Try common Ticketmaster seatmap URL patterns
-                        map_patterns = [
-                            f"https://media.ticketmaster.co.uk/tm/en-gb/tmimages/venue/maps/uk2/{venue_id_tm}s.gif",
-                            f"https://media.ticketmaster.eu/tm/en-eu/tmimages/venue/maps/eu/{venue_id_tm}s.gif",
-                            f"https://s1.ticketm.net/tm/en-us/tmimages/venue/maps/nyc/{venue_id_tm}s.gif",
-                        ]
-                        
-                        for pattern_url in map_patterns:
+                        if st.button("🗑️ מחק מפה שמורה", key=f"delete_map_{concert_venue_id}"):
                             try:
-                                headers = {'User-Agent': 'Mozilla/5.0'}
-                                test_resp = requests.head(pattern_url, headers=headers, timeout=5)
-                                if test_resp.status_code == 200:
-                                    # Found a map! Download it
-                                    img_resp = requests.get(pattern_url, headers=headers, timeout=15)
-                                    if img_resp.status_code == 200:
-                                        os.makedirs('attached_assets/concert_venue_maps', exist_ok=True)
-                                        ext = 'gif' if 'gif' in pattern_url else 'png'
-                                        save_path = f'attached_assets/concert_venue_maps/{concert_venue_id}.{ext}'
-                                        with open(save_path, 'wb') as f:
-                                            f.write(img_resp.content)
-                                        st.success(f"✅ נמצאה והורדה מפת מושבים אוטומטית!")
-                                        auto_map_found = True
-                                        concert_map_path = save_path
-                                        st.image(save_path, caption=f"מפת מושבים - {venue_name}", use_container_width=True)
-                                        break
-                            except:
-                                continue
-                    
-                    if not auto_map_found:
-                        st.markdown("**📥 הדבק מפת מושבים** (תישמר לשימוש עתידי)")
-                        
-                        venue_url = selected_concert.get('venue_url', '')
-                        if venue_url:
-                            st.markdown(f"🔗 [לחץ כאן לפתוח את עמוד האולם ב-Ticketmaster]({venue_url})")
-                        elif concert_url:
-                            st.markdown(f"🔗 [לחץ כאן לפתוח את דף האירוע ב-Ticketmaster]({concert_url})")
-                        
-                        st.info("📋 **צלם את מפת המושבים עם מספריים (Win+Shift+S) והדבק כאן:**")
-                        
-                        from streamlit_paste_button import paste_image_button as pbutton
-                        
-                        paste_result = pbutton(
-                            label="📋 הדבק מפה מהמספריים (Ctrl+V)",
-                            key=f"paste_map_{concert_venue_id}"
-                        )
-                        
-                        if paste_result and paste_result.image_data:
-                            try:
-                                os.makedirs('attached_assets/concert_venue_maps', exist_ok=True)
-                                save_path = f'attached_assets/concert_venue_maps/{concert_venue_id}.png'
-                                paste_result.image_data.save(save_path, 'PNG')
-                                st.success("✅ המפה נשמרה! היא תופיע אוטומטית בפעם הבאה שתבחר את ההופעה הזו.")
+                                os.remove(concert_map_path)
+                                st.success("✅ המפה נמחקה!")
                                 st.rerun()
                             except Exception as e:
-                                st.error(f"❌ שגיאה בשמירה: {str(e)}")
-            
-            elif concert_venue_info:
-                venue_name_he = concert_venue_info.get('name_he', '')
-                capacity = concert_venue_info.get('capacity', 0)
-                categories = concert_venue_info.get('categories', [])
-                
-                specific_venue_map = get_venue_map_path(concert_venue_id, use_fallback=False)
-                if specific_venue_map and os.path.exists(specific_venue_map):
-                    auto_stadium_map = specific_venue_map
-                    st.success(f"✅ נמצאה מפת מושבים אוטומטית עבור {venue_name_he}")
-                    st.image(specific_venue_map, caption=f"מפת מושבים - {venue_name_he}", use_container_width=True)
-                else:
-                    venue_map_fallback = get_venue_map_path(concert_venue_id, use_fallback=True)
-                    if venue_map_fallback and os.path.exists(venue_map_fallback):
-                        auto_stadium_map = venue_map_fallback
-                        st.info(f"🎤 **{venue_name_he}** - קיבולת: {capacity:,} מושבים\n\n📍 קטגוריות זמינות: {', '.join(categories)}")
-                        st.caption("תמונת אווירה כללית תופיע במסמך. ניתן להעלות מפת מושבים ספציפית:")
+                                st.error(f"❌ שגיאה במחיקה: {str(e)}")
                     else:
-                        st.info(f"🎤 **{venue_name_he}** - קיבולת: {capacity:,} מושבים\n\n📍 קטגוריות זמינות: {', '.join(categories)}")
-                        st.markdown("*העלה תרשים מושבים של האולם להצגה במסמך ההזמנה:*")
-        
-        stadium_image = None
-        
-        # Check for saved concert map bytes first (from database)
-        saved_map_bytes = st.session_state.get('saved_stadium_map_bytes')
-        if saved_map_bytes:
-            from io import BytesIO
-            st.success("✅ תרשים מושבים מההופעה השמורה")
-            st.image(saved_map_bytes, caption="תרשים מושבים (מההופעה השמורה)", use_container_width=True)
-            stadium_image = Image.open(BytesIO(saved_map_bytes))
-            if st.button("🗑️ הסר תרשים", key="remove_saved_map"):
-                del st.session_state['saved_stadium_map_bytes']
-                st.rerun()
-        elif 'pasted_stadium_map' in st.session_state and st.session_state['pasted_stadium_map']:
-            stadium_image = st.session_state['pasted_stadium_map']
-            st.image(stadium_image, caption="תרשים מושבים (מהלוח)", use_container_width=True)
-            if st.button("🗑️ הסר תרשים", key="remove_pasted_map"):
-                del st.session_state['pasted_stadium_map']
-                st.rerun()
-        else:
-            col_paste, col_upload = st.columns([1, 1])
-            with col_paste:
-                paste_map = paste_image_button(
-                    label="📋 הדבק תרשים מהלוח",
-                    key="paste_stadium_map",
-                    background_color="#667eea",
-                    hover_background_color="#5a6fd6"
-                )
-                if paste_map and paste_map.image_data:
-                    st.session_state['pasted_stadium_map'] = paste_map.image_data
-                    st.rerun()
+                        if capacity:
+                            st.info(f"🎤 **{venue_name}, {venue_city}** - קיבולת: {capacity:,} מושבים")
+                        else:
+                            st.info(f"🎤 **{venue_name}, {venue_city}**")
+                    
+                        # Try to auto-fetch map from Ticketmaster CDN
+                        venue_id_tm = selected_concert.get('venue_id', '')
+                        auto_map_found = False
+                    
+                        if venue_id_tm and not concert_map_path:
+                            # Try common Ticketmaster seatmap URL patterns
+                            map_patterns = [
+                                f"https://media.ticketmaster.co.uk/tm/en-gb/tmimages/venue/maps/uk2/{venue_id_tm}s.gif",
+                                f"https://media.ticketmaster.eu/tm/en-eu/tmimages/venue/maps/eu/{venue_id_tm}s.gif",
+                                f"https://s1.ticketm.net/tm/en-us/tmimages/venue/maps/nyc/{venue_id_tm}s.gif",
+                            ]
+                        
+                            for pattern_url in map_patterns:
+                                try:
+                                    headers = {'User-Agent': 'Mozilla/5.0'}
+                                    test_resp = requests.head(pattern_url, headers=headers, timeout=5)
+                                    if test_resp.status_code == 200:
+                                        # Found a map! Download it
+                                        img_resp = requests.get(pattern_url, headers=headers, timeout=15)
+                                        if img_resp.status_code == 200:
+                                            os.makedirs('attached_assets/concert_venue_maps', exist_ok=True)
+                                            ext = 'gif' if 'gif' in pattern_url else 'png'
+                                            save_path = f'attached_assets/concert_venue_maps/{concert_venue_id}.{ext}'
+                                            with open(save_path, 'wb') as f:
+                                                f.write(img_resp.content)
+                                            st.success(f"✅ נמצאה והורדה מפת מושבים אוטומטית!")
+                                            auto_map_found = True
+                                            concert_map_path = save_path
+                                            st.image(save_path, caption=f"מפת מושבים - {venue_name}", use_container_width=True)
+                                            break
+                                except:
+                                    continue
+                    
+                        if not auto_map_found:
+                            st.markdown("**📥 הדבק מפת מושבים** (תישמר לשימוש עתידי)")
+                        
+                            venue_url = selected_concert.get('venue_url', '')
+                            if venue_url:
+                                st.markdown(f"🔗 [לחץ כאן לפתוח את עמוד האולם ב-Ticketmaster]({venue_url})")
+                            elif concert_url:
+                                st.markdown(f"🔗 [לחץ כאן לפתוח את דף האירוע ב-Ticketmaster]({concert_url})")
+                        
+                            st.info("📋 **צלם את מפת המושבים עם מספריים (Win+Shift+S) והדבק כאן:**")
+                        
+                            from streamlit_paste_button import paste_image_button as pbutton
+                        
+                            paste_result = pbutton(
+                                label="📋 הדבק מפה מהמספריים (Ctrl+V)",
+                                key=f"paste_map_{concert_venue_id}"
+                            )
+                        
+                            if paste_result and paste_result.image_data:
+                                try:
+                                    os.makedirs('attached_assets/concert_venue_maps', exist_ok=True)
+                                    save_path = f'attached_assets/concert_venue_maps/{concert_venue_id}.png'
+                                    paste_result.image_data.save(save_path, 'PNG')
+                                    st.success("✅ המפה נשמרה! היא תופיע אוטומטית בפעם הבאה שתבחר את ההופעה הזו.")
+                                    st.rerun()
+                                except Exception as e:
+                                    st.error(f"❌ שגיאה בשמירה: {str(e)}")
             
-            with col_upload:
-                uploaded_map = st.file_uploader("📁 העלה קובץ", type=['png', 'jpg', 'jpeg'], key="upload_stadium_map")
-                if uploaded_map:
-                    st.session_state['pasted_stadium_map'] = Image.open(uploaded_map)
+                elif concert_venue_info:
+                    venue_name_he = concert_venue_info.get('name_he', '')
+                    capacity = concert_venue_info.get('capacity', 0)
+                    categories = concert_venue_info.get('categories', [])
+                
+                    specific_venue_map = get_venue_map_path(concert_venue_id, use_fallback=False)
+                    if specific_venue_map and os.path.exists(specific_venue_map):
+                        auto_stadium_map = specific_venue_map
+                        st.success(f"✅ נמצאה מפת מושבים אוטומטית עבור {venue_name_he}")
+                        st.image(specific_venue_map, caption=f"מפת מושבים - {venue_name_he}", use_container_width=True)
+                    else:
+                        venue_map_fallback = get_venue_map_path(concert_venue_id, use_fallback=True)
+                        if venue_map_fallback and os.path.exists(venue_map_fallback):
+                            auto_stadium_map = venue_map_fallback
+                            st.info(f"🎤 **{venue_name_he}** - קיבולת: {capacity:,} מושבים\n\n📍 קטגוריות זמינות: {', '.join(categories)}")
+                            st.caption("תמונת אווירה כללית תופיע במסמך. ניתן להעלות מפת מושבים ספציפית:")
+                        else:
+                            st.info(f"🎤 **{venue_name_he}** - קיבולת: {capacity:,} מושבים\n\n📍 קטגוריות זמינות: {', '.join(categories)}")
+                            st.markdown("*העלה תרשים מושבים של האולם להצגה במסמך ההזמנה:*")
+        
+            stadium_image = None
+        
+            # Check for saved concert map bytes first (from database)
+            saved_map_bytes = st.session_state.get('saved_stadium_map_bytes')
+            if saved_map_bytes:
+                from io import BytesIO
+                st.success("✅ תרשים מושבים מההופעה השמורה")
+                st.image(saved_map_bytes, caption="תרשים מושבים (מההופעה השמורה)", use_container_width=True)
+                stadium_image = Image.open(BytesIO(saved_map_bytes))
+                if st.button("🗑️ הסר תרשים", key="remove_saved_map"):
+                    del st.session_state['saved_stadium_map_bytes']
                     st.rerun()
+            elif 'pasted_stadium_map' in st.session_state and st.session_state['pasted_stadium_map']:
+                stadium_image = st.session_state['pasted_stadium_map']
+                st.image(stadium_image, caption="תרשים מושבים (מהלוח)", use_container_width=True)
+                if st.button("🗑️ הסר תרשים", key="remove_pasted_map"):
+                    del st.session_state['pasted_stadium_map']
+                    st.rerun()
+            else:
+                col_paste, col_upload = st.columns([1, 1])
+                with col_paste:
+                    paste_map = paste_image_button(
+                        label="📋 הדבק תרשים מהלוח",
+                        key="paste_stadium_map",
+                        background_color="#667eea",
+                        hover_background_color="#5a6fd6"
+                    )
+                    if paste_map and paste_map.image_data:
+                        st.session_state['pasted_stadium_map'] = paste_map.image_data
+                        st.rerun()
             
-            if not auto_stadium_map:
-                st.caption("💡 ניתן גם להשתמש בכלי **🗺️ הורדת מפות** בסרגל הכלים")
+                with col_upload:
+                    uploaded_map = st.file_uploader("📁 העלה קובץ", type=['png', 'jpg', 'jpeg'], key="upload_stadium_map")
+                    if uploaded_map:
+                        st.session_state['pasted_stadium_map'] = Image.open(uploaded_map)
+                        st.rerun()
+            
+                if not auto_stadium_map:
+                    st.caption("💡 ניתן גם להשתמש בכלי **🗺️ הורדת מפות** בסרגל הכלים")
         
-        stadium_photo = None
+            stadium_photo = None
         
+            # === SAVE EVENT BUTTONS (MOVED HERE - BEFORE HOTEL/FLIGHTS) ===
+            st.markdown("---")
+            st.markdown("---")
+        
+            event_label = {
+                'concert': 'הופעה',
+                'football': 'משחק כדורגל',
+                'worldcup_2026': 'משחק מונדיאל'
+            }.get(st.session_state.get('event_type_selected'), 'אירוע')
+        
+            col_add, col_finish, col_skip = st.columns([2, 2, 1])
+        
+            # Shared save logic function
+            def save_current_game():
+                game_data = {
+                    'event_type': event_type,
+                    'home_team_hebrew': st.session_state.get('home_team_hebrew', ''),
+                    'away_team_hebrew': st.session_state.get('away_team_hebrew', ''),
+                    'selected_team_data': st.session_state.get('selected_team_data', {}),
+                    'away_team_data': st.session_state.get('away_team_data', {}),
+                    'fixture_data': st.session_state.get('fixture_data', {}),
+                    'concert_artist_en': st.session_state.get('concert_artist_en', ''),
+                    'concert_artist_he': st.session_state.get('concert_artist_he', ''),
+                    'concert_venue_name': st.session_state.get('concert_venue_name', ''),
+                    'concert_venue_city': st.session_state.get('concert_venue_city', ''),
+                    'concert_venue_info': st.session_state.get('concert_venue_info', {}),
+                    'concert_selected_category': st.session_state.get('concert_selected_category', ''),
+                    'worldcup_venue': st.session_state.get('worldcup_venue', ''),
+                    'worldcup_category': st.session_state.get('worldcup_category', ''),
+                    'worldcup_stadium_map': st.session_state.get('worldcup_stadium_map', ''),
+                    'saved_stadium_map_bytes': st.session_state.get('saved_stadium_map_bytes', None),
+                    'pasted_stadium_map': st.session_state.get('pasted_stadium_map', None),
+                    'football_league': st.session_state.get('football_league', ''),
+                    '_extracted_date': st.session_state.get('_extracted_date', ''),
+                    '_extracted_time': st.session_state.get('_extracted_time', '')
+                }
+            
+                # Persist league stadium map path so PDF can show it (league maps from stadium_maps/ are not in worldcup/saved_bytes)
+                if event_type == "כדורגל":
+                    team_data = st.session_state.get('selected_team_data', {}) or game_data.get('selected_team_data', {})
+                    if isinstance(team_data, dict) and team_data.get('name'):
+                        league_map = get_team_map_path(team_data['name'])
+                        if league_map and os.path.exists(league_map):
+                            game_data['league_stadium_map_path'] = league_map
+                # Create display text
+                if event_type == "כדורגל":
+                    home = game_data.get('home_team_hebrew', '')
+                    away = game_data.get('away_team_hebrew', '')
+                    if home and away:
+                        game_data['display_text'] = f"{home} נגד {away}"
+                        fixture = game_data.get('fixture_data', {})
+                        if fixture.get('date'):
+                            game_data['details'] = f"📅 {fixture['date']}"
+                            if fixture.get('time'):
+                                game_data['details'] += f" ⏰ {fixture['time']}"
+                    else:
+                        game_data['display_text'] = "משחק כדורגל"
+                elif event_type == "הופעה":
+                    artist = game_data.get('concert_artist_he') or game_data.get('concert_artist_en', '')
+                    venue = game_data.get('concert_venue_name', '')
+                    city = game_data.get('concert_venue_city', '')
+                    if artist:
+                        game_data['display_text'] = f"{artist}"
+                        if venue:
+                            game_data['details'] = f"📍 {venue}"
+                            if city:
+                                game_data['details'] += f", {city}"
+                    else:
+                        game_data['display_text'] = "הופעה"
+            
+                st.session_state['saved_games'].append(game_data)
+            
+                # Clear current event data for next one
+                event_keys_to_clear = [
+                    'selected_team_data', 'away_team_data', 'home_team_hebrew', 'away_team_hebrew',
+                    'football_league', 'fixture_data', 'worldcup_match', 'worldcup_venue', 'worldcup_stadium_map',
+                    'worldcup_category', 'concert_artist_en', 'concert_artist_he', 'concert_venue_name',
+                    'concert_venue_city', 'concert_venue_info', 'concert_selected_category', '_concert_venue_id',
+                    '_selected_concert', '_from_saved_concert', 'pasted_stadium_map', 'saved_stadium_map_bytes',
+                    '_extracted_date', '_extracted_time', '_artist_results', '_live_concerts', '_selected_artist_id',
+                    '_last_events_fetch', '_manual_concert_entry', '_extracted_concert', 'concert_ocr_result',
+                    'concert_pasted_image', '_prev_concert_venue', '_artist_search_query', '_last_artist_search',
+                    '_search_selected_artist_id', '_search_selected_artist_name', 'fixture_lookup_key',
+                    '_prev_football_mode'
+                ]
+                for key in event_keys_to_clear:
+                    if key in st.session_state:
+                        del st.session_state[key]
+        
+            with col_add:
+                if st.button(f"💾 שמור והוסף עוד", type="primary", use_container_width=True, key="save_and_add_another"):
+                    save_current_game()
+                    st.success(f"✅ {event_label} נשמר! תוכל להוסיף עוד אחד.")
+                    st.rerun()
+        
+            with col_finish:
+                if st.button(f"✅ שמור וסיים", type="secondary", use_container_width=True, key="save_and_finish"):
+                    save_current_game()
+                    st.session_state['finished_adding_games'] = True
+                    st.success(f"✅ {event_label} נשמר! ממשיך לשאר הטופס...")
+                    st.rerun()
+        
+            with col_skip:
+                st.caption("← או דלג אם זה המשחק האחרון")
+        
+            st.markdown("---")
+            # === END SAVE EVENT SECTION ===
+        
+        st.markdown("---")
         hotel_image = None
         hotel_image_2 = None
         
@@ -3226,7 +3867,7 @@ def page_new_order():
             
             col_nights, col_stars = st.columns(2)
             with col_nights:
-                hotel_nights = st.number_input("מספר לילות", min_value=1, value=rd.get('hotel_nights', 3))
+                hotel_nights = st.number_input("מספר לילות", min_value=1, value=int(rd.get('hotel_nights') or 3))
             with col_stars:
                 stars_options = ["3 כוכבים", "4 כוכבים", "5 כוכבים"]
                 default_stars = hd.get('hotel_stars') or rd.get('hotel_stars', '5 כוכבים')
@@ -3242,13 +3883,13 @@ def page_new_order():
             if 'flights_data' not in st.session_state:
                 if rd.get('outbound_from'):
                     st.session_state.flights_data = {
-                        'outbound': {'from': rd.get('outbound_from', 'TLV'), 'to': rd.get('outbound_to', ''), 'date': rd.get('outbound_date', ''), 'time': rd.get('outbound_time', ''), 'flight_no': rd.get('outbound_flight', '')},
-                        'return': {'from': rd.get('return_from', ''), 'to': rd.get('return_to', 'TLV'), 'date': rd.get('return_date', ''), 'time': rd.get('return_time', ''), 'flight_no': rd.get('return_flight', '')}
+                        'outbound': {'from': rd.get('outbound_from', 'TLV'), 'to': rd.get('outbound_to', ''), 'date': rd.get('outbound_date', ''), 'time': rd.get('outbound_time', ''), 'flight_no': rd.get('outbound_flight', ''), 'airline': rd.get('outbound_airline', '')},
+                        'return': {'from': rd.get('return_from', ''), 'to': rd.get('return_to', 'TLV'), 'date': rd.get('return_date', ''), 'time': rd.get('return_time', ''), 'flight_no': rd.get('return_flight', ''), 'airline': rd.get('return_airline', '')}
                     }
                 else:
                     st.session_state.flights_data = {
-                        'outbound': {'from': 'TLV', 'to': '', 'date': '', 'time': '', 'flight_no': ''},
-                        'return': {'from': '', 'to': 'TLV', 'date': '', 'time': '', 'flight_no': ''}
+                        'outbound': {'from': 'TLV', 'to': '', 'date': '', 'time': '', 'flight_no': '', 'airline': ''},
+                        'return': {'from': '', 'to': 'TLV', 'date': '', 'time': '', 'flight_no': '', 'airline': ''}
                     }
             
             fd = st.session_state.flights_data
@@ -3296,19 +3937,22 @@ def page_new_order():
                             if direction in ['outbound', 'return']:
                                 for key in [f"flight_{direction}_from", f"flight_{direction}_to", 
                                            f"flight_{direction}_date", f"flight_{direction}_time", 
-                                           f"flight_{direction}_no"]:
+                                           f"flight_{direction}_no", f"flight_{direction}_airline"]:
                                     if key in st.session_state:
                                         del st.session_state[key]
                                 
                                 from_code = f.get('from', '').upper().strip()
                                 to_code = f.get('to', '').upper().strip()
+                                flight_no = f.get('flight_no', '')
+                                airline = f.get('airline', '') or get_airline_from_flight(flight_no)
                                 
                                 st.session_state.flights_data[direction] = {
                                     'from': from_code,
                                     'to': to_code,
                                     'date': f.get('date', ''),
                                     'time': f.get('time', ''),
-                                    'flight_no': f.get('flight_no', '')
+                                    'flight_no': flight_no,
+                                    'airline': airline
                                 }
                                 
                                 from_display = format_airport_display(from_code) if from_code else ""
@@ -3319,6 +3963,7 @@ def page_new_order():
                                 st.session_state[f"flight_{direction}_date"] = f.get('date', '')
                                 st.session_state[f"flight_{direction}_time"] = f.get('time', '')
                                 st.session_state[f"flight_{direction}_no"] = f.get('flight_no', '')
+                                st.session_state[f"flight_{direction}_airline"] = airline
                         
                         st.success(f"✅ נסרקו {len(flights)} טיסות!")
                         st.rerun()
@@ -3354,6 +3999,17 @@ def page_new_order():
                     st.session_state["flight_outbound_no"] = fd['outbound'].get('flight_no', '')
                 outbound_no = st.text_input("מס' טיסה", placeholder="LY315", key="flight_outbound_no")
             
+            # Auto-detect airline from flight number
+            detected_outbound_airline = ""
+            if outbound_no:
+                detected_outbound_airline = get_airline_from_flight(outbound_no)
+                if detected_outbound_airline:
+                    st.caption(f"✓ זוהה: {detected_outbound_airline}")
+            
+            # Initialize with detected value or from saved data
+            default_outbound_airline = detected_outbound_airline or fd['outbound'].get('airline', '')
+            outbound_airline = st.text_input("חברת תעופה", value=default_outbound_airline, placeholder="Air Europa", key="flight_outbound_airline")
+            
             st.markdown("**טיסת חזור:**")
             col_ret1, col_ret2 = st.columns(2)
             with col_ret1:
@@ -3381,6 +4037,17 @@ def page_new_order():
                     st.session_state["flight_return_no"] = fd['return'].get('flight_no', '')
                 return_no = st.text_input("מס' טיסה", placeholder="LY316", key="flight_return_no")
             
+            # Auto-detect airline from return flight number
+            detected_return_airline = ""
+            if return_no:
+                detected_return_airline = get_airline_from_flight(return_no)
+                if detected_return_airline:
+                    st.caption(f"✓ זוהה: {detected_return_airline}")
+            
+            # Initialize with detected value or from saved data
+            default_return_airline = detected_return_airline or fd['return'].get('airline', '')
+            return_airline = st.text_input("חברת תעופה", value=default_return_airline, placeholder="El Al", key="flight_return_airline")
+            
             out_from_code = get_airport_code(outbound_from)
             out_to_code = get_airport_code(outbound_to)
             ret_from_code = get_airport_code(return_from)
@@ -3394,7 +4061,8 @@ def page_new_order():
                     'to': out_to_code,
                     'date': outbound_date,
                     'time': outbound_time,
-                    'flight_no': outbound_no
+                    'flight_no': outbound_no,
+                    'airline': outbound_airline
                 })
             if ret_from_code and ret_to_code:
                 flights_list.append({
@@ -3403,7 +4071,8 @@ def page_new_order():
                     'to': ret_to_code,
                     'date': return_date,
                     'time': return_time,
-                    'flight_no': return_no
+                    'flight_no': return_no,
+                    'airline': return_airline
                 })
             
             flight_details = ""
@@ -3415,7 +4084,9 @@ def page_new_order():
                         line += f" {f['date']}"
                     if f['time']:
                         line += f" {f['time']}"
-                    if f['flight_no']:
+                    if f.get('airline') and f.get('flight_no'):
+                        line += f" ({f['airline']} - {f['flight_no']})"
+                    elif f.get('flight_no'):
                         line += f" ({f['flight_no']})"
                     lines.append(line)
                 flight_details = "\n".join(lines)
@@ -3492,9 +4163,9 @@ def page_new_order():
         with col_price:
             currency_symbol = get_currency_symbol(selected_currency)
             currency_name = get_currency_name_hebrew(selected_currency)
-            price_foreign = st.number_input(f"מחיר לאדם ({currency_symbol})", min_value=0, value=rd.get('price_euro', 330))
+            price_foreign = st.number_input(f"מחיר לאדם ({currency_symbol})", min_value=0, value=int(rd.get('price_euro') or 330))
         with col_qty:
-            num_tickets = st.number_input("מספר כרטיסים", min_value=1, value=rd.get('num_tickets', 2))
+            num_tickets = st.number_input("מספר כרטיסים", min_value=1, value=int(rd.get('num_tickets') or 2))
         
         rates = fetch_exchange_rates()
         exchange_rate = rates.get(selected_currency, 3.78)
@@ -3731,9 +4402,15 @@ def page_new_order():
         st.markdown("### 👁️ תצוגה מקדימה")
         
         if stadium_image:
-            st.image(stadium_image, caption="תרשים מושבים", use_container_width=True)
+            try:
+                st.image(stadium_image, caption="תרשים מושבים", use_container_width=True)
+            except Exception:
+                st.caption("תרשים מושבים (לא זמין)")
         elif auto_stadium_map and os.path.exists(auto_stadium_map):
-            st.image(auto_stadium_map, caption="תרשים מושבים (אוטומטי)", use_container_width=True)
+            try:
+                st.image(auto_stadium_map, caption="תרשים מושבים (אוטומטי)", use_container_width=True)
+            except Exception:
+                st.caption("תרשים מושבים (לא זמין)")
         if hotel_image or hotel_image_2:
             if hotel_image and hotel_image_2:
                 col_h1, col_h2 = st.columns(2)
@@ -3746,12 +4423,26 @@ def page_new_order():
         
         st.markdown("#### 📋 סיכום ההזמנה")
         
-        if event_name:
-            st.info(f"**אירוע:** {event_name}")
-        if event_date:
-            st.write(f"**תאריך:** {event_date.strftime('%d/%m/%Y')} {event_time.strftime('%H:%M')}")
-        if venue:
-            st.write(f"**מקום:** {venue}")
+        saved_games_summary = st.session_state.get('saved_games', [])
+        if saved_games_summary:
+            st.write("**אירועים:**")
+            for idx, sg in enumerate(saved_games_summary):
+                txt = sg.get('display_text', f"אירוע {idx + 1}")
+                det = sg.get('details', '')
+                st.write(f"- **אירוע {idx + 1}:** {txt}")
+                if det:
+                    st.caption(det)
+            if event_date:
+                st.write(f"**תאריך (אירוע ראשון):** {event_date.strftime('%d/%m/%Y')} {event_time.strftime('%H:%M')}")
+            if venue:
+                st.write(f"**מקום:** {venue}")
+        else:
+            if event_name:
+                st.info(f"**אירוע:** {event_name}")
+            if event_date:
+                st.write(f"**תאריך:** {event_date.strftime('%d/%m/%Y')} {event_time.strftime('%H:%M')}")
+            if venue:
+                st.write(f"**מקום:** {venue}")
         if customer_name:
             st.write(f"**לקוח:** {customer_name}")
         if category:
@@ -3824,7 +4515,8 @@ def page_new_order():
                 'bag_trolley': bag_trolley if product_type == 'package' else False,
                 'bag_checked': bag_checked if product_type == 'package' else '',
                 'is_date_final': is_date_final,
-                'seats_together': seats_together
+                'seats_together': seats_together,
+                'saved_games': st.session_state.get('saved_games', [])  # Include all saved games
             }
             
             stadium_img = None
@@ -3874,17 +4566,101 @@ def page_new_order():
             
             st.markdown("### 📤 פעולות")
             
-            col_btn1, col_btn2 = st.columns(2)
+            col_btn1, col_btn2, col_btn3 = st.columns(3)
             with col_btn1:
                 if st.button("📦 שמור כחבילה קבועה", type="secondary", use_container_width=True):
                     st.session_state['show_save_package_form'] = True
             with col_btn2:
+                if st.button("💼 שמור כהצעה ללקוח", type="secondary", use_container_width=True):
+                    st.session_state['show_save_proposal_form'] = True
+            with col_btn3:
                 generate_pdf_btn = st.button("📄 צור PDF ושמור הזמנה", type="primary", use_container_width=True)
             
             if st.session_state.get('package_saved_success'):
                 st.success(f"✅ החבילה '{st.session_state['package_saved_success']}' נשמרה בהצלחה!")
                 st.info("💡 תוכל למצוא אותה ב'חבילות קבועות' בתפריט או לטעון אותה מהרשימה למעלה.")
                 del st.session_state['package_saved_success']
+            
+            if st.session_state.get('proposal_saved_success'):
+                st.success(f"✅ ההצעה '{st.session_state['proposal_saved_success']}' נשמרה בהצלחה!")
+                st.info("💡 תוכל למצוא אותה ב'הצעות ללקוח' בתפריט.")
+                del st.session_state['proposal_saved_success']
+            
+            if st.session_state.get('show_save_proposal_form'):
+                st.markdown("---")
+                st.markdown("#### 💼 שמירה כהצעה ללקוח")
+                
+                default_prop_name = f"{customer_name} - {event_name}" if event_name and customer_name else ""
+                prop_name_input = st.text_input("📝 שם ההצעה", value=default_prop_name, placeholder="למשל: משפחת כהן - ריאל מדריד", key="save_prop_name")
+                
+                col_save, col_cancel = st.columns(2)
+                with col_save:
+                    confirm_save_prop = st.button("💾 אשר שמירת הצעה", use_container_width=True, type="primary")
+                with col_cancel:
+                    if st.button("❌ ביטול", use_container_width=True, key="cancel_proposal"):
+                        st.session_state['show_save_proposal_form'] = False
+                        st.rerun()
+                
+                if confirm_save_prop:
+                    if not prop_name_input:
+                        st.error("❌ יש להזין שם להצעה")
+                    elif not customer_name:
+                        st.error("❌ יש למלא שם לקוח")
+                    else:
+                        from models import ClientProposal, ProposalStatus
+                        db = get_db()
+                        if db:
+                            try:
+                                # Collect all proposal data (json already imported at top level)
+                                proposal_data = {
+                                    'customer_name': customer_name,
+                                    'customer_id': customer_id,
+                                    'customer_phone': customer_phone,
+                                    'customer_email': customer_email,
+                                    'product_type': product_type,
+                                    'event_name': event_name,
+                                    'event_type': event_type,
+                                    'event_date': event_date.strftime('%d/%m/%Y'),
+                                    'event_time': event_time.strftime('%H:%M'),
+                                    'venue': venue,
+                                    'ticket_description': ticket_description,
+                                    'category': category,
+                                    'num_tickets': num_tickets,
+                                    'currency': selected_currency,
+                                    'price_per_ticket': price_foreign,
+                                    'total_foreign': total_foreign,
+                                    'total_nis': total_nis,
+                                    'passengers': passengers,
+                                    'saved_games': st.session_state.get('saved_games', []),
+                                    'hotel_name': hotel_name if product_type == 'package' else '',
+                                    'hotel_nights': hotel_nights if product_type == 'package' else 0,
+                                    'hotel_stars': hotel_stars if product_type == 'package' else '',
+                                    'hotel_meals': hotel_meals if product_type == 'package' else '',
+                                    'flights': flights_list if product_type == 'package' else [],
+                                    'transfers': transfers if product_type == 'package' else False
+                                }
+                                
+                                new_proposal = ClientProposal(
+                                    proposal_name=prop_name_input,
+                                    customer_name=customer_name,
+                                    customer_email=customer_email or '',
+                                    customer_phone=customer_phone or '',
+                                    proposal_data=json.dumps(proposal_data),
+                                    total_price_euro=float(total_foreign),
+                                    total_price_nis=float(total_nis),
+                                    status=ProposalStatus.DRAFT
+                                )
+                                
+                                db.add(new_proposal)
+                                db.commit()
+                                st.session_state['proposal_saved_success'] = prop_name_input
+                                st.session_state['show_save_proposal_form'] = False
+                                st.rerun()
+                            except Exception as e:
+                                db.rollback()
+                                st.error(f"❌ שגיאה בשמירה: {str(e)}")
+                            finally:
+                                db.close()
             
             if st.session_state.get('show_save_package_form'):
                 st.markdown("---")
@@ -3937,14 +4713,16 @@ def page_new_order():
                                             'to': outbound_flight.get('to', ''),
                                             'date': outbound_flight.get('date', ''),
                                             'time': outbound_flight.get('time', ''),
-                                            'flight_number': outbound_flight.get('flight_no', '')
+                                            'flight_number': outbound_flight.get('flight_no', ''),
+                                            'airline': outbound_flight.get('airline', '')
                                         },
                                         'return': {
                                             'from': return_flight.get('from', ''),
                                             'to': return_flight.get('to', ''),
                                             'date': return_flight.get('date', ''),
                                             'time': return_flight.get('time', ''),
-                                            'flight_number': return_flight.get('flight_no', '')
+                                            'flight_number': return_flight.get('flight_no', ''),
+                                            'airline': return_flight.get('airline', '')
                                         }
                                     }
                                 
@@ -3997,23 +4775,29 @@ def page_new_order():
             if generate_pdf_btn:
                 order_number = generate_order_number()
                 order_data['order_number'] = order_number
-                
+                pdf_bytes = None
                 with st.spinner("יוצר PDF..."):
-                    pdf_bytes = generate_pdf(order_data, stadium_img, hotel_img, hotel_img_2, stadium_photo_img, template_version)
-                    st.session_state.pdf_bytes = pdf_bytes
-                    st.session_state.order_generated = True
-                    st.session_state.current_order_number = order_number
-                
-                st.success("✅ ה-PDF נוצר בהצלחה!")
-                st.info(f"📋 מספר הזמנה: {order_number}")
-                
-                # Try to save to database (may be slow, but PDF is already ready)
-                try:
-                    saved_order = save_order_to_db(order_data, pdf_bytes)
-                    if saved_order:
-                        st.session_state.current_order_id = saved_order.id
-                except Exception as e:
-                    st.warning("⚠️ ההזמנה לא נשמרה במסד הנתונים, אך ה-PDF זמין להורדה.")
+                    try:
+                        pdf_bytes = generate_pdf(order_data, stadium_img, hotel_img, hotel_img_2, stadium_photo_img, template_version)
+                        st.session_state.pdf_bytes = pdf_bytes
+                        st.session_state.order_generated = True
+                        st.session_state.current_order_number = order_number
+                        st.success("✅ ה-PDF נוצר בהצלחה!")
+                        st.info(f"📋 מספר הזמנה: {order_number}")
+                    except Exception as e:
+                        st.error(f"❌ יצירת PDF נכשלה: {str(e)}")
+                        st.code(str(e), language="text")
+                        import traceback
+                        with st.expander("פרטי השגיאה"):
+                            st.code(traceback.format_exc())
+
+                if pdf_bytes:
+                    try:
+                        saved_order = save_order_to_db(order_data, pdf_bytes)
+                        if saved_order:
+                            st.session_state.current_order_id = saved_order.id
+                    except Exception as e:
+                        st.warning("⚠️ ההזמנה לא נשמרה במסד הנתונים, אך ה-PDF זמין להורדה.")
             
             if st.session_state.get('order_generated') and st.session_state.get('pdf_bytes'):
                 filename = f"הזמנה_{customer_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
@@ -5023,6 +5807,226 @@ def page_package_templates():
                 st.markdown('</div>', unsafe_allow_html=True)
                 st.markdown("")
 
+def page_proposals():
+    """Page for managing client proposals"""
+    st.markdown("""
+    <div class="header-container">
+        <h1>💼 הצעות ללקוח</h1>
+        <p>ניהול הצעות מחיר ללקוחות</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    if st.button("⬅️ חזרה לתפריט"):
+        st.session_state.admin_page = None
+        st.rerun()
+    
+    st.markdown("---")
+    
+    st.info("💡 **ליצור הצעה חדשה:** מלא את טופס ההזמנה הרגיל ולחץ על '💼 שמור כהצעה ללקוח'.")
+    
+    st.markdown("### 📋 הצעות שמורות")
+    
+    from models import ClientProposal, ProposalStatus
+    
+    db = get_db()
+    proposals = []
+    if db:
+        try:
+            proposals = db.query(ClientProposal).filter(ClientProposal.is_active == True).order_by(ClientProposal.created_at.desc()).all()
+        except Exception as e:
+            st.error(f"❌ שגיאה בטעינת הצעות: {e}")
+        finally:
+            db.close()
+    
+    if not proposals:
+        st.info("💼 אין הצעות שמורות. לך להזמנה חדשה ושמור הצעה משם.")
+    else:
+        st.markdown(f"**סה\"כ: {len(proposals)} הצעות**")
+        
+        # Status filter
+        status_filter = st.multiselect(
+            "סנן לפי סטטוס",
+            ["draft", "sent", "accepted", "rejected"],
+            default=["draft", "sent"],
+            format_func=lambda x: {"draft": "טיוטה", "sent": "נשלח", "accepted": "אושר", "rejected": "נדחה"}[x]
+        )
+        
+        filtered_proposals = [p for p in proposals if p.status.value in status_filter] if status_filter else proposals
+        
+        for proposal in filtered_proposals:
+            prop_dict = proposal.to_dict()
+            with st.container():
+                st.markdown('<div class="form-section">', unsafe_allow_html=True)
+                
+                col1, col2, col3 = st.columns([4, 2, 2])
+                
+                with col1:
+                    st.markdown(f"### 💼 {prop_dict.get('name', 'הצעה')}")
+                    st.markdown(f"👤 **לקוח:** {prop_dict.get('customer_name', '')}")
+                    if prop_dict.get('customer_email'):
+                        st.caption(f"📧 {prop_dict.get('customer_email')}")
+                    if prop_dict.get('customer_phone'):
+                        st.caption(f"📱 {prop_dict.get('customer_phone')}")
+                
+                with col2:
+                    created = prop_dict.get('created_at', '')
+                    if created:
+                        st.markdown(f"📅 {created[:10]}")
+                    if prop_dict.get('total_price_euro'):
+                        st.markdown(f"💶 {prop_dict.get('total_price_euro'):.0f}€")
+                    if prop_dict.get('total_price_nis'):
+                        st.markdown(f"💰 {prop_dict.get('total_price_nis'):,.0f}₪")
+                    
+                    # Status badge
+                    status_colors = {
+                        'draft': ('#6c757d', 'טיוטה'),
+                        'sent': ('#007bff', 'נשלח'),
+                        'accepted': ('#28a745', 'אושר'),
+                        'rejected': ('#dc3545', 'נדחה')
+                    }
+                    color, label = status_colors.get(prop_dict.get('status', 'draft'), ('#6c757d', 'טיוטה'))
+                    st.markdown(f'<span style="background: {color}; color: white; padding: 4px 12px; border-radius: 12px; font-size: 0.85rem;">{label}</span>', unsafe_allow_html=True)
+                
+                with col3:
+                    # Action buttons
+                    if st.button("✏️ ערוך", key=f"edit_prop_{proposal.id}", use_container_width=True):
+                        # Load proposal data back to form
+                        data = prop_dict.get('data', {})
+                        st.session_state.admin_page = None
+                        st.session_state['load_proposal_data'] = data
+                        st.rerun()
+                    
+                    col_a, col_b = st.columns(2)
+                    with col_a:
+                        if st.button("📋", key=f"dup_prop_{proposal.id}", help="שכפל", use_container_width=True):
+                            dup_db = get_db()
+                            if dup_db:
+                                try:
+                                    import json
+                                    new_prop = ClientProposal(
+                                        proposal_name=f"{proposal.proposal_name} (עותק)",
+                                        customer_name=proposal.customer_name,
+                                        customer_email=proposal.customer_email,
+                                        customer_phone=proposal.customer_phone,
+                                        proposal_data=proposal.proposal_data,
+                                        total_price_euro=proposal.total_price_euro,
+                                        total_price_nis=proposal.total_price_nis,
+                                        status=ProposalStatus.DRAFT
+                                    )
+                                    dup_db.add(new_prop)
+                                    dup_db.commit()
+                                    st.success("✅ ההצעה שוכפלה!")
+                                    st.rerun()
+                                except Exception as e:
+                                    dup_db.rollback()
+                                    st.error(f"❌ {e}")
+                                finally:
+                                    dup_db.close()
+                    with col_b:
+                        if st.button("🗑️", key=f"del_prop_{proposal.id}", help="מחק", use_container_width=True):
+                            del_db = get_db()
+                            if del_db:
+                                try:
+                                    del_db.query(ClientProposal).filter(ClientProposal.id == proposal.id).update({'is_active': False})
+                                    del_db.commit()
+                                    st.success("✅ ההצעה נמחקה!")
+                                    st.rerun()
+                                except:
+                                    del_db.rollback()
+                                finally:
+                                    del_db.close()
+                
+                with st.expander("📄 פרטים מלאים"):
+                    data = prop_dict.get('data', {})
+                    col1, col2 = st.columns(2)
+                    
+                    with col1:
+                        st.markdown("**פרטי אירוע:**")
+                        if data.get('event_name'):
+                            st.write(f"- אירוע: {data.get('event_name')}")
+                        if data.get('event_date'):
+                            st.write(f"- תאריך: {data.get('event_date')}")
+                        if data.get('venue'):
+                            st.write(f"- מקום: {data.get('venue')}")
+                        if data.get('category'):
+                            st.write(f"- קטגוריה: {data.get('category')}")
+                        
+                        saved_games = data.get('saved_games', [])
+                        if saved_games:
+                            st.markdown("**אירועים נוספים:**")
+                            for idx, game in enumerate(saved_games):
+                                st.write(f"  {idx+1}. {game.get('display_text', '')}")
+                    
+                    with col2:
+                        st.markdown("**פרטי לקוח:**")
+                        if data.get('customer_name'):
+                            st.write(f"- שם: {data.get('customer_name')}")
+                        if data.get('customer_email'):
+                            st.write(f"- אימייל: {data.get('customer_email')}")
+                        if data.get('customer_phone'):
+                            st.write(f"- טלפון: {data.get('customer_phone')}")
+                        
+                        st.markdown("**נוסעים:**")
+                        passengers = data.get('passengers', [])
+                        if isinstance(passengers, str):
+                            try:
+                                import json
+                                passengers = json.loads(passengers)
+                            except:
+                                passengers = []
+                        st.write(f"- מספר: {len(passengers) if passengers else 0}")
+                    
+                    # Status update buttons
+                    st.markdown("---")
+                    st.markdown("**עדכון סטטוס:**")
+                    col_s1, col_s2, col_s3 = st.columns(3)
+                    with col_s1:
+                        if st.button("📤 נשלח", key=f"sent_prop_{proposal.id}", use_container_width=True):
+                            upd_db = get_db()
+                            if upd_db:
+                                try:
+                                    upd_db.query(ClientProposal).filter(ClientProposal.id == proposal.id).update({
+                                        'status': ProposalStatus.SENT,
+                                        'sent_at': datetime.utcnow()
+                                    })
+                                    upd_db.commit()
+                                    st.success("✅ סטטוס עודכן!")
+                                    st.rerun()
+                                except:
+                                    upd_db.rollback()
+                                finally:
+                                    upd_db.close()
+                    with col_s2:
+                        if st.button("✅ אושר", key=f"accept_prop_{proposal.id}", use_container_width=True):
+                            upd_db = get_db()
+                            if upd_db:
+                                try:
+                                    upd_db.query(ClientProposal).filter(ClientProposal.id == proposal.id).update({'status': ProposalStatus.ACCEPTED})
+                                    upd_db.commit()
+                                    st.success("✅ סטטוס עודכן!")
+                                    st.rerun()
+                                except:
+                                    upd_db.rollback()
+                                finally:
+                                    upd_db.close()
+                    with col_s3:
+                        if st.button("❌ נדחה", key=f"reject_prop_{proposal.id}", use_container_width=True):
+                            upd_db = get_db()
+                            if upd_db:
+                                try:
+                                    upd_db.query(ClientProposal).filter(ClientProposal.id == proposal.id).update({'status': ProposalStatus.REJECTED})
+                                    upd_db.commit()
+                                    st.success("✅ סטטוס עודכן!")
+                                    st.rerun()
+                                except:
+                                    upd_db.rollback()
+                                finally:
+                                    upd_db.close()
+                
+                st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("")
+
+
 def page_saved_concerts():
     """Page for managing saved concerts and artists"""
     st.markdown("""
@@ -5804,24 +6808,35 @@ def main():
     st.sidebar.markdown("##### 🔧 כלים")
     if st.sidebar.button("📦 חבילות קבועות", use_container_width=True):
         st.session_state.admin_page = "packages"
+        st.rerun()
+    if st.sidebar.button("💼 הצעות ללקוח", use_container_width=True):
+        st.session_state.admin_page = "proposals"
+        st.rerun()
     if st.sidebar.button("📖 מדריך למתחיל", use_container_width=True):
         st.session_state.admin_page = "beginner_guide"
+        st.rerun()
     if st.sidebar.button("❓ עזרה", use_container_width=True):
         st.session_state.admin_page = "help"
+        st.rerun()
     if st.sidebar.button("⭐ הופעות שמורות", use_container_width=True):
         st.session_state.admin_page = "saved_concerts"
+        st.rerun()
     if st.sidebar.button("🗺️ הורדת מפות", use_container_width=True):
         st.session_state.admin_page = "maps"
+        st.rerun()
     if st.sidebar.button("🔑 שינוי סיסמה", use_container_width=True):
         st.session_state.admin_page = "change_password"
+        st.rerun()
     
     if is_admin:
         st.sidebar.markdown("---")
         st.sidebar.markdown("##### 👑 ניהול")
         if st.sidebar.button("🖼️ ניהול תמונות", use_container_width=True):
             st.session_state.admin_page = "images"
+            st.rerun()
         if st.sidebar.button("👥 ניהול משתמשים", use_container_width=True):
             st.session_state.admin_page = "users"
+            st.rerun()
     
     st.sidebar.markdown("---")
     if st.sidebar.button("🚪 התנתק", use_container_width=True):
@@ -5836,6 +6851,8 @@ def main():
     # Determine which page to show
     if st.session_state.get("admin_page") == "packages":
         page_package_templates()
+    elif st.session_state.get("admin_page") == "proposals":
+        page_proposals()
     elif st.session_state.get("admin_page") == "beginner_guide":
         page_beginner_guide()
     elif st.session_state.get("admin_page") == "help":

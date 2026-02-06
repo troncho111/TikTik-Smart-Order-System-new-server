@@ -41,6 +41,70 @@
     /* WeasyPrint: מניעת שבירת בלוקים */
     .no-break { break-inside: avoid; page-break-inside: avoid; }
 
+    /* ====== COVER PAGE (first page) ====== */
+    .cover-page {
+      position: relative;
+      height: 100vh;
+      min-height: 1000px;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding-top: 100px;
+      background-size: cover;
+      background-position: center;
+      page-break-after: always;
+      background: var(--white);
+      border-bottom: 3px solid var(--brand-blue);
+    }
+    .cover-header {
+      font-size: 18px;
+      text-align: center;
+      margin-bottom: 40px;
+      color: #666;
+      font-weight: 400;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+    }
+    .cover-customer,
+    .cover-line1 {
+      font-size: 56px;
+      font-weight: 700;
+      text-align: center;
+      margin: 20px 0;
+      color: #1a1a1a;
+      text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      line-height: 1.2;
+    }
+    .cover-package,
+    .cover-line2 {
+      font-size: 32px;
+      text-align: center;
+      margin: 20px 0;
+      color: #2c3e50;
+      font-weight: 500;
+    }
+    .cover-details,
+    .cover-line3 {
+      font-size: 22px;
+      text-align: center;
+      color: #555;
+      margin: 20px 0 60px;
+      line-height: 1.6;
+    }
+    .cover-footer {
+      position: absolute;
+      bottom: 60px;
+      width: 100%;
+      text-align: center;
+    }
+    .cover-footer p {
+      font-size: 14px;
+      color: #999;
+      margin: 0;
+    }
+    .cover-footer img { height: 56px; width: auto; }
+
     /* ====== UPGRADED BANNER ====== */
     .banner{
       background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-dark) 100%);
@@ -893,6 +957,18 @@
 </head>
 
 <body>
+
+  <!-- ====== COVER PAGE (first page) ====== -->
+  <div class="cover-page" {% if cover_image %}style="background-image: url('{{ cover_image }}');"{% endif %}>
+    <div class="cover-header">הזמנה רשמית</div>
+    <h1 class="cover-customer">{{ cover_line1 }}</h1>
+    <h2 class="cover-package">{{ cover_line2 }}</h2>
+    <p class="cover-details">{{ cover_line3 }}</p>
+    <div class="cover-footer">
+      <p>מספר הזמנה: {{ order_id or order_number }}</p>
+      <img src="{{ logo_path }}" alt="TikTik" class="cover-logo">
+    </div>
+  </div>
 
   <!-- ====== BANNER ====== -->
   <div class="banner no-break">

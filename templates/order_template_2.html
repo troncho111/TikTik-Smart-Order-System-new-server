@@ -34,12 +34,20 @@
         
         /* PAGE 1: COVER */
         .cover-page {
-            height: 1123px;
-            width: 100%;
             position: relative;
+            height: 100vh;
+            min-height: 1000px;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            align-items: center;
+            padding-top: 100px;
             background-color: var(--tik-dark);
             overflow: hidden;
             color: white;
+            background-size: cover;
+            background-position: center;
         }
 
         .cover-bg {
@@ -61,11 +69,13 @@
             position: relative;
             z-index: 2;
             text-align: center;
-            padding-top: 60px;
+            padding-top: 0;
+            width: 100%;
             height: 100%;
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-start;
+            align-items: center;
         }
 
         .cover-logo img {
@@ -74,15 +84,17 @@
         }
 
         .cover-titles {
-            margin-bottom: 150px;
+            margin-bottom: 0;
+            margin-top: 0;
         }
 
-        .cover-subtitle {
+        .cover-subtitle,
+        .cover-header {
             font-size: 18px;
             letter-spacing: 5px;
             text-transform: uppercase;
             font-weight: 400;
-            margin-bottom: 20px;
+            margin-bottom: 40px;
             border-bottom: 2px solid var(--tik-red);
             display: inline-block;
             padding-bottom: 8px;
@@ -95,6 +107,59 @@
             margin: 0;
             text-shadow: 0 10px 30px rgba(0,0,0,0.6);
             padding: 0 40px;
+        }
+
+        .cover-customer,
+        .cover-line1 {
+            font-size: 56px;
+            font-weight: 700;
+            text-align: center;
+            margin: 20px 0;
+            color: white;
+            text-shadow: 0 6px 20px rgba(0,0,0,0.5);
+            line-height: 1.2;
+        }
+
+        .cover-package,
+        .cover-line2 {
+            font-size: 32px;
+            text-align: center;
+            margin: 20px 0;
+            color: rgba(255,255,255,0.95);
+            font-weight: 500;
+            text-shadow: 0 4px 12px rgba(0,0,0,0.4);
+        }
+
+        .cover-events-title {
+            font-size: 20px;
+            text-align: center;
+            color: rgba(255,255,255,0.9);
+            margin: 12px 0 0;
+            line-height: 1.5;
+        }
+
+        .cover-details,
+        .cover-line3 {
+            font-size: 22px;
+            text-align: center;
+            color: rgba(255,255,255,0.85);
+            margin: 20px 0 60px;
+            line-height: 1.6;
+        }
+
+        .cover-footer {
+            position: absolute;
+            bottom: 60px;
+            width: 100%;
+            text-align: center;
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .cover-footer p {
+            margin: 0;
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
         }
 
         .cover-location {
@@ -576,70 +641,84 @@
     <div class="cover-page">
         <div class="cover-bg"></div>
         <div class="cover-content">
+            <div class="cover-titles">
+                <div class="cover-header cover-subtitle">הזמנה רשמית</div>
+                <h1 class="cover-customer">{{ cover_line1 }}</h1>
+                <h2 class="cover-package">{{ cover_line2 }}</h2>
+                {% if cover_title %}
+                <p class="cover-events-title">{{ cover_title }}</p>
+                {% endif %}
+                <p class="cover-details">{{ cover_line3 }}</p>
+            </div>
+
             <div class="cover-logo">
                 <img src="{{ logo_path }}" alt="TikTik">
             </div>
 
-            <div class="cover-titles">
-                <div class="cover-subtitle">הזמנה רשמית</div>
-                <h1 class="cover-main-title">{{ event_name }}</h1>
-                <h2 class="cover-location">{{ venue_name or venue }} | {{ event_city or venue }}</h2>
-            </div>
-
-            <div class="client-name-box">
-                <h2>הוכן עבור</h2>
-                <h1>{{ customer_name }}</h1>
-                <p style="margin: 8px 0 0; opacity: 0.8; font-size: 14px; letter-spacing: 1px;">
-                    מספר הזמנה: {{ order_id or order_number }}
-                </p>
+            <div class="cover-footer">
+                <p>מספר הזמנה: {{ order_id or order_number }}</p>
+                <img src="{{ logo_path }}" alt="TikTik" class="cover-logo">
             </div>
         </div>
     </div>
 
-    <!-- PAGE 2: EVENT & MAP -->
+    <!-- PAGES: ONE PER GAME (correct count: idx of total_games) -->
+    {% for game in games or [] %}
     <div class="page-break"></div>
     <div class="content-page">
         <div class="page-header">
             <span>YOUR EXPERIENCE</span>
             <h2>פרטי האירוע והמושבים</h2>
         </div>
-
         <div class="golden-ticket">
             <div class="ticket-main">
-                <div style="font-size: 11px; font-weight: 800; color: var(--tik-red); margin-bottom: 5px;">OFFICIAL EVENT TICKET</div>
-                <h3>{{ event_name }}</h3>
-                <div style="font-size: 16px; color: #555;">{{ venue_name or venue }}, {{ event_city or venue }}</div>
-                
+                <div style="font-size: 11px; font-weight: 800; color: var(--tik-red); margin-bottom: 5px;">OFFICIAL EVENT TICKET ({{ loop.index }} of {{ total_games }})</div>
+                <h3>{{ game.display_text or 'אירוע' }}</h3>
+                {% if game.details %}
+                <div style="font-size: 16px; color: #555;">{{ game.details }}</div>
+                {% endif %}
                 <div class="ticket-info-row">
+                    {% if game.event_date %}
                     <div class="ticket-data-point">
                         <label>תאריך</label>
-                        <span>{{ event_date }}</span>
-                        {% if is_date_final is defined %}
+                        <span>{{ game.event_date }}</span>
+                        {% if game.is_date_final is defined and game.is_date_final is not none %}
                         <div style="font-size: 10px; color: #8B0000; font-weight: 600; margin-top: 3px;">
-                            {% if is_date_final %}התאריך הינו סופי{% else %}התאריך אינו סופי{% endif %}
+                            {% if game.is_date_final %}התאריך הינו סופי{% else %}התאריך אינו סופי{% endif %}
                         </div>
                         {% endif %}
                     </div>
-                    
-                    {% if category %}
+                    {% endif %}
+                    {% if game.category %}
                     <div class="ticket-data-point">
                         <label>קטגוריה</label>
-                        <span style="color: var(--tik-red);">{{ category }}</span>
+                        <span style="color: var(--tik-red);">{{ game.category }}</span>
+                    </div>
+                    {% endif %}
+                    {% if game.concert_selected_category %}
+                    <div class="ticket-data-point">
+                        <label>קטגוריה</label>
+                        <span style="color: var(--tik-red);">{{ game.concert_selected_category }}</span>
+                    </div>
+                    {% endif %}
+                    {% if game.worldcup_category %}
+                    <div class="ticket-data-point">
+                        <label>קטגוריה</label>
+                        <span style="color: var(--tik-red);">{{ game.worldcup_category }}</span>
                     </div>
                     {% endif %}
                 </div>
             </div>
             <div class="ticket-stub">
-                <div style="font-size: 36px; font-weight: 900;">{{ num_tickets }}</div>
+                <div style="font-size: 36px; font-weight: 900;">{{ game.num_tickets or num_tickets }}</div>
                 <div style="font-size: 12px; opacity: 0.8;">כרטיסים</div>
                 <div style="margin-top: 15px; background: #D4AF37; width: 40px; height: 40px; border-radius: 4px;"></div>
             </div>
         </div>
-
         <div style="margin-top: 20px;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
                 <h4 style="margin: 0; font-size: 18px; font-weight: 700;">מפת האצטדיון</h4>
-                {% if seats_together %}
+                {% if loop.first and seats_together %}
                 <div style="border: 2px solid #4CAF50; border-radius: 6px; padding: 6px 12px; display: inline-flex; align-items: center; gap: 8px; background: #f9fff9;">
                     <img src="{{ seats_together_image }}" alt="seats" style="height: 28px;">
                     <span style="color: #4CAF50; font-weight: 600; font-size: 13px;">✓ ישיבה 3 יחד</span>
@@ -647,22 +726,22 @@
                 {% endif %}
             </div>
             <div class="stadium-map-container">
-                {% if seatmap_image %}
-                <img src="{{ seatmap_image }}" alt="Stadium Map">
+                {% if game.seatmap_image %}
+                <img src="{{ game.seatmap_image }}" alt="Stadium Map">
                 {% else %}
                 <div style="color: #999;">מפה לא זמינה</div>
                 {% endif %}
             </div>
         </div>
-
-        {% if stadium_photo_path %}
+        {% if loop.first and stadium_photo_path %}
         <div class="atmosphere-section">
             <img src="{{ stadium_photo_path }}" alt="Atmosphere">
         </div>
         {% endif %}
     </div>
+    {% endfor %}
 
-    <!-- PAGE 3: HOSPITALITY (ONLY IF HOTEL/FLIGHTS EXIST) -->
+    <!-- PAGE: HOSPITALITY (ONLY IF HOTEL/FLIGHTS EXIST) -->
     {% if hotel_name or (flights and flights|length > 0) or flight_details %}
     <div class="page-break"></div>
     <div class="content-page">
@@ -717,7 +796,7 @@
                 {% for flight in flights %}
                 <div class="flight-row-new">
                     <div style="width: 30%;">
-                        <div class="flight-direction">טיסת {{ flight.direction }}</div>
+                        <div class="flight-direction">טיסת {{ flight.direction }}{% if flight.airline %} - {{ flight.airline }}{% endif %}</div>
                         <div style="font-size: 16px; font-weight: 900;">{{ flight.from }} ➜ {{ flight.to }}</div>
                     </div>
                     
@@ -812,7 +891,7 @@
                 <td class="summary-value">{% if product_type == 'package' %}חבילה מלאה{% else %}כרטיסים בלבד{% endif %}</td>
             </tr>
             <tr>
-                <td class="summary-label">אירוע</td>
+                <td class="summary-label">אירוע ראשי</td>
                 <td class="summary-value">{{ event_name }}</td>
             </tr>
             <tr>
@@ -827,6 +906,19 @@
                 <td class="summary-label">קטגוריית כרטיסים</td>
                 <td class="summary-value">{{ category }}</td>
             </tr>
+            {% if saved_games and saved_games|length > 0 %}
+            <tr>
+                <td class="summary-label">אירועים נוספים</td>
+                <td class="summary-value">
+                    {% for game in saved_games %}
+                    <div style="margin-bottom: 10px; padding: 8px; background: #f8f8f8; border-radius: 5px;">
+                        <strong>{{ loop.index }}.</strong> {{ game.display_text }}<br>
+                        {% if game.details %}<small style="color: #666;">{{ game.details }}</small>{% endif %}
+                    </div>
+                    {% endfor %}
+                </td>
+            </tr>
+            {% endif %}
             <tr>
                 <td class="summary-label">מספר כרטיסים</td>
                 <td class="summary-value">{{ num_tickets }}</td>

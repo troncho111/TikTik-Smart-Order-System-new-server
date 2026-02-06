@@ -12,11 +12,31 @@ LEAGUES = {
     "מונדיאל 2026": "FIFA World Cup 2026",
     "ליגת האלופות": "UEFA Champions League",
     "ליגה ספרדית": "Spanish La Liga",
-    "פרמיירליג": "English Premier League", 
+    "פרמיירליג": "English Premier League",
     "סריה A": "Italian Serie A",
     "בונדסליגה": "German Bundesliga",
     "ליג 1": "French Ligue 1"
 }
+
+# Normalize league name: Hebrew or any variant -> English (used for API lookups)
+def _normalize_league_name(league_name: str) -> str:
+    if not league_name or not isinstance(league_name, str):
+        return ""
+    key = league_name.strip()
+    if not key:
+        return ""
+    # Already English (value in LEAGUES)
+    if key in LEAGUES.values():
+        return key
+    # Hebrew or display name (key in LEAGUES)
+    if key in LEAGUES:
+        return LEAGUES[key]
+    # Case-insensitive match for English names
+    key_lower = key.lower()
+    for eng in LEAGUES.values():
+        if eng.lower() == key_lower:
+            return eng
+    return key
 
 LEAGUE_IDS = {
     "Spanish La Liga": 4335,
@@ -99,41 +119,8 @@ CHAMPIONS_LEAGUE_FIXTURES = [
     {"date": "2026-02-25", "time": "21:00", "home_team": "Paris Saint-Germain", "away_team": "AS Monaco", "round": "Champions League", "venue": "Parc des Princes", "city": "Paris", "country": "France"},
 ]
 
-# La Liga sample fixtures for 2026
-LA_LIGA_FIXTURES = [
-    {"date": "2026-02-08", "time": "16:15", "home_team": "FC Barcelona", "away_team": "Real Madrid", "round": "La Liga"},
-    {"date": "2026-02-08", "time": "18:30", "home_team": "Atletico Madrid", "away_team": "Sevilla", "round": "La Liga"},
-    {"date": "2026-02-08", "time": "21:00", "home_team": "Real Madrid", "away_team": "FC Barcelona", "round": "La Liga"},
-    {"date": "2026-02-15", "time": "16:15", "home_team": "Valencia", "away_team": "Atletico Madrid", "round": "La Liga"},
-    {"date": "2026-02-15", "time": "18:30", "home_team": "Sevilla", "away_team": "Real Betis", "round": "La Liga"},
-]
-
-# Premier League sample fixtures for 2026  
-PREMIER_LEAGUE_FIXTURES = [
-    {"date": "2026-02-08", "time": "13:30", "home_team": "Manchester United", "away_team": "Liverpool", "round": "Premier League"},
-    {"date": "2026-02-08", "time": "16:00", "home_team": "Arsenal", "away_team": "Chelsea", "round": "Premier League"},
-    {"date": "2026-02-08", "time": "18:30", "home_team": "Manchester City", "away_team": "Tottenham Hotspur", "round": "Premier League"},
-    {"date": "2026-02-15", "time": "13:30", "home_team": "Liverpool", "away_team": "Manchester City", "round": "Premier League"},
-    {"date": "2026-02-15", "time": "16:00", "home_team": "Chelsea", "away_team": "Arsenal", "round": "Premier League"},
-]
-
-# Serie A sample fixtures for 2026
-SERIE_A_FIXTURES = [
-    {"date": "2026-02-08", "time": "18:00", "home_team": "AC Milan", "away_team": "Inter Milan", "round": "Serie A"},
-    {"date": "2026-02-08", "time": "20:45", "home_team": "Juventus", "away_team": "Napoli", "round": "Serie A"},
-    {"date": "2026-02-15", "time": "18:00", "home_team": "Inter Milan", "away_team": "AC Milan", "round": "Serie A"},
-    {"date": "2026-02-15", "time": "20:45", "home_team": "Napoli", "away_team": "AS Roma", "round": "Serie A"},
-]
-
-# Bundesliga sample fixtures for 2026
-BUNDESLIGA_FIXTURES = [
-    {"date": "2026-02-08", "time": "15:30", "home_team": "Bayern Munich", "away_team": "Borussia Dortmund", "round": "Bundesliga"},
-    {"date": "2026-02-08", "time": "18:30", "home_team": "RB Leipzig", "away_team": "Bayer Leverkusen", "round": "Bundesliga"},
-    {"date": "2026-02-15", "time": "15:30", "home_team": "Borussia Dortmund", "away_team": "Bayern Munich", "round": "Bundesliga"},
-]
-
 TEAM_HEBREW_NAMES = {
-    # La Liga (Spain)
+    # La Liga (Spain) - including OpenFootball full names
     "ברצלונה": "Barcelona",
     "ריאל מדריד": "Real Madrid",
     "אתלטיקו מדריד": "Atletico Madrid",
@@ -142,6 +129,7 @@ TEAM_HEBREW_NAMES = {
     "ריאל בטיס": "Real Betis",
     "ריאל סוסיאדד": "Real Sociedad",
     "אתלטיק בילבאו": "Athletic Bilbao",
+    "אתלטיק קלאב": "Athletic Club",
     "ויאריאל": "Villarreal",
     "אוסאסונה": "Osasuna",
     "לגאנס": "Leganes",
@@ -154,6 +142,9 @@ TEAM_HEBREW_NAMES = {
     "ראיו ואייקאנו": "Rayo Vallecano",
     "ויאדוליד": "Valladolid",
     "לאס פלמאס": "Las Palmas",
+    "לבנטה": "Levante",
+    "אוביידו": "Oviedo",
+    "אלצ'ה": "Elche",
     
     # Premier League (England)
     "מנצ'סטר יונייטד": "Manchester United",
@@ -290,22 +281,56 @@ TEAM_HEBREW_NAMES = {
 }
 
 def get_hebrew_name(english_name: str) -> str:
-    """Get Hebrew name for a team"""
+    """Get Hebrew name for a team (with smart matching for OpenFootball names like 'FC Barcelona')"""
+    if not english_name:
+        return english_name
+    
+    # Exact match first
     for heb, eng in TEAM_HEBREW_NAMES.items():
         if eng.lower() == english_name.lower():
             return heb
+    
+    # Normalize: remove common prefixes/suffixes for matching
+    normalized = english_name.lower().strip()
+    for prefix in ['fc ', 'cf ', 'afc ', 'rcd ', 'ac ', 'as ', 'real ', 'cd ', 'ud ', 'rc ']:
+        if normalized.startswith(prefix):
+            normalized = normalized[len(prefix):].strip()
+    for suffix in [' fc', ' cf', ' afc', ' sc', ' ac', ' fk', ' de madrid', ' balompié', ' de fútbol']:
+        if normalized.endswith(suffix):
+            normalized = normalized[:-len(suffix)].strip()
+    
+    # Try matching normalized name
+    for heb, eng in TEAM_HEBREW_NAMES.items():
+        eng_normalized = eng.lower().strip()
+        for prefix in ['fc ', 'cf ', 'afc ', 'rcd ', 'ac ', 'as ', 'real ', 'cd ', 'ud ', 'rc ']:
+            if eng_normalized.startswith(prefix):
+                eng_normalized = eng_normalized[len(prefix):].strip()
+        for suffix in [' fc', ' cf', ' afc', ' sc', ' ac', ' fk']:
+            if eng_normalized.endswith(suffix):
+                eng_normalized = eng_normalized[:-len(suffix)].strip()
+        if eng_normalized == normalized or normalized in eng_normalized or eng_normalized in normalized:
+            return heb
+    
     return english_name
 
 def get_english_name(hebrew_name: str) -> str:
     """Get English name for a Hebrew team name"""
     return TEAM_HEBREW_NAMES.get(hebrew_name, hebrew_name)
 
-@lru_cache(maxsize=20)
 def get_teams_by_league(league_name: str) -> list:
-    """Get all teams in a league"""
-    # Use hardcoded Champions League teams for reliability
+    """Get all teams in a league (Champions League uses hardcoded list). Accepts Hebrew or English league name."""
+    league_name = _normalize_league_name(league_name)
+    if not league_name:
+        return []
+    return _get_teams_by_league_cached(league_name)
+
+
+@lru_cache(maxsize=20)
+def _get_teams_by_league_cached(league_name: str) -> list:
+    """Internal: get teams by English league name (cached)."""
+    # Use hardcoded Champions League teams for reliability (return copy to avoid mutation)
     if league_name == "UEFA Champions League":
-        return CHAMPIONS_LEAGUE_TEAMS
+        return list(CHAMPIONS_LEAGUE_TEAMS)
     
     try:
         url = f"https://www.thesportsdb.com/api/v1/json/3/search_all_teams.php?l={league_name}"
@@ -361,9 +386,17 @@ def get_all_popular_teams() -> list:
     return all_teams
 
 
-@lru_cache(maxsize=20)
 def get_season_fixtures(league_name: str, season: str = "2024-2025") -> list:
-    """Get all fixtures for a league season from openfootball GitHub or local file"""
+    """Get all fixtures for a league season. Accepts Hebrew or English league name."""
+    league_name = _normalize_league_name(league_name)
+    if not league_name:
+        return []
+    return _get_season_fixtures_cached(league_name, season)
+
+
+@lru_cache(maxsize=32)
+def _get_season_fixtures_cached(league_name: str, season: str) -> list:
+    """Internal: get fixtures by English league name (cached)."""
     try:
         if league_name == "FIFA World Cup 2026":
             local_file = os.path.join(os.path.dirname(__file__), "worldcup2026.json")
@@ -382,19 +415,11 @@ def get_season_fixtures(league_name: str, season: str = "2024-2025") -> list:
                 } for i, m in enumerate(matches) if m.get('team1')]
             return []
         
-        # Use hardcoded fixtures for leagues (2026 season)
+        # Use hardcoded fixtures for Champions League only (others use OpenFootball API)
         if league_name == "UEFA Champions League":
-            return CHAMPIONS_LEAGUE_FIXTURES
-        elif league_name == "Spanish La Liga":
-            return LA_LIGA_FIXTURES
-        elif league_name == "English Premier League":
-            return PREMIER_LEAGUE_FIXTURES
-        elif league_name == "Italian Serie A":
-            return SERIE_A_FIXTURES
-        elif league_name == "German Bundesliga":
-            return BUNDESLIGA_FIXTURES
+            return list(CHAMPIONS_LEAGUE_FIXTURES)
         
-        # Fallback to online data
+        # Get full season fixtures from OpenFootball API
         url = OPENFOOTBALL_URLS.get(league_name)
         if not url:
             return []
@@ -404,14 +429,28 @@ def get_season_fixtures(league_name: str, season: str = "2024-2025") -> list:
         data = response.json()
         
         matches = data.get('matches', []) or []
-        return [{
-            'id': str(i),
-            'home_team': m.get('team1', ''),
-            'away_team': m.get('team2', ''),
-            'date': m.get('date', ''),
-            'time': m.get('time', ''),
-            'round': m.get('round', '')
-        } for i, m in enumerate(matches) if m.get('team1')]
+        if not matches and data.get('rounds'):
+            for r in data.get('rounds', []):
+                matches.extend(r.get('matches', []) or [])
+        out = []
+        for i, m in enumerate(matches):
+            t1 = m.get('team1')
+            t2 = m.get('team2')
+            if isinstance(t1, dict):
+                t1 = t1.get('name', '')
+            if isinstance(t2, dict):
+                t2 = t2.get('name', '')
+            if not t1 and not t2:
+                continue
+            out.append({
+                'id': str(i),
+                'home_team': t1 or '',
+                'away_team': t2 or '',
+                'date': m.get('date', ''),
+                'time': m.get('time', ''),
+                'round': m.get('round', '')
+            })
+        return out
     except Exception as e:
         print(f"Error fetching fixtures: {e}")
         return []
