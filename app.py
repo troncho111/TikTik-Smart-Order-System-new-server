@@ -313,8 +313,26 @@ details summary {
 
 /* Hide stray icon-font characters that render as "ke" */
 [class*="icon"]::before,
-[class*="Icon"]::before {
-    font-family: inherit !important;
+[class*="Icon"]::before,
+[data-testid="stExpander"] summary::before,
+[data-testid="stFileUploader"] label::before,
+.st-emotion-cache-1ky692b::before,
+.st-emotion-cache-1ky692b::after {
+    content: none !important;
+    display: none !important;
+}
+
+/* Fix login input labels and alignment */
+[data-testid="stForm"] label, 
+[data-testid="stVerticalBlock"] label {
+    text-align: right !important;
+    width: 100% !important;
+    display: block !important;
+}
+
+/* Ensure login fields are properly spaced */
+.stTextInput, .stSelectbox {
+    margin-bottom: 1rem !important;
 }
 
 .main .block-container {
@@ -5376,11 +5394,11 @@ def page_login():
         if saved_users_display:
             st.markdown("##### ⚡ כניסה מהירה")
             user_options = ["-- בחר משתמש --"] + [f"{u[1]} ({u[0]})" for u in saved_users_display]
-            selected_quick = st.selectbox("בחר משתמש", user_options, key="quick_user", label_visibility="collapsed")
+            selected_quick = st.selectbox("בחר משתמש", user_options, key="quick_user")
             
             if selected_quick and selected_quick != "-- בחר משתמש --":
                 quick_username = selected_quick.split("(")[-1].replace(")", "").strip()
-                quick_password = st.text_input("סיסמה", type="password", key="quick_password")
+                quick_password = st.text_input("סיסמה", type="password", key="quick_password", placeholder="הזן סיסמה")
                 
                 if st.button("🚀 התחבר", use_container_width=True, key="quick_login_btn"):
                     if quick_password:
@@ -5397,9 +5415,9 @@ def page_login():
                         st.warning("⚠️ נא להזין סיסמה")
             
             st.markdown("---")
-            with st.expander("📝 התחברות ידנית"):
-                username = st.text_input("שם משתמש", key="login_username")
-                password = st.text_input("סיסמה", type="password", key="login_password")
+            with st.expander("📝 התחברות ידנית", expanded=not bool(saved_users_display)):
+                username = st.text_input("שם משתמש", key="login_username", placeholder="הזן שם משתמש")
+                password = st.text_input("סיסמה", type="password", key="login_password", placeholder="הזן סיסמה")
                 
                 if st.button("🚀 התחבר", use_container_width=True, key="manual_login_btn"):
                     if username and password:
