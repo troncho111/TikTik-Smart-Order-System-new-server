@@ -1,0 +1,70 @@
+/* עמוד שער - גרסה חדשה ופשוטה */
+
+.cover-page {
+  position: relative;
+  height: 297mm;  /* גובה A4 */
+  width: 210mm;   /* רוחב A4 */
+  display: table;
+  table-layout: fixed;
+  page-break-after: always;
+  background: #ffffff;
+  border-bottom: 4px solid #1e6fff;
+}
+
+.cover-content {
+  display: table-cell;
+  vertical-align: middle;
+  text-align: center;
+  padding: 80px;
+}
+
+.cover-header {
+  font-size: 16px;
+  color: #999;
+  font-weight: 400;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  margin-bottom: 60px;
+}
+
+.cover-customer {
+  font-size: 42px;
+  font-weight: 900;
+  color: #1a1a1a;
+  margin: 0 0 40px 0;
+  line-height: 1.4;
+}
+
+.cover-package {
+  font-size: 24px;
+  font-weight: 600;
+  color: #2c3e50;
+  margin: 0 0 30px 0;
+  line-height: 1.5;
+}
+
+.cover-details {
+  font-size: 18px;
+  color: #666;
+  margin: 0 0 80px 0;
+  line-height: 1.6;
+}
+
+.cover-footer {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  text-align: center;
+}
+
+.cover-footer p {
+  font-size: 14px;
+  color: #999;
+  margin: 0 0 20px 0;
+}
+
+.cover-footer img {
+  height: 50px;
+  width: auto;
+}
