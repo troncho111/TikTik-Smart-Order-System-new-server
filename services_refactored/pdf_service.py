@@ -249,7 +249,7 @@ def generate_order_pdf(
     if template_path is None:
         # נתיב ברירת מחדל
         current_dir = Path(__file__).parent.parent
-        template_path = current_dir / 'templates_new' / 'order_template.html'
+        template_path = current_dir / 'templates' / 'order_template.html'
     
     # הכנת הנתונים
     template_data = prepare_template_data(order_data, images)
