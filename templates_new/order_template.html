@@ -28,14 +28,16 @@
      
 ================================================================ -->
 
-<div class="cover-page" {% if cover_image %}style="background-image: url('{{ cover_image }}');"{% endif %}>
-  <div class="cover-header">הזמנה רשמית</div>
-  <h1 class="cover-customer">{{ cover_line1 }}</h1>
-  <h2 class="cover-package">{{ cover_line2 }}</h2>
-  <p class="cover-details">{{ cover_line3 }}</p>
+<div class="cover-page" {% if cover_image %}style="background-image: url('{{ cover_image }}'); background-size: cover; background-position: center;"{% endif %}>
+  <div class="cover-content">
+    <div class="cover-header">הזמנה רשמית</div>
+    <div class="cover-customer">{{ cover_line1 }}</div>
+    <div class="cover-package">{{ cover_line2 }}</div>
+    <div class="cover-details">{{ cover_line3 }}</div>
+  </div>
   <div class="cover-footer">
     <p>מספר הזמנה: {{ order_id or order_number }}</p>
-    <img src="{{ logo_path }}" alt="TikTik">
+    {% if logo_path %}<img src="{{ logo_path }}" alt="TikTik">{% endif %}
   </div>
 </div>
 
