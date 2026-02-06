@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <title>טופס הזמנה - TikTik</title>
+  <link rel="stylesheet" href="../static/css/pdf_style.css">
+</head>
+
+<body>
+
+<!-- ================================================================
+     📄 עמוד 1: עמוד שער (COVER PAGE)
+     ================================================================
+     
+     מה מוצג כאן:
+     - שם הלקוח (גדול ובולט)
+     - תיאור החבילה
+     - פרטים נוספים
+     - מספר הזמנה ולוגו בתחתית
+     
+     משתנים נדרשים:
+     - cover_line1: שם הלקוח (חובה)
+     - cover_line2: תיאור החבילה (חובה)
+     - cover_line3: פרטים נוספים (אופציונלי)
+     - order_id / order_number: מספר הזמנה (חובה)
+     - logo_path: נתיב ללוגו (חובה)
+     - cover_image: תמונת רקע (אופציונלי)
+     
+================================================================ -->
+
+<div class="cover-page" {% if cover_image %}style="background-image: url('{{ cover_image }}');"{% endif %}>
+  <div class="cover-header">הזמנה רשמית</div>
+  <h1 class="cover-customer">{{ cover_line1 }}</h1>
+  <h2 class="cover-package">{{ cover_line2 }}</h2>
+  <p class="cover-details">{{ cover_line3 }}</p>
+  <div class="cover-footer">
+    <p>מספר הזמנה: {{ order_id or order_number }}</p>
+    <img src="{{ logo_path }}" alt="TikTik">
+  </div>
+</div>
+
+<!-- ================================================================
+     📄 עמוד 2+: תוכן ההזמנה
+     ================================================================ -->
+
+<!-- כותרת עליונה -->
+<div class="banner no-break">
+  <table class="banner-table">
+    <tr>
+      <td class="banner-rt">
+        <span class="logo">{{ brand_abbr or "TT" }}</span>
+        <span class="banner-title">
+          טופס הזמנה
+          <div class="banner-sub">סיכום פרטי החבילה</div>
+        </span>
+      </td>
+      <td class="banner-lt">
+        <div class="banner-contact">
+          <div><b>{{ brand_website or "www.tiktik-online.co.il" }}</b></div>
+          <div>{{ brand_email or "info@tiktik.co.il" }}</div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- פרטי מטא: מספר הזמנה, לקוח, תאריך -->
+<table class="meta no-break">
+  <tr>
+    <td class="chip">
+      <div class="label">מספר הזמנה</div>
+      <div class="value">{{ order_id or order_number or "—" }}</div>
+    </td>
+    <td class="chip">
+      <div class="label">שם לקוח</div>
+      <div class="value">{{ customer_name or "—" }}</div>
+    </td>
+    <td class="chip">
+      <div class="label">תאריך יצירה</div>
+      <div class="value">{{ created_at or "—" }}</div>
+    </td>
+  </tr>
+</table>
+
+<!-- ================================================================
+     🎯 סקציה 1: הכיף (EVENT)
+     ================================================================
+     
+     מתי מוצג: אם יש event_name
+     
+     מה כלול:
+     - תגי קבוצות (אם יש home_team_badge או away_team_badge)
+     - פרטי האירוע (שם, תאריך, מקום, קטגוריה, כמות כרטיסים)
+     - מפת מקומות (אם יש seatmap_image או stadium_image)
+     - תמונת אצטדיון (אם יש stadium_photo_path)
+     
+================================================================ -->
+
+{% if event_name %}
+<div class="section-title">🎯 הכיף</div>
+
+<div class="card no-break">
+  <!-- תגי קבוצות (רק לכדורגל) -->
+  {% if home_team_badge or away_team_badge %}
+  <div class="team-badges-container">
+    {% if home_team_badge %}
+    <div class="team-badge-item">
+      <img src="{{ home_team_badge }}" class="team-badge-img" alt="home team">
+      {% if home_team_name %}<div class="team-badge-name">{{ home_team_name }}</div>{% endif %}
+    </div>
+    {% endif %}
+    
+    <div class="vs-divider">VS</div>
+    
+    {% if away_team_badge %}
+    <div class="team-badge-item">
+      <img src="{{ away_team_badge }}" class="team-badge-img" alt="away team">
+      {% if away_team_name %}<div class="team-badge-name">{{ away_team_name }}</div>{% endif %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- פרטי האירוע -->
+  <div class="card-top">
+    <table class="grid">
+      <tr>
+        <td class="field">
+          <div class="k">אירוע</div>
+          <div class="v">{{ event_name }}</div>
+        </td>
+        <td class="field">
+          <div class="k">תאריך</div>
+          <div class="v">{{ event_date }}</div>
+        </td>
+      </tr>
+      <tr>
+        <td class="field">
+          <div class="k">עיר</div>
+          <div class="v">{{ event_city or venue }}</div>
+        </td>
+        <td class="field">
+          <div class="k">אצטדיון/מיקום</div>
+          <div class="v">{{ venue_name or venue }}</div>
+        </td>
+      </tr>
+      <tr>
+        <td class="field">
+          <div class="k">קטגוריה</div>
+          <div class="v">{{ category }}</div>
+        </td>
+        <td class="field">
+          <div class="k">כמות כרטיסים</div>
+          <div class="v">{{ num_tickets }}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+</div>
+
+<!-- מפת מקומות ותמונת אצטדיון -->
+{% if seatmap_image or stadium_image %}
+<div class="event-media-wrapper">
+  <div class="seatmap-wrapper">
+    <div class="seatmap-box" style="height: {{ seatmap_height_px or 400 }}px;">
+      <img src="{{ seatmap_image or stadium_image }}" alt="מפת מקומות">
+    </div>
+  </div>
+
+  {% if stadium_photo_path %}
+  <div class="stadium-photo-wrapper">
+    <div class="stadium-photo-box" style="height: {{ stadium_photo_height_px or 300 }}px;">
+      <img src="{{ stadium_photo_path }}" alt="תמונת אצטדיון">
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+{% endif %}
+
+<!-- ================================================================
+     🏨 סקציה 2: לינה (HOTEL)
+     ================================================================
+     
+     מתי מוצג: אם יש hotel_name
+     
+     מה כלול:
+     - פרטי מלון (שם, לילות, ארוחות, העברות)
+     - תמונות מלון (1 או 2 תמונות)
+     - פרטים נוספים (כתובת, אתר, דירוג)
+     - סיכום חבילה (אם product_type == 'package')
+     
+================================================================ -->
+
+{% if hotel_name %}
+<div class="section-title">🏨 לינה</div>
+
+<div class="card no-break">
+  <!-- פרטי המלון -->
+  <div class="card-top">
+    <table class="grid">
+      <tr>
+        <td class="field">
+          <div class="k">מלון</div>
+          <div class="v">{{ hotel_name }}</div>
+        </td>
+        <td class="field">
+          <div class="k">לילות</div>
+          <div class="v">{{ hotel_nights }} לילות{% if hotel_stars %} | {{ hotel_stars }} כוכבים{% endif %}</div>
+        </td>
+      </tr>
+      <tr>
+        <td class="field">
+          <div class="k">ארוחות</div>
+          <div class="v">{{ hotel_meals or "—" }}</div>
+        </td>
+        <td class="field">
+          <div class="k">העברות</div>
+          <div class="v">{% if transfers %}כולל העברות{% else %}ללא העברות{% endif %}</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- תמונות מלון -->
+  {% if hotel_image_path or hotel_image or hotel_image_2 %}
+  <div class="card-media">
+    {% if hotel_image_2 %}
+      <!-- 2 תמונות -->
+      <table style="width: 100%; border-collapse: separate; border-spacing: 12px;">
+        <tr>
+          <td style="width: 50%;">
+            <img src="{{ hotel_image_path or hotel_image }}" alt="מלון 1" style="width: 100%; border-radius: 12px; border: 2px solid var(--border);">
+          </td>
+          <td style="width: 50%;">
+            <img src="{{ hotel_image_2 }}" alt="מלון 2" style="width: 100%; border-radius: 12px; border: 2px solid var(--border);">
+          </td>
+        </tr>
+      </table>
+    {% else %}
+      <!-- תמונה אחת -->
+      <img src="{{ hotel_image_path or hotel_image }}" alt="מלון">
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- פרטים נוספים -->
+  {% if hotel_address or hotel_website or hotel_rating %}
+  <div class="package-summary">
+    <div class="summary-title">פרטי המלון</div>
+    <div class="summary-list">
+      {% if hotel_address %}<div class="summary-item">{{ hotel_address }}</div>{% endif %}
+      {% if hotel_website %}<div class="summary-item">{{ hotel_website }}</div>{% endif %}
+      {% if hotel_rating %}<div class="summary-item">דירוג: {{ hotel_rating }} ⭐</div>{% endif %}
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- סיכום חבילה -->
+  {% if product_type == 'package' %}
+  <div class="package-summary">
+    <div class="summary-title">החבילה כוללת</div>
+    <div class="summary-list">
+      <div class="summary-item">{{ num_tickets }} כרטיסים לאירוע</div>
+      <div class="summary-item">{{ hotel_nights }} לילות במלון {{ hotel_name }}</div>
+      {% if flights and flights|length > 0 %}
+      <div class="summary-item">טיסות הלוך וחזור</div>
+      {% endif %}
+      {% if transfers %}
+      <div class="summary-item">העברות משדה התעופה ולאירוע</div>
+      {% endif %}
+      {% if bag_trolley %}
+      <div class="summary-item">מזוודה עליה למטוס (טרולי)</div>
+      {% endif %}
+      {% if bag_checked %}
+      <div class="summary-item">מזוודה {{ bag_checked }}</div>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- ================================================================
+     ✈️ סקציה 3: טיסות (FLIGHTS)
+     ================================================================
+     
+     מתי מוצג: אם יש flights ו-flights|length > 0
+     
+     מה כלול:
+     - כרטיס טיסה לכל טיסה (הלוך/חזור)
+     - פרטי טיסה: תאריך, המראה, נחיתה, חברה
+     - הערות מזוודות (אם יש bag_trolley או bag_checked)
+     
+================================================================ -->
+
+{% if flights and flights|length > 0 %}
+<div class="section-title">✈️ טיסות</div>
+
+<div class="flight-card">
+  <div class="flight-card-header">
+    <span class="plane-icon">✈️</span> פרטי הטיסות
+  </div>
+  <div class="flight-card-body">
+    {% for flight in flights %}
+    <div class="flight-row">
+      <div class="flight-row-title">
+        {% if flight.direction == 'outbound' %}🛫 טיסת הלוך{% else %}🛬 טיסת חזור{% endif %}
+        <span class="arrow">→</span>
+        {{ flight.from }} ✈ {{ flight.to }}
+      </div>
+      <table class="flight-grid">
+        <tr>
+          <td class="flight-cell">
+            <div class="flight-cell-k">תאריך</div>
+            <div class="flight-cell-v">{{ flight.date }}</div>
+          </td>
+          <td class="flight-cell">
+            <div class="flight-cell-k">המראה</div>
+            <div class="flight-cell-v">{{ flight.departure_time }}</div>
+          </td>
+          <td class="flight-cell">
+            <div class="flight-cell-k">נחיתה</div>
+            <div class="flight-cell-v">{{ flight.arrival_time }}</div>
+          </td>
+          <td class="flight-cell">
+            <div class="flight-cell-k">חברה</div>
+            <div class="flight-cell-v">{{ flight.airline or "—" }}</div>
+          </td>
+        </tr>
+      </table>
+    </div>
+    {% if not loop.last %}
+    <hr class="flight-divider">
+    {% endif %}
+    {% endfor %}
+
+    <!-- הערות מזוודות -->
+    {% if bag_trolley or bag_checked %}
+    <div class="flight-notes">
+      <strong>מזוודות:</strong>
+      {% if bag_trolley %}טרולי עליה למטוס{% endif %}
+      {% if bag_trolley and bag_checked %} | {% endif %}
+      {% if bag_checked %}מזוודה {{ bag_checked }}{% endif %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+<!-- ================================================================
+     👥 סקציה 4: נוסעים (PASSENGERS)
+     ================================================================
+     
+     מתי מוצג: אם יש passengers ו-passengers|length > 0
+     
+     מה כלול:
+     - טבלה עם פרטי כל נוסע
+     - עמודות: #, שם מלא, מספר דרכון, תאריך לידה, סוג כרטיס
+     
+================================================================ -->
+
+{% if passengers and passengers|length > 0 %}
+<div class="section-title">👥 נוסעים</div>
+
+<table class="tbl">
+  <thead>
+    <tr>
+      <th>#</th>
+      <th>שם מלא</th>
+      <th>מספר דרכון</th>
+      <th>תאריך לידה</th>
+      <th>סוג כרטיס</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for p in passengers %}
+    <tr>
+      <td>{{ loop.index }}</td>
+      <td>{{ p.name_en or p.name or p.full_name or "—" }}</td>
+      <td>{{ p.passport or p.passport_number or "—" }}</td>
+      <td>{{ p.birth_date or p.dob or "—" }}</td>
+      <td>{{ p.ticket_type or "—" }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% endif %}
+
+<!-- ================================================================
+     💰 פס מחיר (PRICE BAR)
+     ================================================================
+     
+     תמיד מוצג
+     
+     מה כלול:
+     - מחיר בשקלים (גדול)
+     - מחיר ביורו
+     - פירוט (כמות כרטיסים x מחיר)
+     
+================================================================ -->
+
+<div class="price no-break">
+  <table class="price-table">
+    <tr>
+      <td class="price-rt">
+        <div class="price-val">₪ {{ final_price or total_nis or "—" }}</div>
+        <div class="price-sub">סה"כ לתשלום</div>
+      </td>
+      <td class="price-lt">
+        <div class="price-label">{{ total_euro or "—" }} יורו</div>
+        <div class="price-sub">{{ num_tickets }} כרטיסים x {{ price_per_ticket }} יורו</div>
+      </td>
+    </tr>
+  </table>
+</div>
+
+<!-- ================================================================
+     📄 עמוד תשלום (PAYMENT PAGE)
+     ================================================================
+     
+     מה כלול:
+     - באנר תשלום
+     - סיכום הזמנה
+     - מחיר
+     - חתימות
+     - הערות חבילה
+     
+================================================================ -->
+
+<div class="terms-page">
+  <div class="terms-title">🌍 בואו נצא למסע בלתי נשכח!</div>
+  
+  <!-- סיכום הזמנה -->
+  <div class="card no-break">
+    <div class="card-top" style="background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-dark) 100%); color: white;">
+      <div style="font-size: 16px; font-weight: 900; text-align: center;">פרטי ההזמנה</div>
+    </div>
+    <div style="padding: 20px;">
+      <table style="width: 100%; border-collapse: collapse;">
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px; font-weight: 600;">מספר הזמנה:</td>
+          <td style="padding: 10px;">{{ order_id or order_number or "—" }}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px; font-weight: 600;">שם לקוח:</td>
+          <td style="padding: 10px;">{{ customer_name or "—" }}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px; font-weight: 600;">אירוע:</td>
+          <td style="padding: 10px;">{{ event_name or "—" }}</td>
+        </tr>
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px; font-weight: 600;">תאריך:</td>
+          <td style="padding: 10px;">{{ event_date or "—" }}</td>
+        </tr>
+        {% if hotel_name %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px; font-weight: 600;">מלון:</td>
+          <td style="padding: 10px;">{{ hotel_name }} {% if hotel_nights %}({{ hotel_nights }} לילות){% endif %}</td>
+        </tr>
+        {% endif %}
+        {% if flights and flights|length > 0 %}
+        <tr style="border-bottom: 1px solid var(--border);">
+          <td style="padding: 10px; font-weight: 600;">טיסות:</td>
+          <td style="padding: 10px;">{{ flights[0].from }} ⇄ {{ flights[0].to }}</td>
+        </tr>
+        {% endif %}
+        <tr>
+          <td style="padding: 10px; font-weight: 600;">מספר נוסעים:</td>
+          <td style="padding: 10px;">{{ num_tickets or passengers|length or 1 }}</td>
+        </tr>
+      </table>
+    </div>
+  </div>
+
+  <!-- מחיר -->
+  <div class="price no-break" style="margin-top: 20px;">
+    <table class="price-table">
+      <tr>
+        <td class="price-rt">
+          <div class="price-label">💰 סה"כ לתשלום</div>
+          <div class="price-val">₪ {{ final_price or total_nis or "—" }}</div>
+        </td>
+        <td class="price-lt">
+          <div class="price-sub">{{ total_euro or "—" }} יורו</div>
+        </td>
+      </tr>
+    </table>
+  </div>
+
+  <!-- חתימות -->
+  <div class="terms-title" style="font-size: 18px; margin-top: 30px;">✍️ אישור וחתימות</div>
+  <table style="width: 100%; border-collapse: separate; border-spacing: 20px;">
+    <tr>
+      <td style="width: 50%; border: 2px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+        <div style="font-weight: 700; margin-bottom: 10px;">חתימת לקוח</div>
+        <div style="height: 80px; border-bottom: 2px solid var(--dark); margin: 20px 0;"></div>
+        <div style="font-size: 12px; color: var(--muted);">שם: _________________  תאריך: _____________</div>
+      </td>
+      <td style="width: 50%; border: 2px solid var(--border); border-radius: 12px; padding: 20px; text-align: center;">
+        <div style="font-weight: 700; margin-bottom: 10px;">חתימת סוכן</div>
+        <div style="height: 80px; border-bottom: 2px solid var(--dark); margin: 20px 0;"></div>
+        <div style="font-size: 12px; color: var(--muted);">שם: _________________  תאריך: _____________</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- הערות חבילה -->
+  <div class="card no-break" style="margin-top: 20px;">
+    <div class="card-top">
+      <div style="font-size: 14px; font-weight: 900;">דגשים בנוגע לחבילה:</div>
+    </div>
+    <div style="padding: 16px; line-height: 1.8; font-size: 12px;">
+      <ul style="margin: 0; padding-right: 20px;">
+        <li>החבילה אינה כוללת ביטוח או העברות</li>
+        <li>באחריות הלקוח לרכוש ביטוח נסיעות על חשבונו, בסמוך למועד אישור ההזמנה</li>
+        <li>אין העברות משדה התעופה</li>
+        <li>כרטיסים מתקבלים עד 24 שעות לפני מועד האירוע, ובמקרים חריגים ביום האירוע עצמו.</li>
+        <li>מרגע אישור ההזמנה חלים דמי ביטול מלאים.</li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- פוטר -->
+  <div style="text-align: center; margin-top: 30px; padding: 20px; border-top: 2px solid var(--border); font-size: 12px; color: var(--muted);">
+    <p>בחתימתי אני מאשר/ת שקראתי את תנאי ההזמנה והתקנון ואני מסכים/ה להם.</p>
+    <p><strong>TikTik - אירועי ספורט והופעות בחו"ל | www.tiktik-online.co.il</strong></p>
+  </div>
+</div>
+
+<!-- ================================================================
+     📋 עמוד תנאים (TERMS PAGE)
+     ================================================================
+     
+     מתי מוצג: תמיד
+     
+     מה כלול:
+     - תקנון ותנאים (legal_text או terms_text)
+     - מדריך הושבה (אם יש seating_guide_image או seating_images)
+     
+================================================================ -->
+
+<div class="terms-page">
+  <div class="terms-title">📋 תקנון ותנאים</div>
+  <div class="terms-content">
+    {{ legal_text or terms_text or "לא הוזן תקנון" }}
+  </div>
+
+  <!-- מדריך הושבה -->
+  {% if seating_guide_image or seating_images %}
+  <div style="margin-top: 40px;">
+    <div class="terms-title" style="font-size: 18px;">🪑 אופן ההושבה</div>
+    
+    {% if seating_guide_image %}
+      <!-- תמונה אחת -->
+      <div style="text-align: center; margin-top: 20px;">
+        <img src="{{ seating_guide_image }}" alt="אופן ההושבה" style="max-width: 100%; border-radius: 12px; border: 2px solid var(--border);">
+      </div>
+    {% elif seating_images and seating_images|length > 0 %}
+      <!-- גלריה -->
+      <table style="width: 100%; border-collapse: separate; border-spacing: 12px; margin-top: 20px;">
+        {% for i in range(0, seating_images|length, 4) %}
+        <tr>
+          {% for j in range(4) %}
+            {% if i + j < seating_images|length %}
+            <td style="width: 25%; text-align: center;">
+              <img src="{{ seating_images[i + j] }}" alt="seat {{ i + j + 1 }}" style="width: 100%; border-radius: 8px; border: 2px solid var(--border);">
+            </td>
+            {% else %}
+            <td style="width: 25%;"></td>
+            {% endif %}
+          {% endfor %}
+        </tr>
+        {% endfor %}
+      </table>
+    {% endif %}
+  </div>
+  {% endif %}
+</div>
+
+</body>
+</html>

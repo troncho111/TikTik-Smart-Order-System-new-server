@@ -1,0 +1,835 @@
+/* ====================================================================
+   TikTik PDF Style - עיצוב טופס הזמנה
+   ==================================================================== 
+   
+   📝 מדריך שימוש:
+   - קובץ זה מכיל את כל העיצוב של ה-PDF
+   - ניתן לשנות צבעים, גופנים, גדלים בקלות
+   - כל שינוי כאן ישפיע על כל ה-PDFים
+   
+   🎨 משתנים עיקריים (שורות 40-60):
+   - --brand-blue: צבע כחול ראשי
+   - --brand-red: צבע אדום משני
+   - --brand-bg: צבע רקע
+   
+   📦 מבנה הבלוקים:
+   1. cover-page - עמוד שער (שורה 85)
+   2. banner - כותרת עליונה (שורה 175)
+   3. meta - פרטי הזמנה (שורה 265)
+   4. card - כרטיסי מידע (שורה 335)
+   5. flight-card - כרטיסי טיסה (שורה 505)
+   6. price - סיכום מחיר (שורה 640)
+   7. terms - תנאים (שורה 750)
+   
+==================================================================== */
+
+/* ====================================================================
+   הגדרות בסיס - עמוד ופונטים
+==================================================================== */
+
+@page { 
+  size: A4; 
+  margin: 12mm 12mm 12mm 12mm; 
+}
+
+html, body { 
+  margin: 0; 
+  padding: 0; 
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Arial, sans-serif;
+  direction: rtl;
+  color: #1f2937;
+  background: #f8f9fb;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* ====================================================================
+   משתנים גלובליים - שנה כאן כדי לשנות בכל המסמך!
+==================================================================== */
+
+:root {
+  /* 🎨 צבעים ראשיים - שנה כאן! */
+  --brand-blue: #1e6fff;           /* כחול ראשי */
+  --brand-blue-dark: #0846b8;      /* כחול כהה */
+  --brand-red: #d63031;            /* אדום ראשי */
+  --brand-red-dark: #b71c1c;       /* אדום כהה */
+  
+  /* צבעי רקע וגבולות */
+  --brand-bg: #f8f9fb;             /* רקע אפור בהיר */
+  --white: #ffffff;                /* לבן */
+  --border: #e1e4eb;               /* גבול אפור */
+  
+  /* צבעי טקסט */
+  --muted: #6b7280;                /* טקסט עמום */
+  --dark: #1f2937;                 /* טקסט כהה */
+  --success: #10b981;              /* ירוק (הצלחה) */
+  
+  /* צללים */
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.08);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.12);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
+}
+
+/* מניעת שבירת בלוקים בין עמודים */
+.no-break { 
+  break-inside: avoid; 
+  page-break-inside: avoid; 
+}
+
+/* ====================================================================
+   1️⃣ עמוד שער (COVER PAGE)
+   ==================================================================== 
+   
+   📝 מה זה: העמוד הראשון של ה-PDF
+   🎨 איך לשנות:
+   - גודל כותרת: שנה font-size ב-.cover-customer (שורה 115)
+   - צבע רקע: שנה background ב-.cover-page (שורה 100)
+   - מיקום לוגו: שנה bottom ב-.cover-footer (שורה 148)
+   
+==================================================================== */
+
+.cover-page {
+  position: relative;
+  height: 100vh;
+  min-height: 1000px;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  padding-top: 100px;
+  background-size: cover;
+  background-position: center;
+  page-break-after: always;
+  background: var(--white);
+  border-bottom: 3px solid var(--brand-blue);
+}
+
+.cover-header {
+  font-size: 18px;
+  text-align: center;
+  margin-bottom: 40px;
+  color: #666;
+  font-weight: 400;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
+
+.cover-customer,
+.cover-line1 {
+  font-size: 56px;              /* 👈 גודל שם הלקוח */
+  font-weight: 700;
+  text-align: center;
+  margin: 20px 0;
+  color: #1a1a1a;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  line-height: 1.2;
+}
+
+.cover-package,
+.cover-line2 {
+  font-size: 32px;              /* 👈 גודל תיאור החבילה */
+  text-align: center;
+  margin: 20px 0;
+  color: #2c3e50;
+  font-weight: 500;
+}
+
+.cover-details,
+.cover-line3 {
+  font-size: 22px;              /* 👈 גודל פרטים נוספים */
+  text-align: center;
+  color: #555;
+  margin: 20px 0 60px;
+  line-height: 1.6;
+}
+
+.cover-footer {
+  position: absolute;
+  bottom: 60px;                 /* 👈 מרחק מתחתית העמוד */
+  width: 100%;
+  text-align: center;
+}
+
+.cover-footer p {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+}
+
+.cover-footer img { 
+  height: 56px;                 /* 👈 גובה הלוגו */
+  width: auto; 
+}
+
+/* ====================================================================
+   2️⃣ באנר עליון (BANNER)
+   ==================================================================== 
+   
+   📝 מה זה: הכותרת בראש כל עמוד (אחרי עמוד השער)
+   🎨 איך לשנות:
+   - צבע רקע: שנה את background ב-.banner (שורה 180)
+   - גודל לוגו: שנה width/height ב-.logo (שורה 215)
+   
+==================================================================== */
+
+.banner {
+  background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-dark) 100%);
+  color: var(--white);
+  border-radius: 16px;
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-md);
+  position: relative;
+  overflow: hidden;
+}
+
+.banner::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.banner-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  position: relative; 
+  z-index: 1; 
+}
+
+.banner-rt { 
+  width: 70%; 
+  vertical-align: middle; 
+}
+
+.banner-lt { 
+  width: 30%; 
+  vertical-align: middle; 
+  text-align: left; 
+}
+
+.logo {
+  width: 56px;                  /* 👈 רוחב הלוגו */
+  height: 56px;                 /* 👈 גובה הלוגו */
+  background: var(--white);
+  border-radius: 12px;
+  display: inline-block;
+  text-align: center;
+  line-height: 56px;
+  color: var(--brand-blue);
+  font-weight: 900;
+  margin-left: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+  font-size: 22px;
+}
+
+.banner-title { 
+  font-size: 22px;              /* 👈 גודל כותרת */
+  font-weight: 900; 
+  line-height: 1.3; 
+  display: inline-block; 
+  vertical-align: top; 
+  letter-spacing: -0.5px;
+}
+
+.banner-sub { 
+  font-size: 13px; 
+  opacity: 0.95; 
+  margin-top: 4px; 
+  font-weight: 500;
+}
+
+.banner-contact {
+  font-size: 12px;
+  opacity: 0.95;
+  font-weight: 600;
+  line-height: 1.8;
+}
+
+/* ====================================================================
+   3️⃣ פרטי מטא (META) - מספר הזמנה, לקוח, תאריך
+   ==================================================================== 
+   
+   📝 מה זה: 3 הכרטיסים הקטנים בראש המסמך
+   🎨 איך לשנות:
+   - צבע גבול: שנה border ב-.chip (שורה 280)
+   - גודל טקסט: שנה font-size ב-.value (שורה 300)
+   
+==================================================================== */
+
+.meta {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 12px 0;
+  margin-bottom: 16px;
+}
+
+.chip {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  background: var(--white);
+  vertical-align: top;
+  box-shadow: var(--shadow-sm);
+  transition: all 0.3s ease;
+}
+
+.chip:hover {
+  border-color: var(--brand-blue);
+  box-shadow: var(--shadow-md);
+}
+
+.label { 
+  font-size: 11px;              /* 👈 גודל תווית (מספר הזמנה, שם לקוח...) */
+  color: var(--muted); 
+  margin-bottom: 4px; 
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.value { 
+  font-size: 15px;              /* 👈 גודל ערך */
+  font-weight: 800; 
+  color: var(--dark);
+  letter-spacing: -0.3px;
+}
+
+/* ====================================================================
+   4️⃣ כותרות סקציות (SECTION TITLE)
+   ==================================================================== 
+   
+   📝 מה זה: כותרות כמו "🎯 הכיף", "🏨 לינה", וכו'
+   🎨 איך לשנות:
+   - צבע: שנה color ב-.section-title (שורה 320)
+   - גודל: שנה font-size (שורה 323)
+   
+==================================================================== */
+
+.section-title {
+  color: var(--brand-blue-dark);
+  font-weight: 900;
+  margin: 20px 0 12px;
+  font-size: 18px;              /* 👈 גודל כותרת סקציה */
+  letter-spacing: -0.5px;
+  position: relative;
+  padding-right: 12px;
+}
+
+.section-title::before {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;                   /* 👈 רוחב הפס האדום */
+  height: 24px;                 /* 👈 גובה הפס האדום */
+  background: linear-gradient(180deg, var(--brand-red), var(--brand-red-dark));
+  border-radius: 2px;
+}
+
+/* ====================================================================
+   5️⃣ כרטיסים (CARDS) - אירוע, מלון, טיסה
+   ==================================================================== 
+   
+   📝 מה זה: כרטיסי המידע הגדולים
+   🎨 איך לשנות:
+   - עיגול פינות: שנה border-radius ב-.card (שורה 355)
+   - צבע גבול: שנה border (שורה 353)
+   
+==================================================================== */
+
+.card {
+  border: 2px solid var(--border);
+  border-radius: 16px;          /* 👈 עיגול פינות */
+  overflow: hidden;
+  background: var(--white);
+  margin-bottom: 16px;
+  box-shadow: var(--shadow-md);
+}
+
+.card-top {
+  background: linear-gradient(135deg, var(--brand-bg) 0%, #e8edf5 100%);
+  border-bottom: 2px solid var(--border);
+  padding: 16px;
+}
+
+/* Grid - טבלת שדות בתוך כרטיס */
+.grid { 
+  width: 100%; 
+  border-collapse: separate; 
+  border-spacing: 10px 8px; 
+}
+
+.field {
+  background: var(--white);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  vertical-align: top;
+  width: 50%;
+  box-shadow: var(--shadow-sm);
+}
+
+.k { 
+  font-size: 11px;              /* 👈 גודל תווית שדה */
+  color: var(--muted); 
+  margin-bottom: 4px; 
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.v { 
+  font-size: 14px;              /* 👈 גודל ערך שדה */
+  font-weight: 800; 
+  color: var(--dark);
+  letter-spacing: -0.3px;
+}
+
+/* ====================================================================
+   6️⃣ תמונות במסמך
+   ==================================================================== 
+   
+   📝 מה זה: תמונות מלון, מפות אצטדיון, וכו'
+   🎨 איך לשנות:
+   - גובה תמונה: שנה max-height (שורה 425)
+   - עיגול פינות: שנה border-radius (שורה 426)
+   
+==================================================================== */
+
+.card-media {
+  padding: 12px;
+  background: var(--white);
+}
+
+.card-media img {
+  width: 100%;
+  max-height: 280px;            /* 👈 גובה מקסימלי לתמונה */
+  object-fit: cover;
+  border-radius: 12px;
+  border: 2px solid var(--border);
+}
+
+/* תגי קבוצות (לכדורגל) */
+.team-badges-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 30px;
+  padding: 20px;
+  background: linear-gradient(135deg, #f8f9fb 0%, #ffffff 100%);
+  border-bottom: 2px solid var(--border);
+}
+
+.team-badge-item {
+  text-align: center;
+  flex: 1;
+  max-width: 200px;
+}
+
+.team-badge-img {
+  width: 100px;                 /* 👈 גודל תג קבוצה */
+  height: 100px;
+  object-fit: contain;
+  margin-bottom: 10px;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.1));
+}
+
+.team-badge-name {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.vs-divider {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--brand-red);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* מפת אצטדיון */
+.event-media-wrapper {
+  margin-bottom: 16px;
+}
+
+.seatmap-wrapper {
+  margin-bottom: 12px;
+}
+
+.seatmap-box {
+  border: 3px solid var(--brand-blue);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.seatmap-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.stadium-photo-wrapper {
+  margin-top: 12px;
+}
+
+.stadium-photo-box {
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.stadium-photo-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ====================================================================
+   7️⃣ כרטיסי טיסה (FLIGHT CARDS)
+   ==================================================================== 
+   
+   📝 מה זה: כרטיסי פרטי הטיסות
+   🎨 איך לשנות:
+   - צבע רקע כותרת: שנה background ב-.flight-card-header (שורה 525)
+   - גודל פונט: שנה font-size (שורה 529)
+   
+==================================================================== */
+
+.flight-card {
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  background: var(--white);
+  margin-bottom: 16px;
+  overflow: hidden;
+  break-inside: avoid;
+  page-break-inside: avoid;
+  box-shadow: var(--shadow-md);
+}
+
+.flight-card-header {
+  background: linear-gradient(135deg, var(--brand-blue) 0%, var(--brand-blue-dark) 100%);
+  color: var(--white);
+  padding: 14px 18px;
+  font-size: 15px;              /* 👈 גודל כותרת כרטיס טיסה */
+  font-weight: 900;
+  letter-spacing: -0.3px;
+}
+
+.flight-card-header .plane-icon {
+  font-size: 18px;
+  margin-left: 8px;
+}
+
+.flight-card-body {
+  padding: 16px;
+  line-height: 1.5;
+}
+
+.flight-row {
+  background: var(--brand-bg);
+  border: 2px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+  margin-bottom: 10px;
+}
+
+.flight-row:last-of-type {
+  margin-bottom: 0;
+}
+
+.flight-row-title {
+  font-size: 12px;
+  font-weight: 900;
+  color: var(--brand-blue-dark);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  letter-spacing: -0.3px;
+}
+
+.flight-row-title .arrow {
+  margin: 0 6px;
+  font-size: 14px;
+  color: var(--brand-red);
+}
+
+.flight-grid {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 6px 0;
+}
+
+.flight-cell {
+  background: var(--white);
+  border-radius: 8px;
+  padding: 10px 12px;
+  vertical-align: top;
+  width: 25%;
+  box-shadow: var(--shadow-sm);
+}
+
+.flight-cell-k {
+  font-size: 9px;               /* 👈 גודל תווית בכרטיס טיסה */
+  color: var(--muted);
+  margin-bottom: 4px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.flight-cell-v {
+  font-size: 13px;              /* 👈 גודל ערך בכרטיס טיסה */
+  font-weight: 800;
+  color: var(--dark);
+}
+
+.flight-divider {
+  border: none;
+  border-top: 2px dashed var(--border);
+  margin: 12px 0;
+}
+
+.flight-notes {
+  background: var(--brand-bg);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin-top: 12px;
+  font-size: 10px;
+  color: var(--muted);
+  line-height: 1.6;
+  text-align: center;
+  border: 1px solid var(--border);
+}
+
+.flight-notes strong {
+  color: var(--brand-blue-dark);
+  font-weight: 700;
+}
+
+/* ====================================================================
+   8️⃣ טבלת נוסעים (PASSENGERS TABLE)
+   ==================================================================== 
+   
+   📝 מה זה: טבלה עם פרטי הנוסעים
+   🎨 איך לשנות:
+   - צבע כותרות: שנה background ב-.tbl th (שורה 650)
+   - גודל פונט: שנה font-size (שורה 640)
+   
+==================================================================== */
+
+table.tbl {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 2px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  background: var(--white);
+  margin-top: 8px;
+  box-shadow: var(--shadow-md);
+}
+
+.tbl th, .tbl td {
+  padding: 12px 14px;
+  font-size: 13px;              /* 👈 גודל טקסט בטבלה */
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+  vertical-align: middle;
+}
+
+.tbl th {
+  background: linear-gradient(135deg, var(--brand-bg) 0%, #e8edf5 100%);
+  color: var(--brand-blue-dark);
+  font-weight: 900;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.tbl tr:last-child td { 
+  border-bottom: none; 
+}
+
+.tbl tbody tr:hover {
+  background: var(--brand-bg);
+}
+
+/* ====================================================================
+   9️⃣ סיכום מחיר (PRICE BAR)
+   ==================================================================== 
+   
+   📝 מה זה: הפס האדום עם המחיר הסופי
+   🎨 איך לשנות:
+   - צבע רקע: שנה background ב-.price (שורה 680)
+   - גודל מחיר: שנה font-size ב-.price-val (שורה 720)
+   
+==================================================================== */
+
+.price {
+  margin-top: 16px;
+  background: linear-gradient(135deg, var(--brand-red) 0%, var(--brand-red-dark) 100%);
+  color: var(--white);
+  border-radius: 16px;
+  padding: 20px 24px;
+  box-shadow: var(--shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.price::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -20%;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, rgba(255,255,255,0.15) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.price-table { 
+  width: 100%; 
+  border-collapse: collapse; 
+  position: relative;
+  z-index: 1;
+}
+
+.price-rt { 
+  width: 55%; 
+  vertical-align: middle; 
+}
+
+.price-lt { 
+  width: 45%; 
+  vertical-align: middle; 
+  text-align: left; 
+}
+
+.price-label { 
+  font-size: 16px;              /* 👈 גודל תווית מחיר */
+  font-weight: 700; 
+  opacity: 0.95;
+  letter-spacing: -0.3px;
+}
+
+.price-val { 
+  font-size: 36px;              /* 👈 גודל המחיר */
+  font-weight: 900; 
+  letter-spacing: -1px;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.price-sub { 
+  font-size: 13px; 
+  opacity: 0.9; 
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* ====================================================================
+   🔟 סיכום חבילה (PACKAGE SUMMARY)
+   ==================================================================== 
+   
+   📝 מה זה: רשימת מה כלול בחבילה
+   
+==================================================================== */
+
+.package-summary {
+  padding: 16px;
+  background: var(--white);
+  border-top: 2px solid var(--border);
+}
+
+.summary-title {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--brand-blue-dark);
+  margin-bottom: 10px;
+  letter-spacing: -0.3px;
+}
+
+.summary-list {
+  font-size: 13px;
+  line-height: 1.9;
+  color: var(--dark);
+}
+
+.summary-item {
+  margin-bottom: 4px;
+  padding-right: 20px;
+  position: relative;
+}
+
+.summary-item::before {
+  content: "✓";
+  color: var(--success);
+  font-weight: 900;
+  font-size: 16px;
+  position: absolute;
+  right: 0;
+}
+
+/* ====================================================================
+   1️⃣1️⃣ תנאים (TERMS)
+   ==================================================================== 
+   
+   📝 מה זה: התנאים בסוף המסמך
+   
+==================================================================== */
+
+.terms-page {
+  page-break-before: always;
+  padding: 20px;
+}
+
+.terms-title {
+  font-size: 24px;
+  font-weight: 900;
+  color: var(--brand-blue-dark);
+  margin-bottom: 20px;
+  text-align: center;
+  border-bottom: 3px solid var(--brand-blue);
+  padding-bottom: 10px;
+}
+
+.terms-content {
+  font-size: 12px;
+  line-height: 1.8;
+  color: var(--dark);
+}
+
+.terms-content p {
+  margin-bottom: 12px;
+}
+
+/* ====================================================================
+   1️⃣2️⃣ כללי עזר (UTILITIES)
+   ==================================================================== */
+
+.text-center { text-align: center; }
+.text-right { text-align: right; }
+.text-left { text-align: left; }
+.mt-10 { margin-top: 10px; }
+.mt-20 { margin-top: 20px; }
+.mb-10 { margin-bottom: 10px; }
+.mb-20 { margin-bottom: 20px; }
+
+/* ====================================================================
+   סוף הקובץ - TikTik PDF Style
+   נוצר עם ❤️ על ידי Manus AI
+   ==================================================================== */
