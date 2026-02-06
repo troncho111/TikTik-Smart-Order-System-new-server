@@ -101,13 +101,14 @@ body {
   flex-direction: column;
   justify-content: flex-start;
   align-items: center;
-  padding: 100px 80px 60px 80px;  /* תיקון: padding מכל צד */
+  padding: 100px 80px 60px 80px;
   background-size: cover;
   background-position: center;
   page-break-after: always;
   background: var(--white);
   border-bottom: 3px solid var(--brand-blue);
   box-sizing: border-box;
+  width: 100%;                    /* תיקון: רוחב מלא */
 }
 
 .cover-header {
@@ -118,41 +119,42 @@ body {
   font-weight: 400;
   letter-spacing: 2px;
   text-transform: uppercase;
+  width: 100%;                    /* תיקון: רוחב מלא */
 }
 
 .cover-customer,
 .cover-line1 {
-  font-size: 42px;              /* תיקון: הקטנתי */
+  font-size: 42px;
   font-weight: 700;
   text-align: center;
   margin: 20px 0;
   color: #1a1a1a;
   text-shadow: 0 2px 8px rgba(0,0,0,0.15);
   line-height: 1.4;
-  max-width: 100%;
+  width: 100%;                    /* תיקון: רוחב מלא */
   word-wrap: break-word;
 }
 
 .cover-package,
 .cover-line2 {
-  font-size: 26px;              /* תיקון: הקטנתי */
+  font-size: 26px;
   text-align: center;
   margin: 20px 0;
   color: #2c3e50;
   font-weight: 500;
   line-height: 1.5;
-  max-width: 100%;
+  width: 100%;                    /* תיקון: רוחב מלא */
   word-wrap: break-word;
 }
 
 .cover-details,
 .cover-line3 {
-  font-size: 18px;              /* תיקון: הקטנתי */
+  font-size: 18px;
   text-align: center;
   color: #555;
   margin: 20px 0 60px;
   line-height: 1.6;
-  max-width: 100%;
+  width: 100%;                    /* תיקון: רוחב מלא */
   word-wrap: break-word;
 }
 
