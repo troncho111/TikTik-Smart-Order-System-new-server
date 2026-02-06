@@ -217,5 +217,27 @@ elif current_step == 4:
             st.rerun()
     with c2:
         if st.button("✅ אשר וצור PDF"):
-            st.success("ההזמנה נוצרה! מפיק PDF...")
-            # generate_pdf(order_data)
+            with st.spinner("מפיק PDF מקצועי..."):
+                try:
+                    # הכנת נתונים ל-PDF
+                    pdf_data = order_data.copy()
+                    
+                    # הוספת שדות חסרים ל-PDF (לפי התבנית)
+                    pdf_data['order_id'] = "TKT-" + os.urandom(2).hex().upper()
+                    pdf_data['created_at'] = str(os.popen('date +"%d/%m/%Y"').read().strip())
+                    pdf_data['final_price'] = "0" # כאן אפשר להוסיף חישוב מחיר
+                    
+                    # יצירת ה-PDF
+                    pdf_bytes = generate_pdf(pdf_data)
+                    
+                    if pdf_bytes:
+                        st.success("✅ ה-PDF מוכן להורדה!")
+                        st.download_button(
+                            label="📥 הורד טופס הזמנה (PDF)",
+                            data=pdf_bytes,
+                            file_name=f"Order_{pdf_data['customer_name']}.pdf",
+                            mime="application/pdf",
+                            use_container_width=True
+                        )
+                except Exception as e:
+                    st.error(f"שגיאה ביצירת ה-PDF: {str(e)}")
