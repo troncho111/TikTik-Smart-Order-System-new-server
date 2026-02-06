@@ -165,13 +165,29 @@ elif current_step == 2:
             hotel_nights = st.number_input("מספר לילות", min_value=1, value=order_data.get('hotel_nights', 1))
             
             st.markdown("#### ✈️ פרטי טיסות (אופציונלי)")
-            flight_img = st.file_uploader("העלה צילום מסך של טיסה", type=['png', 'jpg', 'jpeg'])
-            if st.button("🔍 סרוק טיסה", use_container_width=True) and flight_img:
+            col_f1, col_f2 = st.columns(2)
+            with col_f1:
+                flight_img = st.file_uploader("העלה צילום מסך של טיסה", type=['png', 'jpg', 'jpeg'])
+            with col_f2:
+                st.markdown("<br>", unsafe_allow_html=True)
+                flight_paste = paste_image_button("📋 הדבק טיסה", key="flight_paste")
+            
+            flight_to_scan = flight_img or (flight_paste.image_data if flight_paste else None)
+            if st.button("🔍 סרוק טיסה", use_container_width=True) and flight_to_scan:
                 with st.spinner("סורק טיסה..."):
-                    result = extract_flight_data(flight_img.read())
+                    if hasattr(flight_to_scan, 'read'):
+                        image_bytes = flight_to_scan.read()
+                    else:
+                        img_byte_arr = io.BytesIO()
+                        flight_to_scan.save(img_byte_arr, format='PNG')
+                        image_bytes = img_byte_arr.getvalue()
+                    
+                    result = extract_flight_data(image_bytes)
                     if result.get('success'):
                         st.success("✅ פרטי הטיסה נסרקו בהצלחה")
-                        # כאן אפשר להוסיף שמירה של פרטי הטיסה ל-order_data
+                        order_data['flights'] = result.get('flights', [])
+                        set_session_value('order_data', order_data)
+                        st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
 
     c1, c2 = st.columns(2)
@@ -210,22 +226,38 @@ elif current_step == 3:
             
         st.markdown("---")
         st.markdown("#### 🛂 סריקת דרכונים")
-        passport_img = st.file_uploader("העלה צילומי דרכון", type=['png', 'jpg', 'jpeg'], accept_multiple_files=True)
-        if st.button("🔍 סרוק דרכונים", use_container_width=True) and passport_img:
-            with st.spinner("סורק דרכונים..."):
-                passengers = order_data.get('passengers', [])
-                for img in passport_img:
-                    result = extract_passport_data(img.read())
-                    if result.get('success'):
-                        passengers.append({
-                            'first_name': result.get('first_name', ''),
-                            'last_name': result.get('last_name', ''),
-                            'passport': result.get('passport_number', ''),
-                            'birth_date': result.get('birth_date', '')
-                        })
-                order_data['passengers'] = passengers
-                set_session_value('order_data', order_data)
-                st.success(f"✅ נסרקו {len(passport_img)} דרכונים")
+        col_p1, col_p2 = st.columns(2)
+        with col_p1:
+            passport_img = st.file_uploader("העלה צילומי דרכון", type=['png', 'jpg', 'jpeg'], accept_multiple_files=True)
+        with col_p2:
+            st.markdown("<br>", unsafe_allow_html=True)
+            passport_paste = paste_image_button("📋 הדבק דרכון", key="passport_paste")
+            
+        if st.button("🔍 סרוק דרכונים", use_container_width=True):
+            images_to_scan = []
+            if passport_img:
+                for img in passport_img: images_to_scan.append(img.read())
+            if passport_paste and passport_paste.image_data:
+                img_byte_arr = io.BytesIO()
+                passport_paste.image_data.save(img_byte_arr, format='PNG')
+                images_to_scan.append(img_byte_arr.getvalue())
+                
+            if images_to_scan:
+                with st.spinner(f"סורק {len(images_to_scan)} דרכונים..."):
+                    passengers = order_data.get('passengers', [])
+                    for img_bytes in images_to_scan:
+                        result = extract_passport_data(img_bytes)
+                        if result.get('success'):
+                            passengers.append({
+                                'first_name': result.get('first_name', ''),
+                                'last_name': result.get('last_name', ''),
+                                'passport': result.get('passport_number', ''),
+                                'birth_date': result.get('birth_date', '')
+                            })
+                    order_data['passengers'] = passengers
+                    set_session_value('order_data', order_data)
+                    st.success(f"✅ נסרקו {len(images_to_scan)} דרכונים")
+                    st.rerun()
         
         if order_data.get('passengers'):
             st.markdown("##### 👥 נוסעים שנסרקו:")
