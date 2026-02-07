@@ -3,6 +3,10 @@ Concert OCR using Gemini AI
 Extracts concert/event details from screenshots or web page images
 """
 
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
 import os
 import json
 import time

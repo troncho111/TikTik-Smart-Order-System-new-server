@@ -3,6 +3,10 @@ Passport OCR using Google Gemini REST API
 Extracts passenger details from passport images
 """
 
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
 import os
 import json
 import base64
@@ -10,10 +14,8 @@ import requests
 
 
 def is_gemini_key_configured() -> bool:
-    """Check if Gemini API key is configured"""
-    key1 = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY", "").strip()
-    key2 = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY_2", "").strip()
-    return bool(key1 or key2)
+    """Check if Gemini API key is configured (מקור יחיד: .env)"""
+    return bool(os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY", "").strip())
 
 
 def extract_passport_data(image_bytes: bytes, max_retries: int = 2) -> dict:
@@ -32,12 +34,8 @@ def extract_passport_data(image_bytes: bytes, max_retries: int = 2) -> dict:
             "error": "נדרש מפתח API של Gemini"
         }
     
-    # Get API keys
-    api_keys = [
-        os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY"),
-        os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY_2")
-    ]
-    api_keys = [k.strip() for k in api_keys if k and k.strip()]
+    api_key = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY", "").strip()
+    api_keys = [api_key] if api_key else []
     
     prompt = """Extract passport information from this image and return ONLY a JSON object (no markdown, no explanation):
 {
@@ -53,12 +51,13 @@ If you cannot find a field, use empty string. Return ONLY the JSON."""
     image_b64 = base64.b64encode(image_bytes).decode('utf-8')
     
     last_error = None
-    
+    # תמיד כתובת רשמית של Google. gemini-2.0-flash זמין ב-Free tier
+    url_template = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={key}"
+
     for api_key in api_keys:
         for attempt in range(max_retries):
             try:
-                # Use Gemini REST API directly with v1beta
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+                url = url_template.format(key=api_key)
                 
                 payload = {
                     "contents": [{

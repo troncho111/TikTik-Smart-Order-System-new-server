@@ -1,9 +1,20 @@
-import streamlit as st
-import os
-import sys
-import io
-import json
+"""
+TikTik Smart Order System - Main Application
+מערכת TikTik לניהול הזמנות
+"""
 
+# טעינת .env מהפרויקט – מקור יחיד, מונע חוסר סנכרון
+from pathlib import Path
+from dotenv import load_dotenv
+load_dotenv(Path(__file__).resolve().parent / ".env")
+
+import streamlit as st
+from models import init_db
+from config import RTL_CSS
+from services.ai_service import render_ai_chatbot
+from auth_helpers import restore_session_from_token, clear_session_token
+
+import os
 # Project root (where app.py lives) - for worldcup2026.json etc.
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 WORLDCUP_JSON_PATH = os.path.join(_APP_DIR, "worldcup2026.json")
@@ -18,257 +29,14 @@ import uuid
 import hashlib
 from models import Order, OrderStatus, EventType, AtmosphereImage, User, UserSession, PackageTemplate, get_db, generate_order_number, init_db, HotelCache, ClientProposal, ProposalStatus
 
-def generate_session_token():
-    """Generate a random session token"""
-    return secrets.token_hex(32)
 
-def create_user_session(user_id):
-    """Create a new session in database and return token"""
-    db = get_db()
-    if not db:
-        return None
-    try:
-        token = generate_session_token()
-        expires_at = datetime.utcnow() + timedelta(days=30)
-        
-        session = UserSession(
-            user_id=user_id,
-            token=token,
-            expires_at=expires_at
-        )
-        db.add(session)
-        db.commit()
-        return token
-    except Exception as e:
-        db.rollback()
-        print(f"Error creating session: {e}")
-        return None
-    finally:
-        db.close()
+# Initialize database (resilient - app can start even if DB temporarily unavailable)
+try:
+    init_db()
+except Exception as e:
+    print(f"Database init warning: {e}")
 
-def validate_session_token(token):
-    """Validate session token and return user if valid"""
-    if not token:
-        return None
-    db = get_db()
-    if not db:
-        return None
-    try:
-        session = db.query(UserSession).filter(
-            UserSession.token == token,
-            UserSession.expires_at > datetime.utcnow()
-        ).first()
-        
-        if session:
-            user = db.query(User).filter(User.id == session.user_id, User.is_active == True).first()
-            if user:
-                session.last_seen = datetime.utcnow()
-                db.commit()
-                return {
-                    'id': user.id,
-                    'username': user.username,
-                    'email': user.email,
-                    'full_name': user.full_name,
-                    'is_admin': user.is_admin
-                }
-        return None
-    except Exception as e:
-        print(f"Error validating session: {e}")
-        return None
-    finally:
-        db.close()
-
-def delete_user_session(token):
-    """Delete a session from database"""
-    if not token:
-        return
-    db = get_db()
-    if not db:
-        return
-    try:
-        db.query(UserSession).filter(UserSession.token == token).delete()
-        db.commit()
-    except:
-        db.rollback()
-    finally:
-        db.close()
-
-def restore_session_from_token():
-    """Try to restore user session from query params with database validation"""
-    params = st.query_params
-    token = params.get('token')
-    
-    # New database-backed token system
-    if token:
-        user = validate_session_token(token)
-        if user:
-            return user
-    
-    # Fallback to old hash-based system for backward compatibility
-    old_token = params.get('session')
-    user_id = params.get('uid')
-    
-    if old_token and user_id:
-        db = get_db()
-        if db:
-            try:
-                secret = os.environ.get('SESSION_SECRET', 'tiktik-secret-key')
-                data = f"{user_id}-{secret}"
-                expected_token = hashlib.sha256(data.encode()).hexdigest()[:32]
-                
-                user = db.query(User).filter(User.id == int(user_id), User.is_active == True).first()
-                if user and old_token == expected_token:
-                    # Migrate to new database-backed session
-                    new_token = create_user_session(user.id)
-                    if new_token:
-                        st.query_params['token'] = new_token
-                        # Clean up old params
-                        if 'session' in st.query_params:
-                            del st.query_params['session']
-                        if 'uid' in st.query_params:
-                            del st.query_params['uid']
-                    return {
-                        'id': user.id,
-                        'username': user.username,
-                        'email': user.email,
-                        'full_name': user.full_name,
-                        'is_admin': user.is_admin
-                    }
-            except:
-                pass
-            finally:
-                db.close()
-    return None
-
-def set_session_token(user):
-    """Set session token in URL query params for persistence"""
-    token = create_user_session(user['id'])
-    if token:
-        st.query_params['token'] = token
-
-def clear_session_token():
-    """Clear session token from query params"""
-    token = st.query_params.get('token')
-    if token:
-        delete_user_session(token)
-        del st.query_params['token']
-    if 'session' in st.query_params:
-        del st.query_params['session']
-    if 'uid' in st.query_params:
-        del st.query_params['uid']
-import random
-from passport_ocr import extract_passport_data
-from hotel_resolver import resolve_hotel_safe
-from airports import AIRPORTS, get_airport_options, get_airport_code, format_airport_display
-from flight_ocr import extract_flight_data
-from airline_codes import get_airline_from_flight
-from streamlit_paste_button import paste_image_button
-from stadium_api import get_team_info, get_team_map_path, get_all_teams
-from concerts_service import fetch_venue_map_from_ticketmaster, is_ticketmaster_url
-from google import genai
-
-def get_gemini_client():
-    """Get Gemini client for AI chat"""
-    api_key = os.environ.get("AI_INTEGRATIONS_GEMINI_API_KEY")
-    base_url = os.environ.get("AI_INTEGRATIONS_GEMINI_BASE_URL")
-    
-    if not api_key:
-        return None
-    
-    try:
-        return genai.Client(
-            api_key=api_key,
-            http_options={
-                'api_version': '',
-                'base_url': base_url
-            }
-        )
-    except Exception:
-        return None
-
-def ai_chat_response(question: str) -> str:
-    """Generate AI response for user question about TikTik system"""
-    client = get_gemini_client()
-    if not client:
-        return "שירות הצ'אט אינו זמין כרגע. פנה למנהל המערכת."
-    
-    system_prompt = """אתה עוזר וירטואלי של מערכת TikTik. ענה בעברית קצר וברור.
-
-בעיות נפוצות ופתרונות:
-
-❓ "העליתי דרכון ולא קורה כלום"
-✅ תשובה: לאחר העלאת התמונה, חייבים ללחוץ על כפתור "🔍 סרוק דרכון"!
-
-❓ "העליתי צילום טיסה ולא קורה כלום"  
-✅ תשובה: לאחר העלאת התמונה, חייבים ללחוץ על כפתור "🔍 סרוק טיסה"!
-
-❓ "איפה שער ההמרה?"
-✅ תשובה: שער ההמרה מתעדכן אוטומטית (שער בנק ישראל + 5 אגורות). אין צורך להזין.
-
-❓ "איך שולחים ללקוח?"
-✅ תשובה: לחץ "צור PDF והורד", ושלח את הקובץ ללקוח דרך וואטסאפ.
-
-מידע על המערכת:
-- TikTik מוכרת כרטיסים למשחקי כדורגל והופעות באירופה
-- "חבילה מלאה" = מלון + טיסות + העברות + כרטיסים
-- "כרטיסים בלבד" = רק כרטיסים
-- סריקת דרכון: העלה תמונה → לחץ "סרוק דרכון" → פרטים יתמלאו
-- סריקת טיסה: העלה צילום מסך → לחץ "סרוק טיסה" → פרטים יתמלאו
-- מלונות: הקלד שם → לחץ "חפש מלון" → פרטים יתמלאו
-- מפות אצטדיון מופיעות אוטומטית לפי הקבוצה
-
-ענה קצר וממוקד. אם לא יודע - הפנה לעמוד העזרה (כפתור ❓)."""
-    
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=f"{system_prompt}\n\nשאלת המשתמש: {question}"
-        )
-        return response.text or "לא הצלחתי לענות. נסה שוב."
-    except Exception as e:
-        return f"שגיאה: לא הצלחתי לעבד את השאלה. נסה שוב מאוחר יותר."
-
-def render_ai_chatbot():
-    """Render AI chatbot widget in sidebar"""
-    st.sidebar.markdown("---")
-    st.sidebar.markdown("##### 🤖 עוזר AI")
-    
-    if 'ai_chat_history' not in st.session_state:
-        st.session_state.ai_chat_history = []
-    
-    if 'ai_chat_input' not in st.session_state:
-        st.session_state.ai_chat_input = ""
-    
-    with st.sidebar.expander("💬 שאל שאלה", expanded=False):
-        user_question = st.text_input(
-            "הקלד שאלה",
-            key="ai_question_input",
-            placeholder="איך יוצרים הזמנה חדשה?"
-        )
-        
-        if st.button("שלח", key="send_ai_question", use_container_width=True):
-            if user_question.strip():
-                with st.spinner("חושב..."):
-                    response = ai_chat_response(user_question)
-                    st.session_state.ai_chat_history.append({
-                        "question": user_question,
-                        "answer": response
-                    })
-        
-        if st.session_state.ai_chat_history:
-            st.markdown("---")
-            for i, chat in enumerate(reversed(st.session_state.ai_chat_history[-3:])):
-                st.markdown(f"**🙋 שאלה:** {chat['question']}")
-                st.markdown(f"**🤖 תשובה:** {chat['answer']}")
-                if i < len(st.session_state.ai_chat_history[-3:]) - 1:
-                    st.markdown("---")
-        
-        if st.session_state.ai_chat_history and st.button("🗑️ נקה היסטוריה", key="clear_ai_history"):
-            st.session_state.ai_chat_history = []
-            st.rerun()
-
-init_db()
-
+# Configure Streamlit page
 st.set_page_config(
     page_title="TikTik Smart Order System",
     page_icon="🎟️",
@@ -6778,6 +6546,8 @@ def page_stadium_map_scraper():
             st.markdown(f"- {t.get('name_he', t.get('id'))} ({t.get('league', '')})")
 
 def main():
+    """Main application entry point with routing logic"""
+    
     # Try to restore session from token if not logged in
     if not st.session_state.get('logged_in'):
         restored_user = restore_session_from_token()
@@ -6848,9 +6618,10 @@ def main():
         clear_session_token()
         st.rerun()
     
+    # Render AI chatbot in sidebar
     render_ai_chatbot()
     
-    # Determine which page to show
+    # Route to appropriate page
     if st.session_state.get("admin_page") == "packages":
         page_package_templates()
     elif st.session_state.get("admin_page") == "proposals":
