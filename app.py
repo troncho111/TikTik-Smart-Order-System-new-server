@@ -878,12 +878,24 @@ def generate_pdf(order_data, stadium_image=None, hotel_image=None, hotel_image_2
     
     json_file = None
     try:
-        # Use the new professional PDF generator
-        pdf_path = generate_pdf_new(pdf_data)
-        if pdf_path and os.path.exists(pdf_path):
-            with open(pdf_path, "rb") as f:
-                return f.read()
+        # Use the new professional PDF generator (returns bytes, not path)
+        pdf_bytes_result = generate_pdf_new(
+            pdf_data,
+            stadium_image_path=pdf_data.get('stadium_image_path'),
+            hotel_image_path=pdf_data.get('hotel_image_path'),
+            hotel_image_2_path=pdf_data.get('hotel_image_2_path'),
+            stadium_photo_path=pdf_data.get('stadium_photo_path'),
+            template_version=template_version,
+        )
+        if isinstance(pdf_bytes_result, bytes) and len(pdf_bytes_result) > 0:
+            return pdf_bytes_result
         raise Exception("Failed to generate PDF with the new engine")
+    except Exception as e:
+        # Log and re-raise with clearer message
+        err_msg = str(e)
+        if "Failed to generate PDF" not in err_msg:
+            raise Exception(f"שגיאה ביצירת PDF: {err_msg}")
+        raise
         
     finally:
         if json_file and os.path.exists(json_file):
@@ -3811,9 +3823,10 @@ def page_new_order():
                 if detected_outbound_airline:
                     st.caption(f"✓ זוהה: {detected_outbound_airline}")
             
-            # Initialize with detected value or from saved data
-            default_outbound_airline = detected_outbound_airline or fd['outbound'].get('airline', '')
-            outbound_airline = st.text_input("חברת תעופה", value=default_outbound_airline, placeholder="Air Europa", key="flight_outbound_airline")
+            # Initialize with detected value or from saved data (session_state only – no value= to avoid Streamlit conflict)
+            if "flight_outbound_airline" not in st.session_state:
+                st.session_state["flight_outbound_airline"] = detected_outbound_airline or fd['outbound'].get('airline', '')
+            outbound_airline = st.text_input("חברת תעופה", placeholder="Air Europa", key="flight_outbound_airline")
             
             st.markdown("**טיסת חזור:**")
             col_ret1, col_ret2 = st.columns(2)
@@ -3849,9 +3862,10 @@ def page_new_order():
                 if detected_return_airline:
                     st.caption(f"✓ זוהה: {detected_return_airline}")
             
-            # Initialize with detected value or from saved data
-            default_return_airline = detected_return_airline or fd['return'].get('airline', '')
-            return_airline = st.text_input("חברת תעופה", value=default_return_airline, placeholder="El Al", key="flight_return_airline")
+            # Initialize with detected value or from saved data (session_state only – no value= to avoid Streamlit conflict)
+            if "flight_return_airline" not in st.session_state:
+                st.session_state["flight_return_airline"] = detected_return_airline or fd['return'].get('airline', '')
+            return_airline = st.text_input("חברת תעופה", placeholder="El Al", key="flight_return_airline")
             
             out_from_code = get_airport_code(outbound_from)
             out_to_code = get_airport_code(outbound_to)
@@ -6704,6 +6718,7 @@ def page_order_summary():
     st.markdown('<div class="form-section">', unsafe_allow_html=True)
     st.markdown(f"### 📋 סיכום הזמנה: {order_data.get('event_name')}")
     
+    # --- שורת סיכום ראשית ---
     col1, col2 = st.columns(2)
     with col1:
         st.write(f"**👤 לקוח:** {order_data.get('customer_name')}")
@@ -6711,7 +6726,89 @@ def page_order_summary():
         st.write(f"**📍 מיקום:** {order_data.get('venue')}")
     with col2:
         st.write(f"**🎫 כרטיסים:** {order_data.get('num_tickets')}")
-        st.write(f"**💰 סה\"כ:** {order_data.get('total_euro')}€ ({order_data.get('total_nis'):,} ₪)")
+        total_nis = order_data.get('total_nis') or 0
+        total_euro = order_data.get('total_euro') or order_data.get('total_foreign') or 0
+        st.write(f"**💰 סה\"כ:** €{total_euro:,.0f} (₪{total_nis:,.0f})")
+
+    st.markdown("---")
+    st.markdown("#### 👁️ בדיקה לפני יצירת PDF – וודא שהכל תקין")
+
+    # --- כרטיס: פרטי לקוח ---
+    with st.expander("👤 פרטי לקוח", expanded=True):
+        c1, c2 = st.columns(2)
+        with c1:
+            st.write(f"**שם:** {order_data.get('customer_name', '—')}")
+            st.write(f"**ת.ז.:** {order_data.get('customer_id') or '—'}")
+        with c2:
+            st.write(f"**טלפון:** {order_data.get('customer_phone') or '—'}")
+            st.write(f"**אימייל:** {order_data.get('customer_email') or '—'}")
+
+    # --- כרטיס: אירוע ראשי ---
+    with st.expander("🎫 אירוע ראשי", expanded=True):
+        st.write(f"**אירוע:** {order_data.get('event_name', '—')}")
+        st.write(f"**תאריך ושעה:** {order_data.get('event_date', '—')}")
+        st.write(f"**מיקום:** {order_data.get('venue') or order_data.get('venue_name') or '—'}")
+        if order_data.get('category'):
+            st.write(f"**קטגוריה:** {order_data.get('category')}")
+        if order_data.get('ticket_description'):
+            st.write(f"**פרטי כרטיס:** {order_data.get('ticket_description')[:200]}{'…' if len(order_data.get('ticket_description', '')) > 200 else ''}")
+
+    # --- אירועים נוספים (saved_games) ---
+    saved_games = order_data.get('saved_games') or []
+    if saved_games:
+        with st.expander(f"📅 אירועים נוספים ({len(saved_games)})", expanded=True):
+            for i, g in enumerate(saved_games, 1):
+                name = g.get('event_name') or g.get('display_text') or '—'
+                date = g.get('event_date') or '—'
+                loc = g.get('venue_name') or g.get('venue') or '—'
+                st.write(f"**{i}. {name}** · {date} · {loc}")
+
+    # --- חבילה: מלון ---
+    if order_data.get('product_type') == 'package' and order_data.get('hotel_name'):
+        with st.expander("🏨 מלון", expanded=True):
+            st.write(f"**מלון:** {order_data.get('hotel_name')}")
+            if order_data.get('hotel_nights'):
+                st.write(f"**לילות:** {order_data.get('hotel_nights')}")
+            if order_data.get('hotel_stars'):
+                st.write(f"**כוכבים:** {order_data.get('hotel_stars')}")
+            if order_data.get('hotel_meals'):
+                st.write(f"**ארוחות:** {order_data.get('hotel_meals')}")
+            if order_data.get('hotel_address'):
+                st.write(f"**כתובת:** {order_data.get('hotel_address')}")
+
+    # --- חבילה: טיסות ---
+    flights = order_data.get('flights') or []
+    if flights:
+        with st.expander(f"✈️ טיסות ({len(flights)})", expanded=True):
+            for f in flights:
+                direction = f.get('direction', '')
+                fr = f.get('from') or f.get('from_city') or '—'
+                to = f.get('to') or f.get('to_city') or '—'
+                airline = f.get('airline') or ''
+                st.write(f"**{direction}:** {fr} → {to}" + (f" ({airline})" if airline else ""))
+
+    # --- נוסעים ---
+    passengers = order_data.get('passengers') or []
+    if passengers:
+        with st.expander(f"👥 נוסעים ({len(passengers)})", expanded=True):
+            for p in passengers:
+                if isinstance(p, dict):
+                    first = p.get('first_name', '')
+                    last = p.get('last_name', '')
+                    name = f"{first} {last}".strip() or p.get('name', '—')
+                    st.write(f"• {name}" + (f" · דרכון {p.get('passport') or p.get('passport_number') or ''}" if p.get('passport') or p.get('passport_number') else ""))
+
+    # --- סיכום תמחיר ---
+    with st.expander("💰 סיכום תמחיר", expanded=True):
+        p1, p2, p3 = st.columns(3)
+        with p1:
+            st.write(f"**מחיר ליחידה:** {order_data.get('currency_symbol', '€')}{order_data.get('price_per_ticket') or 0:,.0f}")
+        with p2:
+            st.write(f"**סה\"כ (מט\"ח):** €{total_euro:,.0f}")
+        with p3:
+            st.write(f"**סה\"כ (ש\"ח):** ₪{total_nis:,.0f}")
+        if order_data.get('exchange_rate'):
+            st.caption(f"שער חליפין: {order_data.get('exchange_rate')}")
 
     st.markdown("---")
     

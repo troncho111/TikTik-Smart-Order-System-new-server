@@ -21,9 +21,14 @@ pdf_bytes = generate_order_pdf(order_data, images_dict)
 
 import os
 import base64
+import json
 from pathlib import Path
+from datetime import datetime
 from jinja2 import Environment, FileSystemLoader
 from weasyprint import HTML
+
+# שורש הפרויקט (לנכסים ותנאים)
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 
 # ============================================================================
@@ -133,75 +138,235 @@ def calculate_seatmap_height(order_data: dict, has_stadium_photo: bool) -> tuple
 
 
 # ============================================================================
-# הכנת נתונים לתבנית
+# הכנת נתונים לתבנית (תאימות לתבנית order_template.html)
 # ============================================================================
+
+def _build_cover_lines_and_games(order_data: dict, stadium_image_uri: str) -> tuple:
+    """בונה cover_line1/2/3 ורשימת games כמו ב-pdf_generator."""
+    saved_raw = order_data.get('saved_games', [])
+    saved_with_maps = []
+    for g in saved_raw:
+        game = dict(g)
+        map_path = (
+            game.get('stadium_map_path') or
+            game.get('worldcup_stadium_map') or
+            game.get('league_stadium_map_path') or
+            ''
+        )
+        if map_path and os.path.exists(map_path):
+            game['seatmap_image'] = get_image_data_uri(map_path)
+        else:
+            game['seatmap_image'] = game.get('seatmap_image', '')
+        saved_with_maps.append(game)
+
+    event_name = (order_data.get('event_name') or '').strip()
+    games = []
+    if saved_with_maps:
+        games = saved_with_maps
+    elif event_name:
+        venue = order_data.get('venue', '') or order_data.get('venue_name', '')
+        event_city = order_data.get('event_city', '') or venue
+        main = {
+            'display_text': event_name,
+            'details': f"{venue}, {event_city}" if venue else (order_data.get('event_date') or ''),
+            'event_date': order_data.get('event_date', ''),
+            'event_city': event_city,
+            'venue': venue,
+            'category': order_data.get('category', ''),
+            'num_tickets': order_data.get('num_tickets', 0),
+            'seatmap_image': stadium_image_uri or '',
+        }
+        games.append(main)
+
+    total_games = len(games)
+    customer_name = (order_data.get('customer_name') or '').strip() or 'הזמנה רשמית'
+    event_type = order_data.get('event_type', 'ספורט')
+
+    cover_line1 = customer_name
+    if total_games == 0:
+        games_text = "הזמנה"
+    elif total_games == 1:
+        games_text = "משחק אחד"
+    else:
+        games_text = f"חבילת {total_games} משחקים"
+    cover_line2 = f"{games_text} | {event_type}" if (event_type and event_type != 'ספורט') else games_text
+
+    cities, event_dates = [], []
+    for game in games:
+        city = game.get('event_city') or (game.get('fixture_data') or {}).get('city', '') or game.get('venue', '')
+        if not city and game.get('worldcup_venue'):
+            parts = (game.get('worldcup_venue') or '').split(',')
+            if len(parts) >= 2:
+                city = parts[-1].strip()
+        if city and city not in cities:
+            cities.append(city)
+        date = game.get('event_date') or (game.get('fixture_data') or {}).get('date', '')
+        if date and date not in event_dates:
+            event_dates.append(date)
+
+    if len(cities) == 1:
+        cities_text = f"📍 {cities[0]}"
+    elif len(cities) == 2:
+        cities_text = f"📍 {cities[0]} & {cities[1]}"
+    elif len(cities) > 2:
+        cities_text = f"📍 {cities[0]}, {cities[1]} ועוד"
+    else:
+        cities_text = ""
+
+    date_text = ""
+    if event_dates:
+        try:
+            date_str = str(event_dates[0])
+            month_num, year = 0, ""
+            if '/' in date_str:
+                parts = date_str.split('/')
+                if len(parts) >= 3:
+                    month_num, year = int(parts[1]), parts[2]
+            elif '-' in date_str:
+                parts = date_str.split('-')
+                if len(parts) >= 3:
+                    month_num, year = int(parts[1]), parts[0]
+            months_he = {
+                1: "ינואר", 2: "פברואר", 3: "מרץ", 4: "אפריל", 5: "מאי", 6: "יוני",
+                7: "יולי", 8: "אוגוסט", 9: "ספטמבר", 10: "אוקטובר", 11: "נובמבר", 12: "דצמבר"
+            }
+            date_text = f"📅 {months_he.get(month_num, '')} {year}".strip() if month_num else (f"📅 {year}" if year else "")
+        except Exception:
+            pass
+    cover_line3 = f"{cities_text} | {date_text}".strip(' |') if (cities_text or date_text) else ""
+
+    return (cover_line1, cover_line2, cover_line3, games, total_games)
+
 
 def prepare_template_data(order_data: dict, images: dict) -> dict:
     """
-    הכנת נתונים לתבנית HTML
-    
-    Args:
-        order_data: נתוני ההזמנה מבסיס הנתונים
-        images: מילון עם נתיבי תמונות
-        
-    Returns:
-        dict: נתונים מוכנים לתבנית
-        
-    הסבר:
-        הפונקציה לוקחת את הנתונים הגולמיים ומכינה אותם
-        לשימוש בתבנית - ממירה תמונות, מחשבת גבהים, וכו'.
+    הכנת נתונים לתבנית HTML (תאימות מלאה ל-order_template.html)
     """
-    # העתקת הנתונים (כדי לא לשנות את המקור)
     data = order_data.copy()
-    
-    # המרת תמונות ל-Data URI
-    if images.get('logo_path'):
-        data['logo_path'] = get_image_data_uri(images['logo_path'])
-    
+
+    # תמונות מהמשתמש או מנתיבים
+    stadium_uri = None
     if images.get('stadium_image'):
-        data['seatmap_image'] = get_image_data_uri(images['stadium_image'])
-    
+        stadium_uri = get_image_data_uri(images['stadium_image'])
+        data['seatmap_image'] = stadium_uri
     if images.get('stadium_photo'):
         data['stadium_photo_path'] = get_image_data_uri(images['stadium_photo'])
-    
     if images.get('hotel_image'):
         data['hotel_image_path'] = get_image_data_uri(images['hotel_image'])
-    
     if images.get('hotel_image_2'):
         data['hotel_image_2'] = get_image_data_uri(images['hotel_image_2'])
-    
+        data['hotel_image_path_2'] = data['hotel_image_2']
     if images.get('home_team_badge'):
         data['home_team_badge'] = get_image_data_uri(images['home_team_badge'])
-    
     if images.get('away_team_badge'):
         data['away_team_badge'] = get_image_data_uri(images['away_team_badge'])
-    
-    if images.get('cover_image'):
+
+    # נכסים מהפרויקט (כריכה, לוגו, באנר)
+    if not data.get('cover_image') and not images.get('cover_image'):
+        cover_path = _PROJECT_ROOT / 'assets' / 'cover_page.jpg'
+        if cover_path.exists():
+            data['cover_image'] = get_image_data_uri(str(cover_path))
+    elif images.get('cover_image'):
         data['cover_image'] = get_image_data_uri(images['cover_image'])
-    
-    # חישוב גבהים למפת מקומות ותמונת אצטדיון
-    has_stadium_photo = bool(images.get('stadium_photo'))
+
+    if not data.get('logo_path') and not images.get('logo_path'):
+        for name in ('assets/logo_red.png', 'static/logo_red.png'):
+            p = _PROJECT_ROOT / name.replace('/', os.sep)
+            if p.exists():
+                data['logo_path'] = get_image_data_uri(str(p))
+                break
+
+    if not data.get('header_banner'):
+        for name in ('assets/header_banner.png', 'assets/header_banner.jpg'):
+            p = _PROJECT_ROOT / name.replace('/', os.sep)
+            if p.exists():
+                data['header_banner'] = get_image_data_uri(str(p))
+                break
+
+    # כותרת כריכה ו-games
+    stadium_uri = data.get('seatmap_image') or stadium_uri
+    cover_line1, cover_line2, cover_line3, games, total_games = _build_cover_lines_and_games(order_data, stadium_uri)
+    data['cover_line1'] = cover_line1
+    data['cover_line2'] = cover_line2
+    data['cover_line3'] = cover_line3
+    data['games'] = games
+    data['total_games'] = total_games
+    data['saved_games'] = data.get('saved_games', [])
+
+    # terms
+    terms_path = _PROJECT_ROOT / 'terms.txt'
+    terms_text = ""
+    legal_text_page1 = ""
+    legal_text_page2 = ""
+    if terms_path.exists():
+        try:
+            with open(terms_path, 'r', encoding='utf-8') as f:
+                terms_lines = f.readlines()
+            mid = len(terms_lines) // 2
+            legal_text_page1 = ''.join(terms_lines[:mid]).replace('\n', '<br>')
+            legal_text_page2 = ''.join(terms_lines[mid:]).replace('\n', '<br>')
+            terms_text = legal_text_page1 + legal_text_page2
+        except Exception:
+            pass
+    data['terms_text'] = terms_text
+    data['legal_text'] = terms_text
+    data['legal_text_page1'] = legal_text_page1
+    data['legal_text_page2'] = legal_text_page2
+
+    # תאימות שמות: התבנית משתמשת ב-seatmap_image / stadium_image / stadium_image_path
+    if data.get('seatmap_image'):
+        data['stadium_image'] = data['seatmap_image']
+        data['stadium_image_path'] = data['seatmap_image']
+
+    # חישוב גבהים
+    has_stadium_photo = bool(images.get('stadium_photo') or data.get('stadium_photo_path'))
     seatmap_h, photo_h = calculate_seatmap_height(order_data, has_stadium_photo)
-    
     data['seatmap_height_px'] = seatmap_h
     data['stadium_photo_height_px'] = photo_h
-    
-    # טיפול בנוסעים (אם זה JSON string)
+
+    # created_at / order_id / creation_date / event_date_str (לתבנית החדשה)
+    if not data.get('created_at'):
+        data['created_at'] = order_data.get('creation_date') or datetime.now().strftime('%d/%m/%Y')
+    if not data.get('order_id'):
+        data['order_id'] = data.get('order_number', '')
+    data['creation_date'] = data.get('created_at', '')
+    data['event_date_str'] = data.get('event_date') or data.get('created_at', '')
+    data['currency_symbol'] = data.get('currency_symbol', '€')
+    data['total_foreign'] = data.get('total_euro') if 'total_euro' in data else data.get('total_foreign')
+
+    # passengers / flights
     if isinstance(data.get('passengers'), str):
         try:
-            import json
             data['passengers'] = json.loads(data['passengers'])
-        except:
+        except Exception:
             data['passengers'] = []
-    
-    # טיפול בטיסות (אם זה JSON string)
     if isinstance(data.get('flights'), str):
         try:
-            import json
             data['flights'] = json.loads(data['flights'])
-        except:
+        except Exception:
             data['flights'] = []
-    
+
+    # saved_games עם seatmap_image + stadium_map_path (Data URI) לתבנית החדשה
+    saved = data.get('saved_games', [])
+    if isinstance(saved, list):
+        out = []
+        for sg in saved:
+            s = dict(sg)
+            path = s.get('stadium_map_path') or s.get('worldcup_stadium_map') or s.get('league_stadium_map_path')
+            if path and os.path.exists(path):
+                uri = get_image_data_uri(path)
+                s['seatmap_image'] = uri
+                s['stadium_map_path'] = uri
+            else:
+                s['seatmap_image'] = s.get('seatmap_image', '')
+                s['stadium_map_path'] = s.get('seatmap_image', '')
+            if not s.get('event_name') and s.get('display_text'):
+                s['event_name'] = s['display_text']
+            if not s.get('venue') and s.get('venue_name'):
+                s['venue'] = s['venue_name']
+            out.append(s)
+        data['saved_games'] = out
+
     return data
 
 
