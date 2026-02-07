@@ -7,7 +7,7 @@ TikTik Smart Order System - Main Application
 try:
     from pathlib import Path
     from dotenv import load_dotenv
-    load_dotenv(Path(__file__).resolve().parent / ".env")
+    load_dotenv(Path(__file__).resolve().parent / ".env", override=True)
 except ImportError:
     pass  # python-dotenv לא מותקן – משתמשים במשתני סביבה של התהליך
 
@@ -16,8 +16,19 @@ from models import init_db
 from config import RTL_CSS
 from services.ai_service import render_ai_chatbot
 from auth_helpers import restore_session_from_token, clear_session_token
+from streamlit_paste_button import paste_image_button
+from stadium_api import get_team_map_path
+from airports import get_airport_options, get_airport_code, format_airport_display
+from flight_ocr import extract_flight_data
+from passport_ocr import extract_passport_data
+from hotel_resolver import resolve_hotel_safe
+from airline_codes import get_airline_from_flight
 
 import os
+import io
+import json
+import random
+import requests
 # Project root (where app.py lives) - for worldcup2026.json etc.
 _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 WORLDCUP_JSON_PATH = os.path.join(_APP_DIR, "worldcup2026.json")
@@ -3758,7 +3769,11 @@ def page_new_order():
                         st.success(f"✅ נסרקו {len(flights)} טיסות!")
                         st.rerun()
                     else:
-                        st.error(f"❌ לא הצלחנו לזהות פרטי טיסות: {result.get('error', 'נסה תמונה ברורה יותר')}")
+                        err = (result.get('error') or '')[:200]
+                        if any(x in err for x in ('API key', 'expired', 'API_KEY_INVALID', 'INVALID_ARGUMENT', '400', '429', 'Quota')):
+                            st.info("💡 סריקה אוטומטית לא זמינה כרגע. הזן פרטי טיסה ידנית בשדות למטה.")
+                        else:
+                            st.error("❌ לא זוהה בתמונה. הזן פרטי טיסה ידנית או נסה תמונה ברורה יותר.")
             elif scan_flights_btn and not flight_screenshot:
                 st.warning("⚠️ יש להעלות צילום מסך לפני הסריקה")
             
@@ -4080,7 +4095,11 @@ def page_new_order():
                         'ticket_type': 'כרטיס רגיל'
                     })
                 else:
-                    st.error(f"❌ שגיאה בסריקת {source_name}: {result.get('error', 'לא ניתן לקרוא')}")
+                    err = (result.get('error') or '')[:200]
+                    if any(x in err for x in ('API key', 'expired', 'API_KEY_INVALID', 'INVALID_ARGUMENT', '400', '429', 'Quota')):
+                        st.info("💡 סריקה אוטומטית לא זמינה כרגע. הזן פרטי נוסעים ידנית.")
+                    else:
+                        st.error("❌ לא זוהה בתמונה. הזן פרטי נוסעים ידנית או נסה תמונה ברורה יותר.")
             
             if scanned_passengers:
                 is_first_empty = len(st.session_state.passenger_list) == 1 and not st.session_state.passenger_list[0].get('first_name')
