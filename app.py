@@ -4,9 +4,12 @@ TikTik Smart Order System - Main Application
 """
 
 # טעינת .env מהפרויקט – מקור יחיד, מונע חוסר סנכרון
-from pathlib import Path
-from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parent / ".env")
+try:
+    from pathlib import Path
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ImportError:
+    pass  # python-dotenv לא מותקן – משתמשים במשתני סביבה של התהליך
 
 import streamlit as st
 from models import init_db

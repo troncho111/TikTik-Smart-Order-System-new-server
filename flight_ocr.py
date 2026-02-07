@@ -4,9 +4,12 @@ Extracts flight details from screenshots/images
 משתמש ב-REST API כמו passport_ocr לסטביליות
 """
 
-from pathlib import Path
-from dotenv import load_dotenv
-load_dotenv(Path(__file__).resolve().parent / ".env")
+try:
+    from pathlib import Path
+    from dotenv import load_dotenv
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+except ImportError:
+    pass
 
 import os
 import json
