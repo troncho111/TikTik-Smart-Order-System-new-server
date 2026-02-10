@@ -1,0 +1,11 @@
+# TikTik - Streamlit config
+# לפיתוח מקומי: להשתמש ב-PORT 8505 (למניעת התנגשות עם 8501-8504)
+# הפעלה: streamlit run app.py --server.port 8505
+
+[server]
+headless = true
+enableCORS = false
+enableXsrfProtection = false
+
+[browser]
+gatherUsageStats = false

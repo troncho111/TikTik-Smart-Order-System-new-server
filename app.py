@@ -37,6 +37,7 @@ import base64
 import secrets
 from datetime import datetime, timedelta
 from services_refactored.pdf_service import generate_pdf as generate_pdf_new
+from services.pdf_service import generate_html
 from PIL import Image
 import tempfile
 import uuid
@@ -6823,13 +6824,19 @@ def page_order_summary():
     st.markdown("---")
     
     if not st.session_state.get('order_generated'):
-        if st.button("🚀 אשר וצור PDF סופי", type="primary", use_container_width=True):
+        col_pdf, col_html = st.columns(2)
+        with col_pdf:
+            pdf_btn = st.button("🚀 אשר וצור PDF סופי", type="primary", use_container_width=True)
+        with col_html:
+            html_btn = st.button("🌐 ייצוא HTML", type="secondary", use_container_width=True)
+
+        if pdf_btn:
             order_number = generate_order_number()
             order_data['order_number'] = order_number
             with st.spinner("מפיק PDF מקצועי..."):
                 try:
                     pdf_bytes = generate_pdf(
-                        order_data, 
+                        order_data,
                         st.session_state.get('final_stadium_img'),
                         st.session_state.get('final_hotel_img'),
                         st.session_state.get('final_hotel_img_2'),
@@ -6839,28 +6846,84 @@ def page_order_summary():
                     st.session_state.pdf_bytes = pdf_bytes
                     st.session_state.order_generated = True
                     st.session_state.current_order_number = order_number
-                    
+
                     # Save to DB
                     save_order_to_db(order_data, pdf_bytes)
                     st.success("✅ ה-PDF נוצר וההזמנה נשמרה!")
                     st.rerun()
                 except Exception as e:
                     st.error(f"❌ שגיאה ביצירת PDF: {str(e)}")
+
+        if html_btn:
+            if not order_data.get('order_number'):
+                order_data['order_number'] = generate_order_number()
+            with st.spinner("יוצר HTML..."):
+                try:
+                    html_bytes = generate_html(
+                        order_data,
+                        st.session_state.get('final_stadium_img'),
+                        st.session_state.get('final_hotel_img'),
+                        st.session_state.get('final_hotel_img_2'),
+                        st.session_state.get('final_stadium_photo_img')
+                    )
+                    st.session_state.html_bytes = html_bytes
+                    st.success("✅ קובץ ה-HTML נוצר בהצלחה!")
+                except Exception as e:
+                    st.error(f"❌ שגיאה ביצירת HTML: {str(e)}")
+
+        if st.session_state.get('html_bytes'):
+            html_filename = f"הזמנה_{order_data.get('customer_name', 'TikTik').replace(' ', '_')}.html"
+            st.download_button(
+                label="⬇️ הורד HTML",
+                data=st.session_state.html_bytes,
+                file_name=html_filename,
+                mime="text/html",
+                use_container_width=True,
+                key="download_html_final"
+            )
     else:
         st.success(f"✅ הזמנה {st.session_state.current_order_number} מוכנה!")
         filename = f"הזמנה_{order_data.get('customer_name', 'TikTik').replace(' ', '_')}.pdf"
-        st.download_button(
-            label="📥 הורד טופס הזמנה (PDF)",
-            data=st.session_state.pdf_bytes,
-            file_name=filename,
-            mime="application/pdf",
-            use_container_width=True
-        )
-        
+        col_dl_pdf, col_dl_html = st.columns(2)
+        with col_dl_pdf:
+            st.download_button(
+                label="📥 הורד טופס הזמנה (PDF)",
+                data=st.session_state.pdf_bytes,
+                file_name=filename,
+                mime="application/pdf",
+                use_container_width=True
+            )
+        with col_dl_html:
+            if not st.session_state.get('html_bytes'):
+                if st.button("🌐 ייצוא HTML", use_container_width=True, key="html_after_pdf"):
+                    try:
+                        html_bytes = generate_html(
+                            order_data,
+                            st.session_state.get('final_stadium_img'),
+                            st.session_state.get('final_hotel_img'),
+                            st.session_state.get('final_hotel_img_2'),
+                            st.session_state.get('final_stadium_photo_img')
+                        )
+                        st.session_state.html_bytes = html_bytes
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"❌ {str(e)}")
+            else:
+                html_fn = f"הזמנה_{order_data.get('customer_name', 'TikTik').replace(' ', '_')}.html"
+                st.download_button(
+                    label="📥 הורד טופס הזמנה (HTML)",
+                    data=st.session_state.html_bytes,
+                    file_name=html_fn,
+                    mime="text/html",
+                    use_container_width=True,
+                    key="download_html_done"
+                )
+
         if st.button("➕ צור הזמנה חדשה", use_container_width=True):
             st.session_state['ui_step'] = 1
             st.session_state.order_generated = False
             st.session_state.pdf_bytes = None
+            st.session_state.html_bytes = None
             st.rerun()
 
     if not st.session_state.get('order_generated'):

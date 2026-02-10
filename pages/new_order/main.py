@@ -6,12 +6,13 @@ New Order Main Page - TikTik Smart Order System
 import streamlit as st
 import os
 import json
+import requests
 from datetime import datetime, timedelta
 from PIL import Image
 import io
 import random
 from models import get_db, PackageTemplate, EventType, generate_order_number
-from services.pdf_service import generate_pdf
+from services.pdf_service import generate_pdf, generate_html
 from services.order_service import save_order_to_db
 from services.concert_service import (
     get_saved_concerts, save_concert_to_favorites,
@@ -2989,7 +2990,7 @@ def page_new_order():
             
             st.markdown("### 📤 פעולות")
             
-            col_btn1, col_btn2, col_btn3 = st.columns(3)
+            col_btn1, col_btn2, col_btn3, col_btn4 = st.columns(4)
             with col_btn1:
                 if st.button("📦 שמור כחבילה קבועה", type="secondary", use_container_width=True):
                     st.session_state['show_save_package_form'] = True
@@ -3001,6 +3002,11 @@ def page_new_order():
                 if generate_pdf_btn and not can_generate:
                     st.error(f"⚠️ חסר מידע חובה: {', '.join(errors)}")
                     generate_pdf_btn = False # Block execution
+            with col_btn4:
+                generate_html_btn = st.button("🌐 ייצוא HTML", type="secondary", use_container_width=True)
+                if generate_html_btn and not can_generate:
+                    st.error(f"⚠️ חסר מידע חובה: {', '.join(errors)}")
+                    generate_html_btn = False
             
             if st.session_state.get('package_saved_success'):
                 st.success(f"✅ החבילה '{st.session_state['package_saved_success']}' נשמרה בהצלחה!")
@@ -3198,6 +3204,32 @@ def page_new_order():
                             finally:
                                 db.close()
             
+            if generate_html_btn:
+                if not order_data.get('order_number'):
+                    order_data['order_number'] = generate_order_number()
+                html_bytes = None
+                with st.spinner("יוצר HTML..."):
+                    try:
+                        html_bytes = generate_html(order_data, stadium_img, hotel_img, hotel_img_2, stadium_photo_img)
+                        st.session_state.html_bytes = html_bytes
+                        st.success("✅ קובץ ה-HTML נוצר בהצלחה!")
+                    except Exception as e:
+                        st.error(f"❌ יצירת HTML נכשלה: {str(e)}")
+                        import traceback
+                        with st.expander("פרטי השגיאה"):
+                            st.code(traceback.format_exc())
+
+            if st.session_state.get('html_bytes'):
+                html_filename = f"הזמנה_{customer_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.html"
+                st.download_button(
+                    label="⬇️ הורד HTML",
+                    data=st.session_state.html_bytes,
+                    file_name=html_filename,
+                    mime="text/html",
+                    use_container_width=True,
+                    key="download_html_btn"
+                )
+
             if generate_pdf_btn:
                 order_number = generate_order_number()
                 order_data['order_number'] = order_number
@@ -3224,10 +3256,10 @@ def page_new_order():
                             st.session_state.current_order_id = saved_order.id
                     except Exception as e:
                         st.warning("⚠️ ההזמנה לא נשמרה במסד הנתונים, אך ה-PDF זמין להורדה.")
-            
+
             if st.session_state.get('order_generated') and st.session_state.get('pdf_bytes'):
                 filename = f"הזמנה_{customer_name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d')}.pdf"
-                
+
                 st.download_button(
                     label="⬇️ הורד PDF",
                     data=st.session_state.pdf_bytes,

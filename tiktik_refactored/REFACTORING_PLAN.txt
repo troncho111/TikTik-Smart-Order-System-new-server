@@ -1,0 +1,162 @@
+"""
+TikTik Refactoring Plan - Complete Structure
+==============================================
+
+ORIGINAL: app.py (6,588 lines)
+
+NEW STRUCTURE:
+==============
+
+app.py (150-200 lines)
+├── Imports
+├── init_db()
+├── st.set_page_config()
+├── RTL_CSS
+├── main() - routing only
+└── if __name__ == "__main__"
+
+config.py
+├── Constants
+├── Directory paths
+└── RTL_CSS
+
+utils/
+├── __init__.py
+├── ui_helpers.py (already exists)
+└── auth_helpers.py (already exists)
+
+services/
+├── __init__.py
+├── ai_service.py ✓ CREATED
+│   ├── get_gemini_client()
+│   ├── ai_chat_response()
+│   └── render_ai_chatbot()
+├── order_service.py ✓ CREATED
+│   ├── save_order_to_db()
+│   ├── update_order_status()
+│   ├── delete_order()
+│   └── get_all_orders()
+├── concert_service.py ✓ CREATED
+│   ├── get_saved_concerts()
+│   ├── save_concert_to_favorites()
+│   ├── delete_saved_concert()
+│   ├── get_saved_artists()
+│   ├── save_artist_to_favorites()
+│   └── delete_saved_artist()
+└── pdf_service.py
+    └── generate_pdf() - ~200 lines
+
+pages/
+├── __init__.py
+├── login.py
+│   └── page_login()
+├── order_history.py
+│   └── page_order_history()
+├── export.py
+│   └── page_export()
+├── proposals.py
+│   └── page_proposals()
+├── packages.py
+│   └── page_package_templates()
+├── saved_concerts.py
+│   └── page_saved_concerts()
+├── help.py
+│   ├── page_help()
+│   └── page_beginner_guide()
+├── change_password.py
+│   └── page_change_password()
+├── new_order/
+│   ├── __init__.py
+│   ├── main.py
+│   │   └── page_new_order() - main coordinator
+│   ├── product_selection.py
+│   │   └── show_product_selection()
+│   ├── event_selection.py
+│   │   └── show_event_selection()
+│   └── summary.py
+│       └── show_selection_summary()
+└── admin/
+    ├── __init__.py
+    ├── users.py
+    │   └── page_user_management()
+    ├── images.py
+    │   └── page_image_gallery()
+    └── maps.py
+        └── page_stadium_map_scraper()
+
+EXTERNAL FILES TO KEEP:
+========================
+- models.py
+- ui_helpers.py (already refactored)
+- auth_helpers.py (already refactored)
+- passport_ocr.py
+- hotel_resolver.py
+- airports.py
+- flight_ocr.py
+- airline_codes.py
+- streamlit_paste_button.py
+- stadium_api.py
+- concerts_service.py
+- sports_api.py
+- pdf_generator.py
+- worldcup2026.json
+- worldcup_stadiums_mapping.json
+
+FUNCTION MAPPING:
+=================
+
+AI Functions (services/ai_service.py):
+- get_gemini_client()           [Line 37]
+- ai_chat_response()            [Line 56]
+- render_ai_chatbot()           [Line 98]
+
+PDF Functions (services/pdf_service.py):
+- generate_pdf()                [Line 811]
+
+Order Functions (services/order_service.py):
+- save_order_to_db()            [Line 1009]
+- update_order_status()         [Line 1059]
+- delete_order()                [Line 1084]
+- get_all_orders()              [Line 1264]
+
+Concert Functions (services/concert_service.py):
+- get_saved_concerts()          [Line 1103]
+- save_concert_to_favorites()   [Line 1119]
+- delete_saved_concert()        [Line 1175]
+- get_saved_artists()           [Line 1195]
+- save_artist_to_favorites()    [Line 1211]
+- delete_saved_artist()         [Line 1244]
+
+UI Helper Functions (utils/ui_helpers.py):
+- render_header()               [Line 1302]
+
+New Order Page Functions:
+- show_product_selection()      [Line 1312]
+- show_event_selection()        [Line 1372]
+- show_selection_summary()      [Line 1464]
+- page_new_order()              [Line 1495]  ⚠️ HUGE: ~3,200 lines!
+
+Page Functions:
+- page_order_history()          [Line 4722]
+- page_export()                 [Line 4802]
+- page_image_gallery()          [Line 4911]
+- page_login()                  [Line 5077]
+- page_user_management()        [Line 5179]
+- page_change_password()        [Line 5323]
+- page_package_templates()      [Line 5384]
+- page_proposals()              [Line 5520]
+- page_saved_concerts()         [Line 5740]
+- page_beginner_guide()         [Line 5826]
+- page_help()                   [Line 6017]
+- page_stadium_map_scraper()    [Line 6270]
+- main()                        [Line 6488]
+
+STATUS:
+=======
+✓ services/ai_service.py - CREATED
+✓ services/order_service.py - CREATED
+✓ services/concert_service.py - CREATED
+⏳ services/pdf_service.py - IN PROGRESS
+⏳ pages/* - IN PROGRESS
+⏳ app.py - IN PROGRESS
+"""

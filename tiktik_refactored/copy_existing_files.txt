@@ -1,0 +1,14 @@
+Files to copy from original project:
+- ui_helpers.py
+- auth_helpers.py  
+- models.py
+- passport_ocr.py
+- hotel_resolver.py
+- airports.py
+- flight_ocr.py
+- airline_codes.py
+- streamlit_paste_button.py
+- stadium_api.py
+- concerts_service.py
+- sports_api.py
+- pdf_generator.py

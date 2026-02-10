@@ -1,6 +1,11 @@
 __pycache__/
 *.log
 venv/
+.venv/
 *.pdf
 *.backup*
 .env
+node_modules/
+.next/
+google-credentials.json
+.cursor/

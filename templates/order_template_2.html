@@ -130,14 +130,6 @@
             text-shadow: 0 4px 12px rgba(0,0,0,0.4);
         }
 
-        .cover-events-title {
-            font-size: 20px;
-            text-align: center;
-            color: rgba(255,255,255,0.9);
-            margin: 12px 0 0;
-            line-height: 1.5;
-        }
-
         .cover-details,
         .cover-line3 {
             font-size: 22px;
@@ -645,9 +637,6 @@
                 <div class="cover-header cover-subtitle">הזמנה רשמית</div>
                 <h1 class="cover-customer">{{ cover_line1 }}</h1>
                 <h2 class="cover-package">{{ cover_line2 }}</h2>
-                {% if cover_title %}
-                <p class="cover-events-title">{{ cover_title }}</p>
-                {% endif %}
                 <p class="cover-details">{{ cover_line3 }}</p>
             </div>
 

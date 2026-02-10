@@ -1,0 +1,108 @@
+{
+  "order_number": "TT-20260205-1E2535C6",
+  "customer_name": "יהודה מזרחי",
+  "customer_id": "123456789",
+  "customer_phone": "050-1234567",
+  "customer_email": "yehuda@example.com",
+  "created_at": "05/02/2026",
+  "product_type": "package",
+
+  "games": [
+    {
+      "display_text": "דורטמונד נגד אטאלנטה",
+      "event_date": "17/02/2026",
+      "event_time": "21:00",
+      "venue": "Signal Iduna Park",
+      "venue_name": "Signal Iduna Park",
+      "event_city": "Dortmund",
+      "category": "פלטיניום dfg",
+      "num_tickets": 2,
+      "is_date_final": false
+    },
+    {
+      "display_text": "Barcelona FC נגד ריאל מדריד",
+      "event_date": "08/02/2026",
+      "event_time": "16:15",
+      "venue": "Camp Nou",
+      "venue_name": "Camp Nou",
+      "event_city": "Barcelona",
+      "category": "VIP",
+      "num_tickets": 2,
+      "is_date_final": false
+    },
+    {
+      "display_text": "ריאל מדריד נגד אטלטיקו",
+      "event_date": "21/02/2026",
+      "event_time": "20:00",
+      "venue": "Santiago Bernabéu",
+      "venue_name": "Santiago Bernabéu",
+      "event_city": "Madrid",
+      "category": "קטגוריה 1",
+      "num_tickets": 2,
+      "is_date_final": true
+    }
+  ],
+
+  "hotel": {
+    "name": "Hotel Riu Plaza España",
+    "address": "Gran Vía, 84, Centro, 28013 Madrid, Spain",
+    "stars": 4.4,
+    "nights": 3,
+    "meals": "ארוחת בוקר",
+    "rating": "4.4 כוכבים"
+  },
+
+  "flights": [
+    {
+      "direction": "הלוך",
+      "airline": "Air Europa",
+      "flight_number": "UX1302",
+      "route": "TLV → MAD",
+      "from": "TLV",
+      "to": "MAD",
+      "date": "19/02",
+      "time": "16:05"
+    },
+    {
+      "direction": "חזור",
+      "airline": "Air Europa",
+      "flight_number": "UX1301",
+      "route": "MAD → TLV",
+      "from": "MAD",
+      "to": "TLV",
+      "date": "24/02",
+      "time": "08:35"
+    }
+  ],
+
+  "passengers": [
+    {
+      "name": "YOSEF BEN-AMI",
+      "full_name": "YOSEF BEN-AMI",
+      "passport_number": "32527110",
+      "dob": "15/03/1951",
+      "ticket_type": "כרטיס רגיל"
+    },
+    {
+      "name": "SIMHA BEN-AMI",
+      "full_name": "SIMHA BEN-AMI",
+      "passport_number": "35979048",
+      "dob": "06/02/1958",
+      "ticket_type": "כרטיס רגיל"
+    }
+  ],
+
+  "transfers": true,
+  "bag_trolley": true,
+  "bag_checked": "ללא כבודה רשומה",
+
+  "total_euro": 5000,
+  "total_nis": "18,650",
+  "exchange_rate": 3.73,
+
+  "notes": [
+    "החבילה אינה כוללת ביטוח או העברות",
+    "באחריות הלקוח לרכוש ביטוח נסיעות",
+    "כרטיסים מתקבלים עד 24 שעות לפני האירוע"
+  ]
+}

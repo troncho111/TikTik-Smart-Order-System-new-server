@@ -18,53 +18,70 @@ def load_teams_data():
     except json.JSONDecodeError:
         return {'teams': []}
 
+def _normalize_team_name(name):
+    """Remove common prefixes/suffixes from team names for matching"""
+    n = name.lower().strip()
+    for prefix in ['fc ', 'cf ', 'afc ', 'rcd ', 'ac ', 'as ', 'cd ', 'ud ', 'rc ', 'ssc ', 'deportivo ']:
+        if n.startswith(prefix):
+            n = n[len(prefix):].strip()
+    for suffix in [' fc', ' cf', ' afc', ' sc', ' ac', ' fk', ' de madrid', ' balompié', ' de fútbol']:
+        if n.endswith(suffix):
+            n = n[:-len(suffix)].strip()
+    return n
+
+
 def get_team_info(team_identifier):
     """
     מחזיר מידע על קבוצה לפי מזהה (תומך בשמות מלאים מ-OpenFootball כמו 'FC Barcelona')
-    
+
     Args:
         team_identifier: יכול להיות:
             - team.id (לדוגמה: 'real_madrid')
             - שם בעברית (לדוגמה: 'ריאל מדריד')
             - שם באנגלית (לדוגמה: 'Real Madrid' או 'FC Barcelona')
-    
+
     Returns:
         dict: מידע על הקבוצה או None אם לא נמצאה
     """
     data = load_teams_data()
     identifier_lower = str(team_identifier).lower().strip()
-    
-    # Normalize identifier: remove common prefixes/suffixes
-    normalized_id = identifier_lower
-    for prefix in ['fc ', 'cf ', 'afc ', 'rcd ', 'ac ', 'as ', 'real ', 'cd ', 'ud ', 'rc ', 'deportivo ']:
-        if normalized_id.startswith(prefix):
-            normalized_id = normalized_id[len(prefix):].strip()
-    for suffix in [' fc', ' cf', ' afc', ' sc', ' ac', ' fk', ' de madrid', ' balompié', ' de fútbol']:
-        if normalized_id.endswith(suffix):
-            normalized_id = normalized_id[:-len(suffix)].strip()
-    
+    normalized_id = _normalize_team_name(str(team_identifier))
+
+    # Pass 1: Exact matches (id, full name, Hebrew name, normalized exact)
     for team in data['teams']:
         team_name_lower = team['name_en'].lower()
-        team_normalized = team_name_lower
-        for prefix in ['fc ', 'cf ', 'afc ', 'rcd ', 'ac ', 'as ', 'real ', 'cd ', 'ud ', 'rc ']:
-            if team_normalized.startswith(prefix):
-                team_normalized = team_normalized[len(prefix):].strip()
-        for suffix in [' fc', ' cf', ' afc', ' sc', ' ac', ' fk']:
-            if team_normalized.endswith(suffix):
-                team_normalized = team_normalized[:-len(suffix)].strip()
-        
-        # Check: exact, normalized, or partial match
-        if (team['id'] == identifier_lower or 
-            team_name_lower == identifier_lower or 
+        team_normalized = _normalize_team_name(team['name_en'])
+
+        if (team['id'] == identifier_lower or
+            team_name_lower == identifier_lower or
             team['name_he'] == team_identifier or
-            team_normalized == normalized_id or
-            normalized_id in team_normalized or
-            team_normalized in normalized_id or
-            identifier_lower in team_name_lower or
-            team['name_he'] in str(team_identifier)):
+            (team_normalized == normalized_id and normalized_id)):
             return team
-    
-    return None
+
+    # Pass 2: Fuzzy partial match - only if one name fully contains the other
+    # and the match is significant (>= 60% of the longer string)
+    best_match = None
+    best_score = 0
+    for team in data['teams']:
+        team_name_lower = team['name_en'].lower()
+        team_normalized = _normalize_team_name(team['name_en'])
+
+        match = False
+        if identifier_lower in team_name_lower or team_name_lower in identifier_lower:
+            match = True
+        elif team['name_he'] in str(team_identifier):
+            match = True
+
+        if match:
+            # Score by how close the match is (longer overlap = better)
+            overlap = min(len(identifier_lower), len(team_name_lower))
+            max_len = max(len(identifier_lower), len(team_name_lower))
+            score = overlap / max_len if max_len > 0 else 0
+            if score > best_score and score >= 0.5:
+                best_score = score
+                best_match = team
+
+    return best_match
 
 def get_all_teams():
     """מחזיר רשימה של כל הקבוצות"""

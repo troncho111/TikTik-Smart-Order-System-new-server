@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TikTik - {{ order_number }}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Heebo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #1a1a2e;
+            --accent: #667eea;
+            --accent-light: #764ba2;
+            --text: #1a1a2e;
+            --text-muted: #6b7280;
+            --bg: #f5f5f7;
+            --card-bg: #ffffff;
+            --border: #e5e7eb;
+            --green: #10b981;
+            --red: #ef4444;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Heebo', sans-serif;
+            direction: rtl;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* ===== COVER HERO ===== */
+        .hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #16213e 50%, var(--accent) 100%);
+            border-radius: 20px;
+            padding: 50px 40px;
+            color: white;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            margin-bottom: 24px;
+        }
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(102,126,234,0.15) 0%, transparent 60%);
+            pointer-events: none;
+        }
+        .hero-logo { width: 120px; margin-bottom: 16px; filter: brightness(0) invert(1); }
+        .hero-title { font-size: 36px; font-weight: 900; margin-bottom: 8px; text-shadow: 0 2px 15px rgba(0,0,0,0.3); }
+        .hero-subtitle { font-size: 18px; color: var(--accent); font-weight: 500; margin-bottom: 6px; }
+        .hero-venue { font-size: 15px; color: rgba(255,255,255,0.7); margin-bottom: 20px; }
+        .hero-badge { display: inline-block; background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25); padding: 10px 24px; border-radius: 12px; font-size: 16px; font-weight: 600; backdrop-filter: blur(4px); }
+        .hero-customer { margin-top: 16px; font-size: 17px; color: var(--accent); font-weight: 700; }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+            padding: 24px;
+            margin-bottom: 20px;
+        }
+        .card-title {
+            font-size: 18px;
+            font-weight: 800;
+            color: var(--text);
+            margin-bottom: 16px;
+            padding-right: 14px;
+            border-right: 4px solid var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .card-title .icon { font-size: 20px; }
+
+        /* ===== INFO GRID ===== */
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .info-item {
+            background: var(--bg);
+            padding: 12px 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+        .info-label {
+            font-size: 11px;
+            color: var(--text-muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .info-value { font-size: 15px; font-weight: 700; }
+        .info-value.accent { color: var(--accent); }
+        .info-value.red { color: var(--red); font-size: 12px; font-weight: 500; margin-top: 2px; }
+
+        /* ===== SEATMAP ===== */
+        .seatmap {
+            text-align: center;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px;
+            background: var(--bg);
+            margin-top: 16px;
+        }
+        .seatmap-label { font-size: 13px; font-weight: 700; margin-bottom: 8px; color: var(--text-muted); }
+        .seatmap img { max-width: 100%; max-height: 420px; object-fit: contain; border-radius: 8px; }
+
+        /* ===== ATMOSPHERE ===== */
+        .atmo { width: 100%; height: 180px; border-radius: 12px; overflow: hidden; margin-top: 16px; }
+        .atmo img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ===== HOTEL IMAGES ===== */
+        .hotel-images { display: flex; gap: 12px; margin-bottom: 16px; }
+        .hotel-img-box { flex: 1; height: 200px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
+        .hotel-img-box img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* ===== PACKAGE INCLUDES ===== */
+        .includes-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .include-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            background: linear-gradient(135deg, #f0fdf4, #ecfdf5);
+            border: 1px solid #bbf7d0;
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #166534;
+        }
+        .include-chip .check { color: var(--green); font-weight: 900; }
+
+        /* ===== PASSENGERS TABLE ===== */
+        .pax-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+        .pax-table th {
+            background: var(--primary);
+            color: var(--accent);
+            padding: 10px 14px;
+            font-size: 12px;
+            text-align: right;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .pax-table th:first-child { border-radius: 0 10px 0 0; }
+        .pax-table th:last-child { border-radius: 10px 0 0 0; }
+        .pax-table td { padding: 10px 14px; font-size: 14px; border-bottom: 1px solid var(--border); }
+        .pax-table tr:nth-child(even) td { background: var(--bg); }
+        .pax-table tr:last-child td { border-bottom: none; }
+
+        /* ===== FLIGHTS ===== */
+        .flight-card {
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 12px;
+        }
+        .flight-header {
+            background: var(--primary);
+            color: var(--accent);
+            padding: 10px 16px;
+            font-weight: 700;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .flight-body {
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .flight-route { font-size: 22px; font-weight: 900; color: var(--text); flex-shrink: 0; }
+        .flight-detail {
+            background: var(--bg);
+            padding: 8px 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        .flight-detail-label { font-size: 10px; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+        .flight-detail-value { font-size: 14px; font-weight: 700; }
+        .baggage-info {
+            background: var(--bg);
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            margin-top: 8px;
+        }
+
+        /* ===== PRICE HERO ===== */
+        .price-hero {
+            background: linear-gradient(135deg, var(--primary) 0%, #16213e 100%);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            margin: 20px 0;
+        }
+        .price-label { font-size: 16px; color: var(--accent); margin-bottom: 6px; font-weight: 500; }
+        .price-big { font-size: 48px; font-weight: 900; letter-spacing: -1px; }
+        .price-euro { font-size: 15px; color: rgba(255,255,255,0.6); margin-top: 4px; }
+
+        /* ===== SUMMARY TABLE ===== */
+        .summary-table { width: 100%; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        .summary-row { display: flex; border-bottom: 1px solid var(--border); }
+        .summary-row:last-child { border-bottom: none; }
+        .summary-key { width: 35%; padding: 10px 16px; background: var(--bg); font-size: 13px; color: var(--text-muted); font-weight: 600; }
+        .summary-val { flex: 1; padding: 10px 16px; font-size: 14px; font-weight: 700; }
+
+        /* ===== SIGNATURES ===== */
+        .sig-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+        .sig-box { border: 2px dashed #d1d5db; border-radius: 12px; padding: 16px; text-align: center; }
+        .sig-title { font-size: 12px; font-weight: 700; color: var(--text-muted); margin-bottom: 8px; }
+        .sig-line { height: 50px; border-bottom: 1px solid var(--text); margin-bottom: 8px; }
+        .sig-name { font-size: 14px; font-weight: 700; }
+
+        /* ===== NOTES ===== */
+        .notes-card {
+            background: linear-gradient(135deg, var(--primary) 0%, #16213e 100%);
+            border-radius: 16px;
+            padding: 20px 24px;
+            color: white;
+            margin-top: 20px;
+        }
+        .notes-title { font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.12); padding-bottom: 8px; }
+        .notes-list { list-style: none; padding: 0; }
+        .notes-list li { font-size: 13px; padding: 3px 16px 3px 0; position: relative; color: rgba(255,255,255,0.85); }
+        .notes-list li::before { content: "\2022"; position: absolute; right: 0; color: var(--accent); font-weight: bold; }
+
+        /* ===== TERMS ===== */
+        .terms-content { font-size: 11px; color: #6b7280; line-height: 1.4; column-count: 2; column-gap: 24px; text-align: justify; }
+
+        /* ===== FOOTER ===== */
+        .footer { text-align: center; padding: 24px; color: var(--text-muted); font-size: 12px; }
+
+        /* ===== DIVIDER ===== */
+        .divider { border: none; border-top: 1px solid var(--border); margin: 0; }
+
+        /* ===== PRINT STYLES ===== */
+        @media print {
+            body { background: white; font-size: 11pt; }
+            .container { max-width: 100%; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #eee; break-inside: avoid; page-break-inside: avoid; }
+            .hero { break-after: page; page-break-after: always; border-radius: 0; margin: 0; padding: 40px; }
+            .price-hero, .notes-card { break-inside: avoid; page-break-inside: avoid; }
+            .sig-grid { break-inside: avoid; page-break-inside: avoid; }
+            .no-print { display: none !important; }
+            @page { margin: 12mm; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- HERO -->
+        <div class="hero">
+            {% if logo_path %}<img src="{{ logo_path }}" alt="TikTik" class="hero-logo">{% endif %}
+            <h1 class="hero-title">{{ event_name or 'הצעת מחיר' }}</h1>
+            <div class="hero-subtitle">{% if product_type == 'package' %}חבילת ספורט פרימיום{% else %}כרטיסים לאירוע{% endif %}</div>
+            <div class="hero-venue">{{ venue }}{% if event_city %}, {{ event_city }}{% endif %}</div>
+            <div class="hero-badge">{{ order_number }}</div>
+            {% if customer_name %}
+            <div class="hero-customer">הוכן עבור {{ customer_name }}</div>
+            {% endif %}
+        </div>
+
+        <!-- EVENT DETAILS -->
+        <div class="card">
+            <div class="card-title"><span class="icon">🎫</span> פרטי האירוע</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">לקוח</div>
+                    <div class="info-value">{{ customer_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">אירוע</div>
+                    <div class="info-value">{{ event_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">תאריך</div>
+                    <div class="info-value">{{ event_date }}</div>
+                    {% if is_date_final is defined and is_date_final == false %}
+                    <div class="info-value red">התאריך אינו סופי</div>
+                    {% endif %}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">מקום</div>
+                    <div class="info-value">{{ venue }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">קטגוריה</div>
+                    <div class="info-value accent">{{ category }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">כרטיסים</div>
+                    <div class="info-value">{{ num_tickets }}</div>
+                </div>
+            </div>
+
+            {% if stadium_image_path %}
+            <div class="seatmap">
+                <div class="seatmap-label">מפת מושבים באצטדיון</div>
+                <img src="{{ stadium_image_path }}" alt="Stadium Map">
+            </div>
+            {% endif %}
+
+            {% if stadium_photo_path %}
+            <div class="atmo">
+                <img src="{{ stadium_photo_path }}" alt="Stadium">
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ADDITIONAL EVENTS -->
+        {% if saved_games and saved_games|length > 0 %}
+        {% for game in saved_games %}
+        <div class="card">
+            <div class="card-title"><span class="icon">⚽</span> אירוע {{ loop.index + 1 }} - {{ game.event_name or game.display_text }}</div>
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">תאריך</div>
+                    <div class="info-value">{{ game.event_date or '' }}</div>
+                    {% if game.is_date_final is defined and game.is_date_final == false %}
+                    <div class="info-value red">התאריך אינו סופי</div>
+                    {% endif %}
+                </div>
+                <div class="info-item">
+                    <div class="info-label">מיקום</div>
+                    <div class="info-value">{{ game.venue_name or game.venue or '' }}{% if game.event_city %}, {{ game.event_city }}{% endif %}</div>
+                </div>
+                {% if game.category %}
+                <div class="info-item">
+                    <div class="info-label">קטגוריה</div>
+                    <div class="info-value accent">{{ game.category }}</div>
+                </div>
+                {% endif %}
+                {% if game.num_tickets %}
+                <div class="info-item">
+                    <div class="info-label">כרטיסים</div>
+                    <div class="info-value">{{ game.num_tickets }}</div>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if game.seatmap_image or game.stadium_map_path %}
+            <div class="seatmap">
+                <div class="seatmap-label">מפת האצטדיון</div>
+                <img src="{{ game.seatmap_image or game.stadium_map_path }}" alt="Stadium Map">
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        {% endif %}
+
+        <!-- HOTEL -->
+        {% if hotel_name %}
+        <div class="card">
+            <div class="card-title"><span class="icon">🏨</span> פרטי המלון</div>
+
+            {% if hotel_image_path and hotel_image_path_2 %}
+            <div class="hotel-images">
+                <div class="hotel-img-box"><img src="{{ hotel_image_path }}" alt="Hotel"></div>
+                <div class="hotel-img-box"><img src="{{ hotel_image_path_2 }}" alt="Hotel"></div>
+            </div>
+            {% elif hotel_image_path %}
+            <div class="hotel-images">
+                <div class="hotel-img-box"><img src="{{ hotel_image_path }}" alt="Hotel"></div>
+            </div>
+            {% endif %}
+
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-label">מלון</div>
+                    <div class="info-value">{{ hotel_name }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">כתובת</div>
+                    <div class="info-value">{{ hotel_address or '' }}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">לילות</div>
+                    <div class="info-value">{{ hotel_nights }} לילות{% if hotel_stars %} | {{ hotel_stars }} כוכבים{% endif %}</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-label">ארוחות</div>
+                    <div class="info-value">{{ hotel_meals or 'לא כלול' }}</div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- PACKAGE INCLUDES -->
+        {% if product_type == 'package' %}
+        <div class="card">
+            <div class="card-title"><span class="icon">📦</span> החבילה כוללת</div>
+            <div class="includes-bar">
+                <span class="include-chip"><span class="check">✓</span> {{ num_tickets }} כרטיסים לאירוע</span>
+                {% if hotel_name %}<span class="include-chip"><span class="check">✓</span> {{ hotel_nights }} לילות במלון {{ hotel_name }}</span>{% endif %}
+                {% if flights and flights|length > 0 %}<span class="include-chip"><span class="check">✓</span> טיסות הלוך וחזור</span>{% endif %}
+                {% if transfers %}<span class="include-chip"><span class="check">✓</span> העברות משדה התעופה</span>{% endif %}
+                {% if bag_trolley %}<span class="include-chip"><span class="check">✓</span> טרולי עליה למטוס</span>{% endif %}
+                {% if bag_checked %}<span class="include-chip"><span class="check">✓</span> מזוודה{% if bag_checked_text %} {{ bag_checked_text }}{% endif %}</span>{% endif %}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- PASSENGERS -->
+        {% if passengers and passengers|length > 0 %}
+        <div class="card">
+            <div class="card-title"><span class="icon">👥</span> רשימת הנוסעים</div>
+            <table class="pax-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>שם מלא</th>
+                        <th>מספר דרכון</th>
+                        <th>תאריך לידה</th>
+                        <th>סוג כרטיס</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for p in passengers %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ p.name or p.full_name or '' }}</td>
+                        <td>{{ p.passport_number or p.passport or '' }}</td>
+                        <td>{{ p.dob or p.birth_date or '' }}</td>
+                        <td>{{ p.ticket_type or 'כרטיס רגיל' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+
+        <!-- FLIGHTS -->
+        {% if flights and flights|length > 0 %}
+        <div class="card">
+            <div class="card-title"><span class="icon">✈️</span> טיסות</div>
+            {% for flight in flights %}
+            <div class="flight-card">
+                <div class="flight-header">
+                    {% if flight.direction == 'outbound' or flight.direction == 'הלוך' %}✈ טיסת הלוך{% elif flight.direction == 'inbound' or flight.direction == 'חזור' %}✈ טיסת חזור{% else %}✈ {{ flight.direction }}{% endif %}
+                    {% if flight.airline %} — {{ flight.airline }}{% endif %}
+                </div>
+                <div class="flight-body">
+                    <div class="flight-route">{{ flight.from }} ➤ {{ flight.to }}</div>
+                    <div class="flight-detail">
+                        <div class="flight-detail-label">תאריך</div>
+                        <div class="flight-detail-value">{{ flight.date or '-' }}</div>
+                    </div>
+                    <div class="flight-detail">
+                        <div class="flight-detail-label">המראה</div>
+                        <div class="flight-detail-value">{{ flight.departure_time or flight.time or '-' }}</div>
+                    </div>
+                    {% if flight.arrival_time %}
+                    <div class="flight-detail">
+                        <div class="flight-detail-label">נחיתה</div>
+                        <div class="flight-detail-value">{{ flight.arrival_time }}</div>
+                    </div>
+                    {% endif %}
+                    {% if flight.flight_no %}
+                    <div class="flight-detail">
+                        <div class="flight-detail-label">מס' טיסה</div>
+                        <div class="flight-detail-value">{{ flight.flight_no }}</div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+
+            {% if bag_trolley or bag_checked %}
+            <div class="baggage-info">
+                <strong>כבודה:</strong>
+                {% if bag_trolley %}טרולי עליה למטוס{% endif %}
+                {% if bag_trolley and bag_checked %} + {% endif %}
+                {% if bag_checked %}מזוודה{% if bag_checked_text %} {{ bag_checked_text }}{% endif %}{% endif %}
+            </div>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <!-- SUMMARY + PAYMENT -->
+        <div class="card">
+            <div class="card-title"><span class="icon">📋</span> סיכום ותשלום</div>
+            <div class="summary-table">
+                <div class="summary-row"><div class="summary-key">מספר הזמנה</div><div class="summary-val">{{ order_number }}</div></div>
+                <div class="summary-row"><div class="summary-key">שם הלקוח</div><div class="summary-val">{{ customer_name }}</div></div>
+                <div class="summary-row"><div class="summary-key">סוג</div><div class="summary-val">{% if product_type == 'package' %}חבילה מלאה{% else %}כרטיסים{% endif %}</div></div>
+                <div class="summary-row"><div class="summary-key">אירוע</div><div class="summary-val">{{ event_name }}{% if saved_games and saved_games|length > 0 %}{% for game in saved_games %}, {{ game.event_name or game.display_text }}{% endfor %}{% endif %}</div></div>
+                <div class="summary-row"><div class="summary-key">תאריך</div><div class="summary-val">{{ event_date }}</div></div>
+                <div class="summary-row"><div class="summary-key">מיקום</div><div class="summary-val">{{ venue }}</div></div>
+                <div class="summary-row"><div class="summary-key">קטגוריה</div><div class="summary-val">{{ category }}</div></div>
+                <div class="summary-row"><div class="summary-key">כרטיסים</div><div class="summary-val">{{ num_tickets }}</div></div>
+                {% if hotel_name %}
+                <div class="summary-row"><div class="summary-key">מלון</div><div class="summary-val">{{ hotel_name }}{% if hotel_stars %} ({{ hotel_stars }} כוכבים){% endif %} | {{ hotel_nights }} לילות</div></div>
+                {% endif %}
+                {% if passengers and passengers|length > 0 %}
+                <div class="summary-row"><div class="summary-key">נוסעים</div><div class="summary-val">{{ passengers|length }}</div></div>
+                {% endif %}
+            </div>
+
+            <div class="price-hero">
+                <div class="price-label">סה"כ לתשלום</div>
+                <div class="price-big">₪{{ "{:,.0f}".format(total_nis) if total_nis else '0' }}</div>
+                {% if total_euro %}
+                <div class="price-euro">(€{{ "{:,.0f}".format(total_euro) }} לפי שער {{ exchange_rate }})</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- SIGNATURES -->
+        <div class="card">
+            <div class="sig-grid">
+                <div class="sig-box">
+                    <div class="sig-title">שם הלקוח</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-name">{{ customer_name }}</div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-title">חתימת הלקוח</div>
+                    <div class="sig-line"></div>
+                </div>
+                <div class="sig-box">
+                    <div class="sig-title">תאריך</div>
+                    <div class="sig-line"></div>
+                    <div class="sig-name">{{ created_at or '' }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- NOTES -->
+        <div class="notes-card">
+            <div class="notes-title">דגשים:</div>
+            <ul class="notes-list">
+                {% if not transfers %}<li>החבילה אינה כוללת ביטוח או העברות</li>{% endif %}
+                <li>באחריות הלקוח לרכוש ביטוח נסיעות על חשבונו</li>
+                <li>כרטיסים מתקבלים עד 24 שעות לפני מועד האירוע, ובמקרים חריגים ביום האירוע עצמו</li>
+                <li>מרגע אישור ההזמנה חלים דמי ביטול מלאים</li>
+            </ul>
+        </div>
+
+        <!-- TERMS -->
+        {% if terms_text %}
+        <div class="card" style="margin-top: 20px;">
+            <div class="card-title"><span class="icon">📜</span> תקנון, תנאי שימוש ומדיניות פרטיות</div>
+            <div class="terms-content">
+                {{ terms_text | replace('\n', '<br>') }}
+            </div>
+        </div>
+        {% endif %}
+
+        <!-- FOOTER -->
+        <div class="footer">
+            TikTik Sports & Events | {{ created_at or '' }}
+        </div>
+
+    </div>
+</body>
+</html>

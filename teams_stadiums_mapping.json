@@ -246,28 +246,17 @@
       "map_filename": "leipzig.jpg"
     },
     {
-      "id": "AC_Milan",
-      "name_en": "מילאן",
+      "id": "ac_milan",
+      "name_en": "AC Milan",
       "name_he": "מילאן",
-      "stadium": "",
-      "stadium_he": "",
-      "city": "",
-      "city_he": "",
-      "country": "",
-      "league": "Italian Serie A",
+      "stadium": "San Siro",
+      "stadium_he": "סן סירו",
+      "city": "Milan",
+      "city_he": "מילאנו",
+      "country": "Italy",
+      "league": "Serie A",
+      "capacity": 75923,
       "map_filename": "AC_Milan.jpg"
-    },
-    {
-      "id": "Juventus",
-      "name_en": "יובנטוס",
-      "name_he": "יובנטוס",
-      "stadium": "",
-      "stadium_he": "",
-      "city": "",
-      "city_he": "",
-      "country": "",
-      "league": "Italian Serie A",
-      "map_filename": "Juventus.png"
     },
     {
       "id": "fulham",
